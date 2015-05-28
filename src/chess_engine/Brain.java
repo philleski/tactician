@@ -38,7 +38,7 @@ public class Brain {
 			whitePawnCount * this.FITNESS_PAWN +
 			whiteQueenCount * this.FITNESS_QUEEN +
 			whiteRookCount * this.FITNESS_ROOK;
-		if(blackMaterial <= 13 && whiteMaterial <= 13) {
+		if(blackMaterial <= 1300 && whiteMaterial <= 1300) {
 			return true;
 		}
 		return false;
@@ -57,7 +57,7 @@ public class Brain {
 		int whitePawnCount = numBitsSet(board.whitePawns);
 		int whiteQueenCount = numBitsSet(board.whiteQueens);
 		int whiteRookCount = numBitsSet(board.whiteRooks);
-		
+				
 		float blackMaterial =
 			blackBishopCount * this.FITNESS_BISHOP +
 			blackKingCount * this.FITNESS_KING +
@@ -81,11 +81,11 @@ public class Brain {
 			fitness = blackMaterial - whiteMaterial;
 		}
 		
-		fitness += Math.random() * 0.01;
 		return fitness;
 	}
-	
-	private float probeFitness(Board board, int depth) {
+
+	// http://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
+	private float alphabeta(Board board, int depth, float alpha, float beta) {
 		if(depth == 0) {
 			return this.fitness(board);
 		}
@@ -127,12 +127,24 @@ public class Brain {
 			}
 			catch(IllegalMoveException e) {
 			}
-			float fitness = this.probeFitness(copy, depth - 1);
+			float fitness = this.alphabeta(copy, depth - 1, alpha, beta);
 			if(depth % 2 == 0 && fitness > superlativeFitness) {
 				superlativeFitness = fitness;
+				if(superlativeFitness > alpha) {
+					alpha = superlativeFitness;
+				}
+				if(beta <= alpha) {
+					break;
+				}
 			}
 			else if(depth % 2 == 1 && fitness < superlativeFitness) {
 				superlativeFitness = fitness;
+				if(superlativeFitness < beta) {
+					beta = superlativeFitness;
+				}
+				if(beta <= alpha) {
+					break;
+				}
 			}
 		}
 		return superlativeFitness;
@@ -141,10 +153,10 @@ public class Brain {
 	public long[] getMove(Board board) {
 		int depth = 0;
 		if(this.isEndgame(board)) {
-			depth = 6;
+			depth = 7;
 		}
 		else {
-			depth = 5;
+			depth = 6;
 		}
 		System.out.println("Depth: " + depth);
 		
@@ -163,7 +175,8 @@ public class Brain {
 			}
 			catch(IllegalMoveException e) {
 			}
-			float fitness = this.probeFitness(copy, depth - 1);
+			float fitness = this.alphabeta(copy, depth - 1, -FITNESS_LARGE, FITNESS_LARGE);
+			fitness += Math.random() * 0.01;
 			if(depth % 2 == 0 && fitness > superlativeFitness) {
 				superlativeFitness = fitness;
 				bestMove = move;
@@ -176,11 +189,12 @@ public class Brain {
 		return bestMove;
 	}
 	
+	// These are all in centipawns.
 	private float FITNESS_LARGE = 1000000000;   // A large value used for initialization.
-	private float FITNESS_BISHOP = 300;
+	private float FITNESS_BISHOP = 333;
 	private float FITNESS_KING = 1000000;
-	private float FITNESS_KNIGHT = 300;
+	private float FITNESS_KNIGHT = 320;
 	private float FITNESS_PAWN = 100;
-	private float FITNESS_QUEEN = 900;
-	private float FITNESS_ROOK = 500;
+	private float FITNESS_QUEEN = 880;
+	private float FITNESS_ROOK = 510;
 }
