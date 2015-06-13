@@ -1,6 +1,7 @@
 package chess_engine;
 
-import java.util.*;
+import java.util.ArrayList;
+
 import chess_engine.Board;
 import chess_engine.IllegalMoveException;
 
