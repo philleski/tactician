@@ -2,4 +2,5 @@
 .project
 chess_engine.jar
 bin/
+.settings/
 
