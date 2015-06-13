@@ -238,6 +238,26 @@ public class Board {
 		}
 		return "";
 	}
+	
+	public String moveToLongAlgebraic(long[] move) {
+		long source = move[0];
+		long dest = move[1];
+		int promoteTo = (int)move[2];
+		String result = coordToSquare(source) + coordToSquare(dest);
+		if(promoteTo == BISHOP) {
+			result += "b";
+		}
+		else if(promoteTo == KNIGHT) {
+			result += "n";
+		}
+		else if(promoteTo == QUEEN) {
+			result += "q";
+		}
+		else if(promoteTo == ROOK) {
+			result += "r";
+		}
+		return result;
+	}
 		
 	public String moveToAlgebraic(long[] move) {
 		long source = move[0];
@@ -1348,6 +1368,134 @@ public class Board {
 			throw new IllegalMoveException("Illegal move: Could not convert algebraic move.");
 		}
 		this.move(m);
+	}
+	
+	private void setPositionEmpty() {
+		this.whiteBishops = 0;
+		this.whiteKings = 0;
+		this.whiteKnights = 0;
+		this.whitePawns = 0;
+		this.whiteQueens = 0;
+		this.whiteRooks = 0;
+		
+		this.blackBishops = 0;
+		this.blackKings = 0;
+		this.blackKnights = 0;
+		this.blackPawns = 0;
+		this.blackQueens = 0;
+		this.blackRooks = 0;
+		
+		this.whitePieces = 0;
+		this.blackPieces = 0;
+		this.allPieces = 0;
+	}
+	
+	public void setPositionFenstring(String fenstring) {
+		String[] parts = fenstring.split(" ");
+		
+		String placement = parts[0];
+		String[] placementParts = placement.split("/");
+		this.setPositionEmpty();
+		for(int i = 0; i < 8; i++) {
+			// Start with rank 8 and go to rank 1.
+			long mask = 1L << 8 * (7 - i);   // a8, a7, ..., a1
+			int placementPartLength = placementParts[i].length();
+			for(int j = 0; j < placementPartLength; j++) {
+				char piece = placementParts[i].charAt(j);
+				
+				if(piece == 'b') {
+					this.blackBishops |= mask;
+				}
+				else if(piece == 'k') {
+					this.blackKings |= mask;
+				}
+				else if(piece == 'n') {
+					this.blackKnights |= mask;
+				}
+				else if(piece == 'p') {
+					this.blackPawns |= mask;
+				}
+				else if(piece == 'q') {
+					this.blackQueens |= mask;
+				}
+				else if(piece == 'r') {
+					this.blackRooks |= mask;
+				}
+				else if(piece == 'B') {
+					this.whiteBishops |= mask;
+				}
+				else if(piece == 'K') {
+					this.whiteKings |= mask;
+				}
+				else if(piece == 'N') {
+					this.whiteKnights |= mask;
+				}
+				else if(piece == 'P') {
+					this.whitePawns |= mask;
+				}
+				else if(piece == 'Q') {
+					this.whiteQueens |= mask;
+				}
+				else if(piece == 'R') {
+					this.whiteRooks |= mask;
+				}
+				else {
+					// A numeric amount of blank squares.
+					mask <<= (piece - '1');
+				}
+				
+				if(j < placementPartLength - 1) {
+					// If we happen to be on h8 it may cause an out-of-bounds error otherwise.
+					mask <<= 1;
+				}
+			}
+		}
+		this.whitePieces = this.whiteBishops | this.whiteKings |
+				this.whiteKnights | this.whitePawns | this.whiteQueens |
+				this.whiteRooks;
+		this.blackPieces = this.blackBishops | this.blackKings |
+				this.blackKnights | this.blackPawns | this.blackQueens |
+				this.blackRooks;
+		this.allPieces = this.whitePieces | this.blackPieces;
+		
+		String activeColor = parts[1];
+		if(activeColor.equals("w")) {
+			this.turn = WHITE;
+		}
+		else {
+			this.turn = BLACK;
+		}
+		
+		String castling = parts[2];
+		this.whiteKingMoved = true;
+		this.whiteRookAMoved = true;
+		this.whiteRookHMoved = true;
+		this.blackKingMoved = true;
+		this.blackRookAMoved = true;
+		this.blackRookHMoved = true;
+		if(castling.contains("K")) {
+			this.whiteKingMoved = false;
+			this.whiteRookHMoved = false;
+		}
+		if(castling.contains("Q")) {
+			this.whiteKingMoved = false;
+			this.whiteRookAMoved = false;
+		}
+		if(castling.contains("k")) {
+			this.blackKingMoved = false;
+			this.blackRookHMoved = false;
+		}
+		if(castling.contains("q")) {
+			this.blackKingMoved = false;
+			this.blackRookAMoved = false;
+		}
+		
+		String enPassantTarget = parts[3];
+		if(!enPassantTarget.equals("-")) {
+			this.enPassantTarget = squareToCoord(enPassantTarget);
+		}
+		
+		// TODO: Implement the halfmove clock and possibly fullmove number.
 	}
 	
 	private long getMyBishops() {
