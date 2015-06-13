@@ -692,7 +692,7 @@ public class Board {
 				mask <<= step;
 			}
 			else {
-				mask >>= (-step);
+				mask >>>= (-step);
 			}
 		}
 		return true;
