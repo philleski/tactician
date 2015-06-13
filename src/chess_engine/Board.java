@@ -67,7 +67,7 @@ public class Board {
 		String rank;
 		int offset = 0;
 		while((coord & 1L) == 0) {
-			coord = coord >> 1;
+			coord = coord >>> 1;
 			offset++;
 		}
 		file = "" + ((char)(offset % 8 + 97));
@@ -90,7 +90,6 @@ public class Board {
 			long source = m[0];
 			long dest = m[1];
 			int promoteTo = (int)m[2];
-			int enPassantCapture = (int)m[3];
 			int castle = (int)m[4]; 
 			String sourceSquare = coordToSquare(source);
 			if(algebraic.equals("O-O")) {
@@ -908,10 +907,10 @@ public class Board {
 				if(this.turn == WHITE) {
 					// Look at the black player's pawns.
 					if(i % 8 != 0) {
-						oppLegalMoves.add(new long[]{mask, mask >> 9, EMPTY, EP_NO, CASTLE_NONE});
+						oppLegalMoves.add(new long[]{mask, mask >>> 9, EMPTY, EP_NO, CASTLE_NONE});
 					}
 					if(i % 8 != 7) {
-						oppLegalMoves.add(new long[]{mask, mask >> 7, EMPTY, EP_NO, CASTLE_NONE});
+						oppLegalMoves.add(new long[]{mask, mask >>> 7, EMPTY, EP_NO, CASTLE_NONE});
 					}
 				}
 				else {
@@ -980,7 +979,7 @@ public class Board {
 				if(this.turn == WHITE) {
 					// One space forward
 					if(((mask << 8) & this.allPieces) == 0) {
-						if(mask >> 48 == 0) {
+						if(mask >>> 48 == 0) {
 							result.add(new long[]{mask, mask << 8, EMPTY, EP_NO, CASTLE_NONE});
 						}
 						else {
@@ -997,7 +996,7 @@ public class Board {
 					}
 					// Capture left
 					if(i % 8 != 0 && ((mask << 7) & oppPieces) != 0) {
-						if(mask >> 48 == 0) {
+						if(mask >>> 48 == 0) {
 							result.add(new long[]{mask, mask << 7, EMPTY, EP_NO, CASTLE_NONE});
 						}
 						else {
@@ -1009,7 +1008,7 @@ public class Board {
 					}
 					// Capture right
 					if(i % 8 != 7 && ((mask << 9) & oppPieces) != 0) {
-						if(mask >> 48 == 0) {
+						if(mask >>> 48 == 0) {
 							result.add(new long[]{mask, mask << 9, EMPTY, EP_NO, CASTLE_NONE});
 						}
 						else {
@@ -1021,7 +1020,7 @@ public class Board {
 					}
 					// En passant
 					if(this.enPassantTarget != 0) {
-						if(i % 8 != 0 && mask >> 1 == this.enPassantTarget) {
+						if(i % 8 != 0 && mask >>> 1 == this.enPassantTarget) {
 							result.add(new long[]{mask, mask << 7, EMPTY, EP_YES, CASTLE_NONE});
 						}
 						if(i % 8 != 7 && mask << 1 == this.enPassantTarget) {
@@ -1031,53 +1030,53 @@ public class Board {
 				}
 				else {
 					// One space forward
-					if(((mask >> 8) & this.allPieces) == 0) {
-						if(mask >> 16 != 0) {
-							result.add(new long[]{mask, mask >> 8, EMPTY, EP_NO, CASTLE_NONE});
+					if(((mask >>> 8) & this.allPieces) == 0) {
+						if(mask >>> 16 != 0) {
+							result.add(new long[]{mask, mask >>> 8, EMPTY, EP_NO, CASTLE_NONE});
 						}
 						else {
-							result.add(new long[]{mask, mask >> 8, BISHOP, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 8, KNIGHT, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 8, QUEEN, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 8, ROOK, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 8, BISHOP, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 8, KNIGHT, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 8, QUEEN, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 8, ROOK, EP_NO, CASTLE_NONE});
 						}
 					}
 					// Two spaces forward
-					if(i >= 48 && ((mask >> 8) & this.allPieces) == 0 &&
-						((mask >> 16) & this.allPieces) == 0) {
-						result.add(new long[]{mask, mask >> 16, EMPTY, EP_NO, CASTLE_NONE});
+					if(i >= 48 && ((mask >>> 8) & this.allPieces) == 0 &&
+						((mask >>> 16) & this.allPieces) == 0) {
+						result.add(new long[]{mask, mask >>> 16, EMPTY, EP_NO, CASTLE_NONE});
 					}
 					// Capture left
-					if(i % 8 != 0 && ((mask >> 9) & oppPieces) != 0) {
-						if(mask >> 16 != 0) {
-							result.add(new long[]{mask, mask >> 9, EMPTY, EP_NO, CASTLE_NONE});
+					if(i % 8 != 0 && ((mask >>> 9) & oppPieces) != 0) {
+						if(mask >>> 16 != 0) {
+							result.add(new long[]{mask, mask >>> 9, EMPTY, EP_NO, CASTLE_NONE});
 						}
 						else {
-							result.add(new long[]{mask, mask >> 9, BISHOP, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 9, KNIGHT, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 9, QUEEN, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 9, ROOK, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 9, BISHOP, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 9, KNIGHT, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 9, QUEEN, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 9, ROOK, EP_NO, CASTLE_NONE});
 						}
 					}
 					// Capture right
-					if(i % 8 != 7 && ((mask >> 7) & oppPieces) != 0) {
-						if(mask >> 16 != 0) {
-							result.add(new long[]{mask, mask >> 7, EMPTY, EP_NO, CASTLE_NONE});
+					if(i % 8 != 7 && ((mask >>> 7) & oppPieces) != 0) {
+						if(mask >>> 16 != 0) {
+							result.add(new long[]{mask, mask >>> 7, EMPTY, EP_NO, CASTLE_NONE});
 						}
 						else {
-							result.add(new long[]{mask, mask >> 7, BISHOP, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 7, KNIGHT, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 7, QUEEN, EP_NO, CASTLE_NONE});
-							result.add(new long[]{mask, mask >> 7, ROOK, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 7, BISHOP, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 7, KNIGHT, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 7, QUEEN, EP_NO, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 7, ROOK, EP_NO, CASTLE_NONE});
 						}
 					}
 					// En passant
 					if(this.enPassantTarget != 0) {
-						if(i % 8 != 0 && mask >> 1 == this.enPassantTarget) {
-							result.add(new long[]{mask, mask >> 9, EMPTY, EP_YES, CASTLE_NONE});
+						if(i % 8 != 0 && mask >>> 1 == this.enPassantTarget) {
+							result.add(new long[]{mask, mask >>> 9, EMPTY, EP_YES, CASTLE_NONE});
 						}
 						if(i % 8 != 7 && mask << 1 == this.enPassantTarget) {
-							result.add(new long[]{mask, mask >> 7, EMPTY, EP_YES, CASTLE_NONE});
+							result.add(new long[]{mask, mask >>> 7, EMPTY, EP_YES, CASTLE_NONE});
 						}
 					}
 				}
@@ -1222,7 +1221,7 @@ public class Board {
 		
 		if(enPassantCapture == EP_YES) {
 			if(this.turn == WHITE) {
-				this.blackPawns &= ~((dest >> 8) ^ 0);
+				this.blackPawns &= ~((dest >>> 8) ^ 0);
 			}
 			else {
 				this.whitePawns &= ~((dest << 8) ^ 0);
@@ -1247,7 +1246,7 @@ public class Board {
 				this.whiteKnights |= dest;
 			} else if((this.whitePawns & source) != 0) {
 				this.whitePawns &= ~(source ^ 0);
-				if(dest >> 56L == 0) {
+				if(dest >>> 56L == 0) {
 					this.whitePawns |= dest;
 				}
 				else if(promoteTo == BISHOP) {
@@ -1293,7 +1292,7 @@ public class Board {
 			this.turn = BLACK;
 		}
 		else {
-			if((this.blackPawns & source) != 0 && source >> 16 == dest) {
+			if((this.blackPawns & source) != 0 && source >>> 16 == dest) {
 				this.enPassantTarget = dest;
 			} else {
 				this.enPassantTarget = 0;
@@ -1310,7 +1309,7 @@ public class Board {
 				this.blackKnights |= dest;
 			} else if((this.blackPawns & source) != 0) {
 				this.blackPawns &= ~(source ^ 0);
-				if(dest >> 8L != 0) {
+				if(dest >>> 8L != 0) {
 					this.blackPawns |= dest;
 				}
 				else if(promoteTo == BISHOP) {

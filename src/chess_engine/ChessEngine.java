@@ -1,12 +1,9 @@
 package chess_engine;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
 
 import chess_engine.Board;
 import chess_engine.Brain;
@@ -39,8 +36,8 @@ public class ChessEngine {
 	}
 	
 	public static void interpretUCICommand(String line) {
-		log("< " + line);
 		// Implements https://en.wikipedia.org/wiki/Universal_Chess_Interface
+		log("< " + line);
 		if(line.equals("uci")) {
 			// Command to start the engine
 			respond("id name Phil");

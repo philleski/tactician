@@ -41,48 +41,8 @@ public class Brain {
 			whiteRookCount * this.FITNESS_ROOK;
 		return (blackMaterial + whiteMaterial) / (2 * this.FITNESS_START_NOKING);
 	}
-	
-	private float fitnessFast(Board board) {
-		int blackBishopCount = numBitsSet(board.blackBishops);
-		int blackKingCount = numBitsSet(board.blackKings);
-		int blackKnightCount = numBitsSet(board.blackKnights);
-		int blackPawnCount = numBitsSet(board.blackPawns);
-		int blackQueenCount = numBitsSet(board.blackQueens);
-		int blackRookCount = numBitsSet(board.blackRooks);
-		int whiteBishopCount = numBitsSet(board.whiteBishops);
-		int whiteKingCount = numBitsSet(board.whiteKings);
-		int whiteKnightCount = numBitsSet(board.whiteKnights);
-		int whitePawnCount = numBitsSet(board.whitePawns);
-		int whiteQueenCount = numBitsSet(board.whiteQueens);
-		int whiteRookCount = numBitsSet(board.whiteRooks);
-				
-		float blackMaterial =
-			blackBishopCount * this.FITNESS_BISHOP +
-			blackKingCount * this.FITNESS_KING +
-			blackKnightCount * this.FITNESS_KNIGHT +
-			blackPawnCount * this.FITNESS_PAWN +
-			blackQueenCount * this.FITNESS_QUEEN +
-			blackRookCount * this.FITNESS_ROOK;
-		float whiteMaterial =
-			whiteBishopCount * this.FITNESS_BISHOP +
-			whiteKingCount * this.FITNESS_KING +
-			whiteKnightCount * this.FITNESS_KNIGHT +
-			whitePawnCount * this.FITNESS_PAWN +
-			whiteQueenCount * this.FITNESS_QUEEN +
-			whiteRookCount * this.FITNESS_ROOK;
-		
-		float fitness = 0;
-		if(board.turn == board.WHITE) {
-			fitness = whiteMaterial - blackMaterial;
-		}
-		else {
-			fitness = blackMaterial - whiteMaterial;
-		}
-		
-		return fitness;
-	}
-	
-	private float fitnessAccurate(Board board) {
+
+	private float fitness(Board board) {
 		int blackBishopCount = numBitsSet(board.blackBishops);
 		int blackKingCount = numBitsSet(board.blackKings);
 		int blackKnightCount = numBitsSet(board.blackKnights);
@@ -129,7 +89,7 @@ public class Brain {
 		}
 		
 		float fitness = 0;
-		if(board.turn == board.WHITE) {
+		if(board.turn == Board.WHITE) {
 			fitness = whiteMaterial - blackMaterial;
 		}
 		else {
@@ -141,7 +101,7 @@ public class Brain {
 	
 	private float probeCapture(Board board, long target) {
 		ArrayList<long[]> lmf = board.legalMovesFast();
-		float bestFitness = this.fitnessAccurate(board);
+		float bestFitness = this.fitness(board);
 		for(long[] move : lmf) {
 			if(move[1] != target) {
 				continue;
@@ -160,10 +120,10 @@ public class Brain {
 		return bestFitness;
 	}
 
-	// http://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
 	private float alphabeta(Board board, int depth, float alpha, float beta) {
+		// http://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
 		if(depth == 0) {
-			return this.fitnessAccurate(board);
+			return this.fitness(board);
 		}
 		float superlativeFitness = 0;
 		if(depth % 2 == 0) {
@@ -191,6 +151,7 @@ public class Brain {
 					return -FITNESS_LARGE;
 				}
 				else {
+					// Stalemate
 					return 0;
 				}
 			}
@@ -256,7 +217,6 @@ public class Brain {
 			superlativeFitness = FITNESS_LARGE;
 		}
 		for(long[] move : board.legalMoves()) {
-			String ma = board.moveToAlgebraic(move);
 			Board copy = new Board(board);
 			try {
 				copy.move(move);
@@ -264,8 +224,6 @@ public class Brain {
 			catch(IllegalMoveException e) {
 			}
 			float fitness = this.alphabeta(copy, depth - 1, -FITNESS_LARGE, FITNESS_LARGE);
-			String message = ma + ": " + fitness;
-			// System.out.println(message);
 			fitness += Math.random() * 0.01;
 			if(depth % 2 == 0 && fitness > superlativeFitness) {
 				superlativeFitness = fitness;
