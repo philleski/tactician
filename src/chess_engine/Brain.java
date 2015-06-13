@@ -89,7 +89,7 @@ public class Brain {
 		}
 		
 		float fitness = 0;
-		if(board.turn == Board.WHITE) {
+		if(board.turn == Color.WHITE) {
 			fitness = whiteMaterial - blackMaterial;
 		}
 		else {

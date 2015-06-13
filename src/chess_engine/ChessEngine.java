@@ -59,7 +59,7 @@ public class ChessEngine {
 				log("EP Target: None");
 			}
 			board.setPositionFenstring(fenstring);
-			log(board.repr());
+			log(board.toString());
 		}
 		else if(line.startsWith("go ")) {
 			Move move = brain.getMove(board);

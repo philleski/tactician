@@ -3,13 +3,6 @@ package chess_engine;
 import java.util.ArrayList;
 
 public class Board {
-	public static int WHITE = 0;
-	public static int BLACK = 1;
-	
-	public static int OVER_NOT = 16;
-	public static int OVER_STALEMATE = 17;
-	public static int OVER_CHECKMATE = 18;
-	
 	private static enum Castle {
 		KINGSIDE_BLACK,
 		KINGSIDE_WHITE,
@@ -39,15 +32,13 @@ public class Board {
 	public long blackPieces = blackBishops | blackKings | blackKnights | blackPawns | blackQueens | blackRooks;
 	public long allPieces = whitePieces | blackPieces;
 	
-	public int turn = WHITE;
+	public Color turn = Color.WHITE;
 	// If the last move was a double pawn move, this is the destination coordinate.
 	public long enPassantTarget = 0;
-	public boolean whiteKingMoved = false;
-	public boolean whiteRookAMoved = false;
-	public boolean whiteRookHMoved = false;
-	public boolean blackKingMoved = false;
-	public boolean blackRookAMoved = false;
-	public boolean blackRookHMoved = false;
+	public boolean whiteCastleRightKingside = true;
+	public boolean whiteCastleRightQueenside = true;
+	public boolean blackCastleRightKingside = true;
+	public boolean blackCastleRightQueenside = true;
 	
 	public Board() {
 	}
@@ -74,15 +65,13 @@ public class Board {
 		this.allPieces = this.whitePieces | this.blackPieces;
 		this.turn = other.turn;
 		this.enPassantTarget = other.enPassantTarget;
-		this.whiteKingMoved = other.whiteKingMoved;
-		this.whiteRookAMoved = other.whiteRookAMoved;
-		this.whiteRookHMoved = other.whiteRookHMoved;
-		this.blackKingMoved = other.blackKingMoved;
-		this.blackRookAMoved = other.blackRookAMoved;
-		this.blackRookHMoved = other.blackRookHMoved;
+		this.whiteCastleRightKingside = other.whiteCastleRightKingside;
+		this.whiteCastleRightQueenside = other.whiteCastleRightQueenside;
+		this.blackCastleRightKingside = other.blackCastleRightKingside;
+		this.blackCastleRightQueenside = other.blackCastleRightQueenside;
 	}
 	
-	public String repr() {
+	public String toString() {
 		String result = "";
 		String rowReversed = "";
 		for(long i = 63; i >= 0; i--) {
@@ -147,12 +136,7 @@ public class Board {
 		if(this.isInCheck()) {
 			result += "Check!\n";
 		}
-		if(this.turn == WHITE) {
-			result += "Turn: white";
-		}
-		else {
-			result += "Turn: black";
-		}
+		result += "Turn: " + this.turn.toString();
 		result += "\n\n";
 		return result;
 	}
@@ -630,7 +614,7 @@ public class Board {
 				continue;
 			}
 			if((this.getOppPawns() & mask) != 0) {
-				if(this.turn == WHITE) {
+				if(this.turn == Color.WHITE) {
 					// Look at the black player's pawns.
 					if(i % 8 != 0) {
 						oppLegalMoves.add(new Move(mask, mask >>> 9));
@@ -674,16 +658,6 @@ public class Board {
 		return false;
 	}
 	
-	public int isOver() {
-		if(this.legalMoves().size() > 0) {
-			return OVER_NOT;
-		}
-		if(this.isInCheck()) {
-			return OVER_CHECKMATE;
-		}
-		return OVER_STALEMATE;
-	}
-	
 	public ArrayList<Move> legalMovesFast() {
 		// Calculate the legal moves without verifying that they don't put the player in check.
 		// extraCapture is for en passant, to list the extra square we're capturing (if 1 destroy the piece
@@ -700,7 +674,7 @@ public class Board {
 				continue;
 			}
 			if((this.getMyPawns() & mask) != 0) {
-				if(this.turn == WHITE) {
+				if(this.turn == Color.WHITE) {
 					// One space forward
 					if(((mask << 8) & this.allPieces) == 0) {
 						if(mask >>> 48 == 0) {
@@ -824,38 +798,34 @@ public class Board {
 		}
 		
 		// Castling
-		if(this.turn == WHITE) {
-			if(!this.whiteKingMoved && (this.whiteKings & 0x0000000000000010L) != 0) {
-				if(!this.whiteRookHMoved && (this.whiteRooks & 0x0000000000000080L) != 0) {
-					if((this.allPieces & 0x0000000000000060L) == 0) {
-						if(this.verifyCastleCheckRule(Castle.KINGSIDE_WHITE)) {
-							result.add(new Move(0x0000000000000010L, 0x0000000000000040L));
-						}
+		if(this.turn == Color.WHITE) {
+			if(this.whiteCastleRightKingside) {
+				if((this.allPieces & 0x0000000000000060L) == 0) {
+					if(this.verifyCastleCheckRule(Castle.KINGSIDE_WHITE)) {
+						result.add(new Move(0x0000000000000010L, 0x0000000000000040L));
 					}
 				}
-				if(!this.whiteRookAMoved && (this.whiteRooks & 0x0000000000000001L) != 0) {
-					if((this.allPieces & 0x000000000000000eL) == 0) {
-						if(this.verifyCastleCheckRule(Castle.QUEENSIDE_WHITE)) {
-							result.add(new Move(0x0000000000000010L, 0x0000000000000004L));
-						}
+			}
+			if(this.whiteCastleRightQueenside) {
+				if((this.allPieces & 0x000000000000000eL) == 0) {
+					if(this.verifyCastleCheckRule(Castle.QUEENSIDE_WHITE)) {
+						result.add(new Move(0x0000000000000010L, 0x0000000000000004L));
 					}
 				}
 			}
 		}
 		else {
-			if(!this.blackKingMoved && (this.blackKings & 0x1000000000000000L) != 0) {
-				if(!this.blackRookHMoved && (this.blackRooks & 0x8000000000000000L) != 0) {
-					if((this.allPieces & 0x6000000000000000L) == 0) {
-						if(this.verifyCastleCheckRule(Castle.KINGSIDE_BLACK)) {
-							result.add(new Move(0x1000000000000000L, 0x4000000000000000L));
-						}
+			if(this.blackCastleRightKingside) {
+				if((this.allPieces & 0x6000000000000000L) == 0) {
+					if(this.verifyCastleCheckRule(Castle.KINGSIDE_BLACK)) {
+						result.add(new Move(0x1000000000000000L, 0x4000000000000000L));
 					}
 				}
-				if(!this.blackRookAMoved && (this.blackRooks & 0x0100000000000000L) != 0) {
-					if((this.allPieces & 0x0e00000000000000L) == 0) {
-						if(this.verifyCastleCheckRule(Castle.QUEENSIDE_BLACK)) {
-							result.add(new Move(0x1000000000000000L, 0x0400000000000000L));
-						}
+			}
+			if(this.blackCastleRightQueenside) {
+				if((this.allPieces & 0x0e00000000000000L) == 0) {
+					if(this.verifyCastleCheckRule(Castle.QUEENSIDE_BLACK)) {
+						result.add(new Move(0x1000000000000000L, 0x0400000000000000L));
 					}
 				}
 			}
@@ -877,12 +847,7 @@ public class Board {
 				continue;
 			}
 			// Go back to the original player to see if they're in check.
-			if(copy.turn == WHITE) {
-				copy.turn = BLACK;
-			}
-			else {
-				copy.turn = WHITE;
-			}
+			copy.turn = Color.getOpposite(copy.turn);
 			if(!copy.isInCheck()) {
 				result.add(m);
 			}
@@ -930,7 +895,7 @@ public class Board {
 			this.blackRooks &= ~(move.destination ^ 0);
 		}
 		
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			if((this.whitePawns & move.source) != 0 && move.destination == this.enPassantTarget) {
 				this.blackPawns &= ~((move.destination >>> 8) ^ 0);
 			}
@@ -945,20 +910,21 @@ public class Board {
 			} else if((this.whiteKings & move.source) != 0) {
 				this.whiteKings &= ~(move.source ^ 0);
 				this.whiteKings |= move.destination;
-				this.whiteKingMoved = true;
+				this.whiteCastleRightKingside = false;
+				this.whiteCastleRightQueenside = false;
 				if(move.source > 1L && move.source >>> 2 == move.destination) {
 					// Castle queenside
 					this.whiteRooks &= ~(0x0000000000000001L ^ 0);
 					this.whiteRooks |= 0x0000000000000008L;
-					this.whiteKingMoved = true;
-					this.whiteRookAMoved = true;
+					this.whiteCastleRightKingside = false;
+					this.whiteCastleRightQueenside = false;
 				}
 				else if(move.destination > 1L && move.destination >>> 2 == move.source) {
 					// Castle kingside
 					this.whiteRooks &= ~(0x0000000000000080L ^ 0);
 					this.whiteRooks |= 0x0000000000000020L;
-					this.whiteKingMoved = true;
-					this.whiteRookHMoved = true;
+					this.whiteCastleRightKingside = false;
+					this.whiteCastleRightQueenside = false;
 				}
 			} else if((this.whiteKnights & move.source) != 0) {
 				this.whiteKnights &= ~(move.source ^ 0);
@@ -990,13 +956,12 @@ public class Board {
 				this.whiteRooks &= ~(move.source ^ 0);
 				this.whiteRooks |= move.destination;
 				if(move.source == 0x0000000000000001L) {
-					this.whiteRookAMoved = true;
+					this.whiteCastleRightQueenside = false;
 				}
 				if(move.source == 0x0000000000000080L) {
-					this.whiteRookHMoved = true;
+					this.whiteCastleRightKingside = false;
 				}
 			}
-			this.turn = BLACK;
 		}
 		else {
 			if((this.blackPawns & move.source) != 0 && move.destination == this.enPassantTarget) {
@@ -1013,20 +978,21 @@ public class Board {
 			} else if((this.blackKings & move.source) != 0) {
 				this.blackKings &= ~(move.source ^ 0);
 				this.blackKings |= move.destination;
-				this.blackKingMoved = true;
+				this.blackCastleRightKingside = false;
+				this.blackCastleRightQueenside = false;
 				if(move.source > 1L && move.source >>> 2 == move.destination) {
 					// Castle queenside
 					this.blackRooks &= ~(0x0100000000000000L ^ 0);
 					this.blackRooks |= 0x0800000000000000L;
-					this.blackKingMoved = true;
-					this.blackRookAMoved = true;
+					this.blackCastleRightKingside = false;
+					this.blackCastleRightQueenside = false;
 				}
 				else if(move.destination > 1L && move.destination >>> 2 == move.source) {
 					// Castle kingside
 					this.blackRooks &= ~(0x8000000000000000L ^ 0);
 					this.blackRooks |= 0x2000000000000000L;
-					this.blackKingMoved = true;
-					this.blackRookHMoved = true;
+					this.blackCastleRightKingside = false;
+					this.blackCastleRightQueenside = false;
 				}
 			} else if((this.blackKnights & move.source) != 0) {
 				this.blackKnights &= ~(move.source ^ 0);
@@ -1058,14 +1024,14 @@ public class Board {
 				this.blackRooks &= ~(move.source ^ 0);
 				this.blackRooks |= move.destination;
 				if(move.source == 0x0100000000000000L) {
-					this.whiteRookAMoved = true;
+					this.blackCastleRightQueenside = false;
 				}
 				if(move.source == 0x8000000000000000L) {
-					this.whiteRookHMoved = true;
+					this.blackCastleRightKingside = false;
 				}
 			}
-			this.turn = WHITE;
 		}
+		this.turn = Color.getOpposite(this.turn);
 		this.whitePieces = this.whiteBishops | this.whiteKings | this.whiteKnights | this.whitePawns |
 				this.whiteQueens | this.whiteRooks;
 		this.blackPieces = this.blackBishops | this.blackKings | this.blackKnights | this.blackPawns |
@@ -1168,34 +1134,28 @@ public class Board {
 		
 		String activeColor = parts[1];
 		if(activeColor.equals("w")) {
-			this.turn = WHITE;
+			this.turn = Color.WHITE;
 		}
 		else {
-			this.turn = BLACK;
+			this.turn = Color.BLACK;
 		}
 		
 		String castling = parts[2];
-		this.whiteKingMoved = true;
-		this.whiteRookAMoved = true;
-		this.whiteRookHMoved = true;
-		this.blackKingMoved = true;
-		this.blackRookAMoved = true;
-		this.blackRookHMoved = true;
+		this.whiteCastleRightKingside = false;
+		this.whiteCastleRightQueenside = false;
+		this.blackCastleRightKingside = false;
+		this.blackCastleRightQueenside = false;
 		if(castling.contains("K")) {
-			this.whiteKingMoved = false;
-			this.whiteRookHMoved = false;
+			this.whiteCastleRightKingside = true;
 		}
 		if(castling.contains("Q")) {
-			this.whiteKingMoved = false;
-			this.whiteRookAMoved = false;
+			this.whiteCastleRightQueenside = true;
 		}
 		if(castling.contains("k")) {
-			this.blackKingMoved = false;
-			this.blackRookHMoved = false;
+			this.blackCastleRightKingside = true;
 		}
 		if(castling.contains("q")) {
-			this.blackKingMoved = false;
-			this.blackRookAMoved = false;
+			this.blackCastleRightQueenside = true;
 		}
 		
 		String enPassantTarget = parts[3];
@@ -1207,7 +1167,7 @@ public class Board {
 	}
 	
 	private long getMyBishops() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.whiteBishops;
 		}
 		else {
@@ -1215,7 +1175,7 @@ public class Board {
 		}
 	}
 	private long getMyKings() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.whiteKings;
 		}
 		else {
@@ -1223,7 +1183,7 @@ public class Board {
 		}
 	}
 	private long getMyKnights() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.whiteKnights;
 		}
 		else {
@@ -1231,7 +1191,7 @@ public class Board {
 		}
 	}
 	private long getMyPawns() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.whitePawns;
 		}
 		else {
@@ -1239,7 +1199,7 @@ public class Board {
 		}
 	}
 	private long getMyQueens() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.whiteQueens;
 		}
 		else {
@@ -1247,7 +1207,7 @@ public class Board {
 		}
 	}
 	private long getMyRooks() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.whiteRooks;
 		}
 		else {
@@ -1255,7 +1215,7 @@ public class Board {
 		}
 	}
 	private long getMyPieces() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.whitePieces;
 		}
 		else {
@@ -1263,7 +1223,7 @@ public class Board {
 		}
 	}
 	private long getOppBishops() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.blackBishops;
 		}
 		else {
@@ -1271,7 +1231,7 @@ public class Board {
 		}
 	}
 	private long getOppKings() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.blackKings;
 		}
 		else {
@@ -1279,7 +1239,7 @@ public class Board {
 		}
 	}
 	private long getOppKnights() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.blackKnights;
 		}
 		else {
@@ -1287,7 +1247,7 @@ public class Board {
 		}
 	}
 	private long getOppPawns() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.blackPawns;
 		}
 		else {
@@ -1295,7 +1255,7 @@ public class Board {
 		}
 	}
 	private long getOppQueens() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.blackQueens;
 		}
 		else {
@@ -1303,7 +1263,7 @@ public class Board {
 		}
 	}
 	private long getOppRooks() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.blackRooks;
 		}
 		else {
@@ -1311,7 +1271,7 @@ public class Board {
 		}
 	}
 	private long getOppPieces() {
-		if(this.turn == WHITE) {
+		if(this.turn == Color.WHITE) {
 			return this.blackPieces;
 		}
 		else {
