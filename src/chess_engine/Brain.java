@@ -100,10 +100,10 @@ public class Brain {
 	}
 	
 	private float probeCapture(Board board, long target) {
-		ArrayList<long[]> lmf = board.legalMovesFast();
+		ArrayList<Move> lmf = board.legalMovesFast();
 		float bestFitness = this.fitness(board);
-		for(long[] move : lmf) {
-			if(move[1] != target) {
+		for(Move move : lmf) {
+			if(move.destination != target) {
 				continue;
 			}
 			Board copy = new Board(board);
@@ -134,13 +134,12 @@ public class Brain {
 		}
 				
 		// Check for stalemate or checkmate.
-		ArrayList<long[]> lmf = board.legalMovesFast();
+		ArrayList<Move> lmf = board.legalMovesFast();
 		if(lmf.size() <= 8) {
 			boolean isMate = true;
 			long kings = board.blackKings | board.whiteKings;
-			for(long[] move : lmf) {
-				long source = move[0];
-				if((source & kings) == 0) {
+			for(Move move : lmf) {
+				if((move.source & kings) == 0) {
 					isMate = false;
 					break;
 				}
@@ -157,7 +156,7 @@ public class Brain {
 			}
 		}
 		
-		for(long[] move : lmf) {
+		for(Move move : lmf) {
 			Board copy = new Board(board);
 			try {
 				copy.move(move);
@@ -165,11 +164,11 @@ public class Brain {
 			catch(IllegalMoveException e) {
 			}
 			float fitness = 0;
-			if(depth == 1 && (move[1] & copy.allPieces) != 0) {
+			if(depth == 1 && (move.destination & copy.allPieces) != 0) {
 				// This is to deal with the scenario where say the queen
 				// captures a heavily guarded pawn right when the depth
 				// expires.
-				fitness = this.probeCapture(copy, move[1]);
+				fitness = this.probeCapture(copy, move.destination);
 			}
 			else {
 				fitness = this.alphabeta(copy, depth - 1, alpha, beta);
@@ -196,7 +195,7 @@ public class Brain {
 		return superlativeFitness;
 	}
 	
-	public long[] getMove(Board board) {
+	public Move getMove(Board board) {
 		int depth = 0;
 		float endgameFraction = this.endgameFraction(board);
 		System.out.println("EF: " + endgameFraction);
@@ -208,7 +207,7 @@ public class Brain {
 		}
 		System.out.println("Depth: " + depth);
 		
-		long[] bestMove = null;
+		Move bestMove = null;
 		float superlativeFitness = 0;
 		if(depth % 2 == 0) {
 			superlativeFitness = -FITNESS_LARGE;
@@ -216,7 +215,7 @@ public class Brain {
 		else {
 			superlativeFitness = FITNESS_LARGE;
 		}
-		for(long[] move : board.legalMoves()) {
+		for(Move move : board.legalMoves()) {
 			Board copy = new Board(board);
 			try {
 				copy.move(move);

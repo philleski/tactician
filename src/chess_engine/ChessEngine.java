@@ -55,7 +55,7 @@ public class ChessEngine {
 			log(board.repr());
 		}
 		else if(line.startsWith("go ")) {
-			long[] move = brain.getMove(board);
+			Move move = brain.getMove(board);
 			String moveLongAlgebraic = notationHelper.moveToLongAlgebraic(board, move);
 			respond("bestmove " + moveLongAlgebraic);
 		}

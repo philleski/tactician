@@ -23,23 +23,19 @@ public class NotationHelper {
 		return 1L << (long) offset;
 	}
 	
-	public long[] algebraicToMove(Board board, String algebraic) throws IllegalMoveException {
+	public Move algebraicToMove(Board board, String algebraic) throws IllegalMoveException {
 		if(algebraic.length() < 2) {
 			throw new IllegalMoveException("Illegal move: too short.");
 		}
-		for(long[] m : board.legalMoves()) {
-			long source = m[0];
-			long dest = m[1];
-			int promoteTo = (int)m[2];
-			int castle = (int)m[4]; 
-			String sourceSquare = coordToSquare(source);
+		for(Move m : board.legalMoves()) {
+			String sourceSquare = coordToSquare(m.source);
 			if(algebraic.equals("O-O")) {
-				if(castle == Board.CASTLE_WHITE_KINGSIDE || castle == Board.CASTLE_BLACK_KINGSIDE) {
+				if(m.castle == Board.CASTLE_WHITE_KINGSIDE || m.castle == Board.CASTLE_BLACK_KINGSIDE) {
 					return m;
 				}
 			}
 			else if(algebraic.equals("O-O-O")) {
-				if(castle == Board.CASTLE_WHITE_QUEENSIDE || castle == Board.CASTLE_BLACK_QUEENSIDE) {
+				if(m.castle == Board.CASTLE_WHITE_QUEENSIDE || m.castle == Board.CASTLE_BLACK_QUEENSIDE) {
 					return m;
 				}
 			}
@@ -57,27 +53,27 @@ public class NotationHelper {
 				if(algebraicDest.charAt(1) < '1' || algebraicDest.charAt(1) > '8') {
 					throw new IllegalMoveException("Illegal move: destination rank not from 1-8: " + algebraicDest);
 				}
-				if(squareToCoord(algebraicDest) != dest) {
+				if(squareToCoord(algebraicDest) != m.destination) {
 					continue;
 				}
 				if(algebraic.charAt(0) >= 'a' && algebraic.charAt(0) <= 'h') {
-					if((source & board.whitePawns) != 0 || (source & board.blackPawns) != 0) {
+					if((m.source & board.whitePawns) != 0 || (m.source & board.blackPawns) != 0) {
 						if(algebraic.charAt(0) == sourceSquare.charAt(0)) {
-							if(promoteTo == Board.EMPTY) {
+							if(m.promoteTo == Board.EMPTY) {
 								return m;
 							}
 							else {
 								char promoteChar = algebraic.charAt(algebraic.length() - 1);
-								if(promoteChar == 'B' && promoteTo == Board.BISHOP) {
+								if(promoteChar == 'B' && m.promoteTo == Board.BISHOP) {
 									return m;
 								}
-								else if(promoteChar == 'N' && promoteTo == Board.KNIGHT) {
+								else if(promoteChar == 'N' && m.promoteTo == Board.KNIGHT) {
 									return m;
 								}
-								else if(promoteChar == 'Q' && promoteTo == Board.QUEEN) {
+								else if(promoteChar == 'Q' && m.promoteTo == Board.QUEEN) {
 									return m;
 								}
-								else if(promoteChar == 'R' && promoteTo == Board.ROOK) {
+								else if(promoteChar == 'R' && m.promoteTo == Board.ROOK) {
 									return m;
 								}
 							}
@@ -85,7 +81,7 @@ public class NotationHelper {
 					}
 				}
 				else if(algebraic.charAt(0) == 'K') {
-					if((source & board.whiteKings) != 0 || (source & board.blackKings) != 0) {
+					if((m.source & board.whiteKings) != 0 || (m.source & board.blackKings) != 0) {
 						return m;
 					}
 				}
@@ -117,42 +113,40 @@ public class NotationHelper {
 						}
 					}
 					if(algebraic.charAt(0) == 'B') {
-						if((source & board.whiteBishops) != 0 || (source & board.blackBishops) != 0) {
+						if((m.source & board.whiteBishops) != 0 || (m.source & board.blackBishops) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'N') {
-						if((source & board.whiteKnights) != 0 || (source & board.blackKnights) != 0) {
+						if((m.source & board.whiteKnights) != 0 || (m.source & board.blackKnights) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'Q') {
-						if((source & board.whiteQueens) != 0 || (source & board.blackQueens) != 0) {
+						if((m.source & board.whiteQueens) != 0 || (m.source & board.blackQueens) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'R') {
-						if((source & board.whiteRooks) != 0 || (source & board.blackRooks) != 0) {
+						if((m.source & board.whiteRooks) != 0 || (m.source & board.blackRooks) != 0) {
 							return m;
 						}
 					}
 				}
 			}
 		}
-		return new long[]{};
+		return new Move();
 	}
 	
-	private String algebraicAmbiguityForPiece(ArrayList<long[]> legalMoves, long pieceFamily, long source, long dest) {
+	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves, long pieceFamily, long source, long dest) {
 		ArrayList<String> piecesToDest = new ArrayList<String>();
 		String sourceSquare = coordToSquare(source);
-		for(long[] m : legalMoves) {
-			long mSource = m[0];
-			long mDest = m[1];
-			if(dest != mDest) {
+		for(Move m : legalMoves) {
+			if(dest != m.destination) {
 				continue;
 			}
-			if((mSource & pieceFamily) != 0) {
-				piecesToDest.add(coordToSquare(mSource));
+			if((m.source & pieceFamily) != 0) {
+				piecesToDest.add(coordToSquare(m.source));
 			}
 		}
 		int sharedFiles = 0;
@@ -179,53 +173,44 @@ public class NotationHelper {
 		return "";
 	}
 	
-	public String moveToLongAlgebraic(Board board, long[] move) {
-		long source = move[0];
-		long dest = move[1];
-		int promoteTo = (int)move[2];
-		String result = coordToSquare(source) + coordToSquare(dest);
-		if(promoteTo == Board.BISHOP) {
+	public String moveToLongAlgebraic(Board board, Move move) {
+		String result = coordToSquare(move.source) + coordToSquare(move.destination);
+		if(move.promoteTo == Board.BISHOP) {
 			result += "b";
 		}
-		else if(promoteTo == Board.KNIGHT) {
+		else if(move.promoteTo == Board.KNIGHT) {
 			result += "n";
 		}
-		else if(promoteTo == Board.QUEEN) {
+		else if(move.promoteTo == Board.QUEEN) {
 			result += "q";
 		}
-		else if(promoteTo == Board.ROOK) {
+		else if(move.promoteTo == Board.ROOK) {
 			result += "r";
 		}
 		return result;
 	}
 		
-	public String moveToAlgebraic(Board board, long[] move) {
-		long source = move[0];
-		long dest = move[1];
-		int promoteTo = (int)move[2];
-		int enPassantCapture = (int)move[3];
-		int castle = (int)move[4];
-
-		String sourceSquare = coordToSquare(source);
-		String destSquare = coordToSquare(dest);
+	public String moveToAlgebraic(Board board, Move move) {
+		String sourceSquare = coordToSquare(move.source);
+		String destSquare = coordToSquare(move.destination);
 		
-		ArrayList<long[]> legalMoves = board.legalMoves();
+		ArrayList<Move> legalMoves = board.legalMoves();
 		
 		String bishopAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteBishops | board.blackBishops, source, dest);
+				board.whiteBishops | board.blackBishops, move.source, move.destination);
 		String knightAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteKnights | board.blackKnights, source, dest);
+				board.whiteKnights | board.blackKnights, move.source, move.destination);
 		String queenAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteQueens | board.blackQueens, source, dest);
+				board.whiteQueens | board.blackQueens, move.source, move.destination);
 		String rookAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteRooks | board.blackRooks, source, dest);
+				board.whiteRooks | board.blackRooks, move.source, move.destination);
 
 		boolean capturing = false;
-		if(enPassantCapture == Board.EP_YES || (dest & board.allPieces) != 0) {
+		if(move.enPassantCapture == Board.EP_YES || (move.destination & board.allPieces) != 0) {
 			capturing = true;
 		}
 		String temp;
-		if((source & board.whiteBishops) != 0 || (source & board.blackBishops) != 0) {
+		if((move.source & board.whiteBishops) != 0 || (move.source & board.blackBishops) != 0) {
 			if(capturing) {
 				return "B" + bishopAmbiguity + "x" + destSquare;
 			}
@@ -233,11 +218,11 @@ public class NotationHelper {
 				return "B" + bishopAmbiguity + destSquare;
 			}
 		}
-		else if((source & board.whiteKings) != 0 || (source & board.blackKings) != 0) {
-			if(castle == Board.CASTLE_WHITE_KINGSIDE || castle == Board.CASTLE_BLACK_KINGSIDE) {
+		else if((move.source & board.whiteKings) != 0 || (move.source & board.blackKings) != 0) {
+			if(move.castle == Board.CASTLE_WHITE_KINGSIDE || move.castle == Board.CASTLE_BLACK_KINGSIDE) {
 				return "O-O";
 			}
-			else if(castle == Board.CASTLE_WHITE_QUEENSIDE || castle == Board.CASTLE_BLACK_QUEENSIDE) {
+			else if(move.castle == Board.CASTLE_WHITE_QUEENSIDE || move.castle == Board.CASTLE_BLACK_QUEENSIDE) {
 				return "O-O-O";
 			}
 			else if(capturing) {
@@ -247,7 +232,7 @@ public class NotationHelper {
 				return "K" + destSquare;
 			}
 		}
-		else if((source & board.whiteKnights) != 0 || (source & board.blackKnights) != 0) {
+		else if((move.source & board.whiteKnights) != 0 || (move.source & board.blackKnights) != 0) {
 			if(capturing) {
 				return "N" + knightAmbiguity + "x" + destSquare;
 			}
@@ -255,30 +240,30 @@ public class NotationHelper {
 				return "N" + knightAmbiguity + destSquare;
 			}
 		}
-		else if((source & board.whitePawns) != 0 || (source & board.blackPawns) != 0) {
+		else if((move.source & board.whitePawns) != 0 || (move.source & board.blackPawns) != 0) {
 			if(capturing) {
 				temp = sourceSquare.substring(0, 1) + "x" + destSquare;
 			}
 			else {
 				temp = destSquare;
 			}
-			if(promoteTo == Board.EMPTY) {
+			if(move.promoteTo == Board.EMPTY) {
 				return temp;
 			}
-			else if(promoteTo == Board.BISHOP) {
+			else if(move.promoteTo == Board.BISHOP) {
 				return temp + "=B";
 			}
-			else if(promoteTo == Board.KNIGHT) {
+			else if(move.promoteTo == Board.KNIGHT) {
 				return temp + "=N";
 			}
-			else if(promoteTo == Board.QUEEN) {
+			else if(move.promoteTo == Board.QUEEN) {
 				return temp + "=Q";
 			}
-			else if(promoteTo == Board.ROOK) {
+			else if(move.promoteTo == Board.ROOK) {
 				return temp + "=R";
 			}
 		}
-		else if((source & board.whiteQueens) != 0 || (source & board.blackQueens) != 0) {
+		else if((move.source & board.whiteQueens) != 0 || (move.source & board.blackQueens) != 0) {
 			if(capturing) {
 				return "Q" + queenAmbiguity + "x" + destSquare;
 			}
@@ -286,7 +271,7 @@ public class NotationHelper {
 				return "Q" + queenAmbiguity + destSquare;
 			}
 		}
-		else if((source & board.whiteRooks) != 0 || (source & board.blackRooks) != 0) {
+		else if((move.source & board.whiteRooks) != 0 || (move.source & board.blackRooks) != 0) {
 			if(capturing) {
 				return "R" + rookAmbiguity + "x" + destSquare;
 			}
