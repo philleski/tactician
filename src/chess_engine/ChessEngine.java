@@ -11,6 +11,7 @@ import chess_engine.Brain;
 public class ChessEngine {
 	static Board board = new Board();
 	static Brain brain = new Brain();
+	static NotationHelper notationHelper = new NotationHelper();
 	
 	public static void logClear() {
 		try {
@@ -55,7 +56,7 @@ public class ChessEngine {
 		}
 		else if(line.startsWith("go ")) {
 			long[] move = brain.getMove(board);
-			String moveLongAlgebraic = board.moveToLongAlgebraic(move);
+			String moveLongAlgebraic = notationHelper.moveToLongAlgebraic(board, move);
 			respond("bestmove " + moveLongAlgebraic);
 		}
 	}

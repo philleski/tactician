@@ -1,8 +1,6 @@
 package chess_engine;
 
-import java.util.*;
-
-import chess_engine.IllegalMoveException;
+import java.util.ArrayList;
 
 public class Board {
 	public static int WHITE = 0;
@@ -28,6 +26,38 @@ public class Board {
 	public static int OVER_NOT = 16;
 	public static int OVER_STALEMATE = 17;
 	public static int OVER_CHECKMATE = 18;
+	
+	private static NotationHelper notationHelper = new NotationHelper();
+	
+	// All the state information below.
+	
+	// bits correspond to board squares A1, B1, C1, ...
+	public long whiteBishops =	0x0000000000000024L;
+	public long whiteKings =	0x0000000000000010L;
+	public long whiteKnights =	0x0000000000000042L;
+	public long whitePawns =	0x000000000000ff00L;
+	public long whiteQueens =	0x0000000000000008L;
+	public long whiteRooks =	0x0000000000000081L;
+	public long blackBishops =	0x2400000000000000L;
+	public long blackKings =	0x1000000000000000L;
+	public long blackKnights =	0x4200000000000000L;
+	public long blackPawns =	0x00ff000000000000L;
+	public long blackQueens =	0x0800000000000000L;
+	public long blackRooks =	0x8100000000000000L;
+	
+	public long whitePieces = whiteBishops | whiteKings | whiteKnights | whitePawns | whiteQueens | whiteRooks;
+	public long blackPieces = blackBishops | blackKings | blackKnights | blackPawns | blackQueens | blackRooks;
+	public long allPieces = whitePieces | blackPieces;
+	
+	public int turn = WHITE;
+	// If the last move was a double pawn move, this is the destination coordinate.
+	public long enPassantTarget = 0;
+	public boolean whiteKingMoved = false;
+	public boolean whiteRookAMoved = false;
+	public boolean whiteRookHMoved = false;
+	public boolean blackKingMoved = false;
+	public boolean blackRookAMoved = false;
+	public boolean blackRookHMoved = false;
 	
 	public Board() {
 	}
@@ -60,300 +90,6 @@ public class Board {
 		this.blackKingMoved = other.blackKingMoved;
 		this.blackRookAMoved = other.blackRookAMoved;
 		this.blackRookHMoved = other.blackRookHMoved;
-	}
-	
-	public static String coordToSquare(long coord) {
-		String file;
-		String rank;
-		int offset = 0;
-		while((coord & 1L) == 0) {
-			coord = coord >>> 1;
-			offset++;
-		}
-		file = "" + ((char)(offset % 8 + 97));
-		rank = Integer.toString((offset / 8) + 1);
-		return file + rank;
-	}
-	
-	public static long squareToCoord(String square) {
-		int file = Integer.parseInt("" + (square.charAt(0) - 96));
-		int rank = Integer.parseInt(square.substring(1, 2));
-		int offset = (file - 1) + 8 * (rank - 1);
-		return 1L << (long) offset;
-	}
-	
-	public long[] algebraicToMove(String algebraic) throws IllegalMoveException {
-		if(algebraic.length() < 2) {
-			throw new IllegalMoveException("Illegal move: too short.");
-		}
-		for(long[] m : this.legalMoves()) {
-			long source = m[0];
-			long dest = m[1];
-			int promoteTo = (int)m[2];
-			int castle = (int)m[4]; 
-			String sourceSquare = coordToSquare(source);
-			if(algebraic.equals("O-O")) {
-				if(castle == CASTLE_WHITE_KINGSIDE || castle == CASTLE_BLACK_KINGSIDE) {
-					return m;
-				}
-			}
-			else if(algebraic.equals("O-O-O")) {
-				if(castle == CASTLE_WHITE_QUEENSIDE || castle == CASTLE_BLACK_QUEENSIDE) {
-					return m;
-				}
-			}
-			else {
-				String algebraicDest = "";
-				if(algebraic.charAt(algebraic.length() - 2) == '=') {
-					algebraicDest = algebraic.substring(algebraic.length() - 4, algebraic.length() - 2);
-				}
-				else {
-					algebraicDest = algebraic.substring(algebraic.length() - 2, algebraic.length());
-				}
-				if(algebraicDest.charAt(0) < 'a' || algebraicDest.charAt(0) > 'h') {
-					throw new IllegalMoveException("Illegal move: destination file not from a-h: " + algebraicDest);
-				}
-				if(algebraicDest.charAt(1) < '1' || algebraicDest.charAt(1) > '8') {
-					throw new IllegalMoveException("Illegal move: destination rank not from 1-8: " + algebraicDest);
-				}
-				if(squareToCoord(algebraicDest) != dest) {
-					continue;
-				}
-				if(algebraic.charAt(0) >= 'a' && algebraic.charAt(0) <= 'h') {
-					if((source & this.whitePawns) != 0 || (source & this.blackPawns) != 0) {
-						if(algebraic.charAt(0) == sourceSquare.charAt(0)) {
-							if(promoteTo == EMPTY) {
-								return m;
-							}
-							else {
-								char promoteChar = algebraic.charAt(algebraic.length() - 1);
-								if(promoteChar == 'B' && promoteTo == BISHOP) {
-									return m;
-								}
-								else if(promoteChar == 'N' && promoteTo == KNIGHT) {
-									return m;
-								}
-								else if(promoteChar == 'Q' && promoteTo == QUEEN) {
-									return m;
-								}
-								else if(promoteChar == 'R' && promoteTo == ROOK) {
-									return m;
-								}
-							}
-						}
-					}
-				}
-				else if(algebraic.charAt(0) == 'K') {
-					if((source & this.whiteKings) != 0 || (source & this.blackKings) != 0) {
-						return m;
-					}
-				}
-				else {
-					String algebraicTrimmed = algebraic.replace("x", "");
-					int algebraicTrimmedLength = algebraicTrimmed.length();
-					if(algebraicTrimmedLength == 3) {
-						// No algebraic ambiguity.
-					} else if(algebraicTrimmedLength == 4) {
-						if(algebraicTrimmed.charAt(1) >= 'a' && algebraicTrimmed.charAt(1) <= 'h') {
-							// File algebraic ambiguity.
-							if(sourceSquare.charAt(0) != algebraicTrimmed.charAt(1)) {
-								continue;
-							}
-						}
-						else {
-							// Rank algebraic ambiguity.
-							if(sourceSquare.charAt(1) != algebraicTrimmed.charAt(1)) {
-								continue;
-							}
-						}
-					} else if(algebraicTrimmedLength == 5) {
-						// Double algebraic ambiguity.
-						if(sourceSquare.charAt(0) != algebraicTrimmed.charAt(1)) {
-							continue;
-						}
-						if(sourceSquare.charAt(1) != algebraicTrimmed.charAt(2)) {
-							continue;
-						}
-					}
-					if(algebraic.charAt(0) == 'B') {
-						if((source & this.whiteBishops) != 0 || (source & this.blackBishops) != 0) {
-							return m;
-						}
-					}
-					else if(algebraic.charAt(0) == 'N') {
-						if((source & this.whiteKnights) != 0 || (source & this.blackKnights) != 0) {
-							return m;
-						}
-					}
-					else if(algebraic.charAt(0) == 'Q') {
-						if((source & this.whiteQueens) != 0 || (source & this.blackQueens) != 0) {
-							return m;
-						}
-					}
-					else if(algebraic.charAt(0) == 'R') {
-						if((source & this.whiteRooks) != 0 || (source & this.blackRooks) != 0) {
-							return m;
-						}
-					}
-				}
-			}
-		}
-		return new long[]{};
-	}
-	
-	private String algebraicAmbiguityForPiece(ArrayList<long[]> legalMoves, long pieceFamily, long source, long dest) {
-		ArrayList<String> piecesToDest = new ArrayList<String>();
-		String sourceSquare = coordToSquare(source);
-		for(long[] m : legalMoves) {
-			long mSource = m[0];
-			long mDest = m[1];
-			if(dest != mDest) {
-				continue;
-			}
-			if((mSource & pieceFamily) != 0) {
-				piecesToDest.add(coordToSquare(mSource));
-			}
-		}
-		int sharedFiles = 0;
-		int sharedRanks = 0;
-		for(String otherSourceSquare : piecesToDest) {
-			if(otherSourceSquare.charAt(0) == sourceSquare.charAt(0)) {
-				sharedFiles++;
-			}
-			if(otherSourceSquare.charAt(1) == sourceSquare.charAt(1)) {
-				sharedRanks++;
-			}
-		}
-		if(piecesToDest.size() > 1) {
-			if(sharedFiles == 1) {
-				return "" + sourceSquare.charAt(0);
-			}
-			else if(sharedRanks == 1) {
-				return "" + sourceSquare.charAt(1);
-			}
-			else {
-				return sourceSquare;
-			}
-		}
-		return "";
-	}
-	
-	public String moveToLongAlgebraic(long[] move) {
-		long source = move[0];
-		long dest = move[1];
-		int promoteTo = (int)move[2];
-		String result = coordToSquare(source) + coordToSquare(dest);
-		if(promoteTo == BISHOP) {
-			result += "b";
-		}
-		else if(promoteTo == KNIGHT) {
-			result += "n";
-		}
-		else if(promoteTo == QUEEN) {
-			result += "q";
-		}
-		else if(promoteTo == ROOK) {
-			result += "r";
-		}
-		return result;
-	}
-		
-	public String moveToAlgebraic(long[] move) {
-		long source = move[0];
-		long dest = move[1];
-		int promoteTo = (int)move[2];
-		int enPassantCapture = (int)move[3];
-		int castle = (int)move[4];
-
-		String sourceSquare = coordToSquare(source);
-		String destSquare = coordToSquare(dest);
-		
-		ArrayList<long[]> legalMoves = this.legalMoves();
-		
-		String bishopAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				this.whiteBishops | this.blackBishops, source, dest);
-		String knightAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				this.whiteKnights | this.blackKnights, source, dest);
-		String queenAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				this.whiteQueens | this.blackQueens, source, dest);
-		String rookAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				this.whiteRooks | this.blackRooks, source, dest);
-
-		boolean capturing = false;
-		if(enPassantCapture == EP_YES || (dest & this.allPieces) != 0) {
-			capturing = true;
-		}
-		String temp;
-		if((source & this.whiteBishops) != 0 || (source & this.blackBishops) != 0) {
-			if(capturing) {
-				return "B" + bishopAmbiguity + "x" + destSquare;
-			}
-			else {
-				return "B" + bishopAmbiguity + destSquare;
-			}
-		}
-		else if((source & this.whiteKings) != 0 || (source & this.blackKings) != 0) {
-			if(castle == CASTLE_WHITE_KINGSIDE || castle == CASTLE_BLACK_KINGSIDE) {
-				return "O-O";
-			}
-			else if(castle == CASTLE_WHITE_QUEENSIDE || castle == CASTLE_BLACK_QUEENSIDE) {
-				return "O-O-O";
-			}
-			else if(capturing) {
-				return "Kx" + destSquare;
-			}
-			else {
-				return "K" + destSquare;
-			}
-		}
-		else if((source & this.whiteKnights) != 0 || (source & this.blackKnights) != 0) {
-			if(capturing) {
-				return "N" + knightAmbiguity + "x" + destSquare;
-			}
-			else {
-				return "N" + knightAmbiguity + destSquare;
-			}
-		}
-		else if((source & this.whitePawns) != 0 || (source & this.blackPawns) != 0) {
-			if(capturing) {
-				temp = sourceSquare.substring(0, 1) + "x" + destSquare;
-			}
-			else {
-				temp = destSquare;
-			}
-			if(promoteTo == EMPTY) {
-				return temp;
-			}
-			else if(promoteTo == BISHOP) {
-				return temp + "=B";
-			}
-			else if(promoteTo == KNIGHT) {
-				return temp + "=N";
-			}
-			else if(promoteTo == QUEEN) {
-				return temp + "=Q";
-			}
-			else if(promoteTo == ROOK) {
-				return temp + "=R";
-			}
-		}
-		else if((source & this.whiteQueens) != 0 || (source & this.blackQueens) != 0) {
-			if(capturing) {
-				return "Q" + queenAmbiguity + "x" + destSquare;
-			}
-			else {
-				return "Q" + queenAmbiguity + destSquare;
-			}
-		}
-		else if((source & this.whiteRooks) != 0 || (source & this.blackRooks) != 0) {
-			if(capturing) {
-				return "R" + rookAmbiguity + "x" + destSquare;
-			}
-			else {
-				return "R" + rookAmbiguity + destSquare;
-			}
-		}
-		return "";
 	}
 	
 	public String repr() {
@@ -411,7 +147,7 @@ public class Board {
 		result += "Legal Moves: ";
 		ArrayList<long[]> lm = this.legalMoves();
 		for(long[] m : lm) {
-			result += this.moveToAlgebraic(m) + ", ";
+			result += notationHelper.moveToAlgebraic(this, m) + ", ";
 		}
 		if(lm.size() > 0) {
 			// Remove the last comma.
@@ -1362,7 +1098,7 @@ public class Board {
 	}
 	
 	public void move(String algebraic) throws IllegalMoveException {
-		long[] m = this.algebraicToMove(algebraic);
+		long[] m = notationHelper.algebraicToMove(this, algebraic);
 		if(m.length == 0) {
 			throw new IllegalMoveException("Illegal move: Could not convert algebraic move.");
 		}
@@ -1491,7 +1227,7 @@ public class Board {
 		
 		String enPassantTarget = parts[3];
 		if(!enPassantTarget.equals("-")) {
-			this.enPassantTarget = squareToCoord(enPassantTarget);
+			this.enPassantTarget = NotationHelper.squareToCoord(enPassantTarget);
 		}
 		
 		// TODO: Implement the halfmove clock and possibly fullmove number.
@@ -1609,34 +1345,4 @@ public class Board {
 			return this.whitePieces;
 		}
 	}
-	
-	// All the state information below.
-	
-	// bits correspond to board squares A1, B1, C1, ...
-	public long whiteBishops =	0x0000000000000024L;
-	public long whiteKings =	0x0000000000000010L;
-	public long whiteKnights =	0x0000000000000042L;
-	public long whitePawns =	0x000000000000ff00L;
-	public long whiteQueens =	0x0000000000000008L;
-	public long whiteRooks =	0x0000000000000081L;
-	public long blackBishops =	0x2400000000000000L;
-	public long blackKings =	0x1000000000000000L;
-	public long blackKnights =	0x4200000000000000L;
-	public long blackPawns =	0x00ff000000000000L;
-	public long blackQueens =	0x0800000000000000L;
-	public long blackRooks =	0x8100000000000000L;
-	
-	public long whitePieces = whiteBishops | whiteKings | whiteKnights | whitePawns | whiteQueens | whiteRooks;
-	public long blackPieces = blackBishops | blackKings | blackKnights | blackPawns | blackQueens | blackRooks;
-	public long allPieces = whitePieces | blackPieces;
-	
-	public int turn = WHITE;
-	// If the last move was a double pawn move, this is the destination coordinate.
-	public long enPassantTarget = 0;
-	public boolean whiteKingMoved = false;
-	public boolean whiteRookAMoved = false;
-	public boolean whiteRookHMoved = false;
-	public boolean blackKingMoved = false;
-	public boolean blackRookAMoved = false;
-	public boolean blackRookHMoved = false;
 };
