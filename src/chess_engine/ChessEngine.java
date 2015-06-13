@@ -51,6 +51,13 @@ public class ChessEngine {
 		}
 		else if(line.startsWith("position fen ")) {
 			String fenstring = line.substring(13);
+			log(fenstring);
+			if(board.enPassantTarget != 0) {
+				log("EP Target: " + NotationHelper.coordToSquare(board.enPassantTarget));
+			}
+			else {
+				log("EP Target: None");
+			}
 			board.setPositionFenstring(fenstring);
 			log(board.repr());
 		}

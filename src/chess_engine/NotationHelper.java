@@ -30,13 +30,17 @@ public class NotationHelper {
 		for(Move m : board.legalMoves()) {
 			String sourceSquare = coordToSquare(m.source);
 			if(algebraic.equals("O-O")) {
-				if(m.castle == Board.CASTLE_WHITE_KINGSIDE || m.castle == Board.CASTLE_BLACK_KINGSIDE) {
-					return m;
+				if((m.source & board.whiteKings) != 0 || (m.source & board.blackKings) != 0) {
+					if(m.destination > 1L && m.destination >>> 2 == m.source) {
+						return m;
+					}
 				}
 			}
 			else if(algebraic.equals("O-O-O")) {
-				if(m.castle == Board.CASTLE_WHITE_QUEENSIDE || m.castle == Board.CASTLE_BLACK_QUEENSIDE) {
-					return m;
+				if((m.source & board.whiteKings) != 0 || (m.source & board.blackKings) != 0) {
+					if(m.source > 1L && m.source >>> 2 == m.destination) {
+						return m;
+					}
 				}
 			}
 			else {
@@ -59,21 +63,21 @@ public class NotationHelper {
 				if(algebraic.charAt(0) >= 'a' && algebraic.charAt(0) <= 'h') {
 					if((m.source & board.whitePawns) != 0 || (m.source & board.blackPawns) != 0) {
 						if(algebraic.charAt(0) == sourceSquare.charAt(0)) {
-							if(m.promoteTo == Board.EMPTY) {
+							if(m.promoteTo == Piece.NOPIECE) {
 								return m;
 							}
 							else {
 								char promoteChar = algebraic.charAt(algebraic.length() - 1);
-								if(promoteChar == 'B' && m.promoteTo == Board.BISHOP) {
+								if(promoteChar == 'B' && m.promoteTo == Piece.BISHOP) {
 									return m;
 								}
-								else if(promoteChar == 'N' && m.promoteTo == Board.KNIGHT) {
+								else if(promoteChar == 'N' && m.promoteTo == Piece.KNIGHT) {
 									return m;
 								}
-								else if(promoteChar == 'Q' && m.promoteTo == Board.QUEEN) {
+								else if(promoteChar == 'Q' && m.promoteTo == Piece.QUEEN) {
 									return m;
 								}
-								else if(promoteChar == 'R' && m.promoteTo == Board.ROOK) {
+								else if(promoteChar == 'R' && m.promoteTo == Piece.ROOK) {
 									return m;
 								}
 							}
@@ -175,16 +179,16 @@ public class NotationHelper {
 	
 	public String moveToLongAlgebraic(Board board, Move move) {
 		String result = coordToSquare(move.source) + coordToSquare(move.destination);
-		if(move.promoteTo == Board.BISHOP) {
+		if(move.promoteTo == Piece.BISHOP) {
 			result += "b";
 		}
-		else if(move.promoteTo == Board.KNIGHT) {
+		else if(move.promoteTo == Piece.KNIGHT) {
 			result += "n";
 		}
-		else if(move.promoteTo == Board.QUEEN) {
+		else if(move.promoteTo == Piece.QUEEN) {
 			result += "q";
 		}
-		else if(move.promoteTo == Board.ROOK) {
+		else if(move.promoteTo == Piece.ROOK) {
 			result += "r";
 		}
 		return result;
@@ -206,8 +210,13 @@ public class NotationHelper {
 				board.whiteRooks | board.blackRooks, move.source, move.destination);
 
 		boolean capturing = false;
-		if(move.enPassantCapture == Board.EP_YES || (move.destination & board.allPieces) != 0) {
+		if((move.destination & board.allPieces) != 0) {
 			capturing = true;
+		}
+		else if(move.destination == board.enPassantTarget) {
+			if((move.source & board.whitePawns) != 0 || (move.source & board.blackPawns) != 0) {
+				capturing = true;
+			}
 		}
 		String temp;
 		if((move.source & board.whiteBishops) != 0 || (move.source & board.blackBishops) != 0) {
@@ -219,10 +228,10 @@ public class NotationHelper {
 			}
 		}
 		else if((move.source & board.whiteKings) != 0 || (move.source & board.blackKings) != 0) {
-			if(move.castle == Board.CASTLE_WHITE_KINGSIDE || move.castle == Board.CASTLE_BLACK_KINGSIDE) {
+			if(move.destination > 1L && move.destination >>> 2 == move.source) {
 				return "O-O";
 			}
-			else if(move.castle == Board.CASTLE_WHITE_QUEENSIDE || move.castle == Board.CASTLE_BLACK_QUEENSIDE) {
+			else if(move.source > 1L && move.source >>> 2 == move.destination) {
 				return "O-O-O";
 			}
 			else if(capturing) {
@@ -247,19 +256,19 @@ public class NotationHelper {
 			else {
 				temp = destSquare;
 			}
-			if(move.promoteTo == Board.EMPTY) {
+			if(move.promoteTo == Piece.NOPIECE) {
 				return temp;
 			}
-			else if(move.promoteTo == Board.BISHOP) {
+			else if(move.promoteTo == Piece.BISHOP) {
 				return temp + "=B";
 			}
-			else if(move.promoteTo == Board.KNIGHT) {
+			else if(move.promoteTo == Piece.KNIGHT) {
 				return temp + "=N";
 			}
-			else if(move.promoteTo == Board.QUEEN) {
+			else if(move.promoteTo == Piece.QUEEN) {
 				return temp + "=Q";
 			}
-			else if(move.promoteTo == Board.ROOK) {
+			else if(move.promoteTo == Piece.ROOK) {
 				return temp + "=R";
 			}
 		}

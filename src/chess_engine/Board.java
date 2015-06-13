@@ -6,26 +6,16 @@ public class Board {
 	public static int WHITE = 0;
 	public static int BLACK = 1;
 	
-	public static int EMPTY = 2;
-	public static int BISHOP = 3;
-	public static int KNIGHT = 4;
-	public static int KING = 5;
-	public static int PAWN = 6;
-	public static int QUEEN = 7;
-	public static int ROOK = 8;
-	
-	public static int EP_YES = 9;
-	public static int EP_NO = 10;
-	
-	public static int CASTLE_NONE = 11;
-	public static int CASTLE_WHITE_QUEENSIDE = 12;
-	public static int CASTLE_WHITE_KINGSIDE = 13;
-	public static int CASTLE_BLACK_QUEENSIDE = 14;
-	public static int CASTLE_BLACK_KINGSIDE = 15;
-	
 	public static int OVER_NOT = 16;
 	public static int OVER_STALEMATE = 17;
 	public static int OVER_CHECKMATE = 18;
+	
+	private static enum Castle {
+		KINGSIDE_BLACK,
+		KINGSIDE_WHITE,
+		QUEENSIDE_BLACK,
+		QUEENSIDE_WHITE
+	}
 	
 	private static NotationHelper notationHelper = new NotationHelper();
 	
@@ -175,52 +165,52 @@ public class Board {
 		while(nw % 8 != 0 && nw + 7 < 64) {
 			nw += 7;
 			if(((1L << nw) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << nw, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << nw));
 				break;
 			}
 			if(((1L << nw) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << nw, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << nw));
 		}
 		// NE
 		long ne = coordIndex;
 		while(ne % 8 != 7 && ne + 9 < 64) {
 			ne += 9;
 			if(((1L << ne) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << ne, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << ne));
 				break;
 			}
 			if(((1L << ne) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << ne, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << ne));
 		}
 		// SW
 		long sw = coordIndex;
 		while(sw % 8 != 0 && sw - 9 >= 0) {
 			sw -= 9;
 			if(((1L << sw) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << sw, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << sw));
 				break;
 			}
 			if(((1L << sw) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << sw, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << sw));
 		}
 		// SE
 		long se = coordIndex;
 		while(se % 8 != 7 && se - 7 >= 0) {
 			se -= 7;
 			if(((1L << se) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << se, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << se));
 				break;
 			}
 			if(((1L << se) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << se, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << se));
 		}
 	}
 	
@@ -232,52 +222,52 @@ public class Board {
 		while(n + 8 < 64) {
 			n += 8;
 			if(((1L << n) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << n, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << n));
 				break;
 			}
 			if(((1L << n) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << n, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << n));
 		}
 		// W
 		long w = coordIndex;
 		while(w % 8 != 0) {
 			w -= 1;
 			if(((1L << w) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << w, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << w));
 				break;
 			}
 			if(((1L << w) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << w, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << w));
 		}
 		// E
 		long e = coordIndex;
 		while(e % 8 != 7) {
 			e += 1;
 			if(((1L << e) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << e, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << e));
 				break;
 			}
 			if(((1L << e) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << e, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << e));
 		}
 		// S
 		long s = coordIndex;
 		while(s - 8 >= 0) {
 			s -= 8;
 			if(((1L << s) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << s, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << s));
 				break;
 			}
 			if(((1L << s) & myPieces) != 0) {
 				break;
 			}
-			legalMoves.add(new Move(mask, 1L << s, EMPTY, EP_NO, CASTLE_NONE));
+			legalMoves.add(new Move(mask, 1L << s));
 		}
 	}
 	
@@ -288,56 +278,56 @@ public class Board {
 		if(coordIndex % 8 != 0 && coordIndex < 48) {
 			long next = coordIndex + 15;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// NNE
 		if(coordIndex % 8 != 7 && coordIndex < 48) {
 			long next = coordIndex + 17;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// NWW
 		if(coordIndex % 8 > 1 && coordIndex < 56) {
 			long next = coordIndex + 6;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// NEE
 		if(coordIndex % 8 < 6 && coordIndex < 56) {
 			long next = coordIndex + 10;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// SWW
 		if(coordIndex % 8 > 1 && coordIndex >= 8) {
 			long next = coordIndex - 10;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// SEE
 		if(coordIndex % 8 < 6 && coordIndex >= 8) {
 			long next = coordIndex - 6;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// SSW
 		if(coordIndex % 8 != 0 && coordIndex >= 16) {
 			long next = coordIndex - 17;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// SSE
 		if(coordIndex % 8 != 7 && coordIndex >= 16) {
 			long next = coordIndex - 15;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 	}
@@ -349,56 +339,56 @@ public class Board {
 		if(coordIndex % 8 != 0 && coordIndex < 56) {
 			long next = coordIndex + 7;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// N
 		if(coordIndex < 56) {
 			long next = coordIndex + 8;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// NE
 		if(coordIndex % 8 != 7 && coordIndex < 56) {
 			long next = coordIndex + 9;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// W
 		if(coordIndex % 8 != 0) {
 			long next = coordIndex - 1;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// E
 		if(coordIndex % 8 != 7) {
 			long next = coordIndex + 1;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// SW
 		if(coordIndex % 8 != 0 && coordIndex >= 8) {
 			long next = coordIndex - 9;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// S
 		if(coordIndex >= 8) {
 			long next = coordIndex - 8;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 		// SE
 		if(coordIndex % 8 != 7 && coordIndex >= 8) {
 			long next = coordIndex - 7;
 			if(((1L << next) & myPieces) == 0) {
-				legalMoves.add(new Move(mask, 1L << next, EMPTY, EP_NO, CASTLE_NONE));
+				legalMoves.add(new Move(mask, 1L << next));
 			}
 		}
 	}
@@ -434,11 +424,11 @@ public class Board {
 		return true;
 	}
 	
-	private boolean verifyCastleCheckRule(int castleType) {
+	private boolean verifyCastleCheckRule(Castle type) {
 		// Make sure the castle isn't happening out of a check or through a check. (If it's into a check the
 		// opponent would take the king in the next move, so the AI wouldn't do it anyway.)
 		// I'm using mask_helper.py to compute these magic-number masks (especially the pawn/knight masks).
-		if(castleType == CASTLE_WHITE_KINGSIDE) {
+		if(type == Castle.KINGSIDE_WHITE) {
 			// d2, e2, f2, g2
 			if((this.blackPawns & 0x0000000000007800L) != 0) {
 				return false;
@@ -484,7 +474,7 @@ public class Board {
 			}
 			return true;
 		}
-		else if(castleType == CASTLE_WHITE_QUEENSIDE) {
+		else if(type == Castle.QUEENSIDE_WHITE) {
 			// c2, d2, e2, f2
 			if((this.blackPawns & 0x0000000000003c00L) != 0) {
 				return false;
@@ -530,7 +520,7 @@ public class Board {
 			}
 			return true;
 		}
-		else if(castleType == CASTLE_BLACK_KINGSIDE) {
+		else if(type == Castle.KINGSIDE_BLACK) {
 			// d7, e7, f7, g7
 			if((this.whitePawns & 0x0078000000000000L) != 0) {
 				return false;
@@ -576,7 +566,7 @@ public class Board {
 			}
 			return true;
 		}
-		else if(castleType == CASTLE_BLACK_QUEENSIDE) {
+		else if(type == Castle.QUEENSIDE_BLACK) {
 			// c7, d7, e7, f7
 			if((this.whitePawns & 0x003c000000000000L) != 0) {
 				return false;
@@ -643,19 +633,19 @@ public class Board {
 				if(this.turn == WHITE) {
 					// Look at the black player's pawns.
 					if(i % 8 != 0) {
-						oppLegalMoves.add(new Move(mask, mask >>> 9, EMPTY, EP_NO, CASTLE_NONE));
+						oppLegalMoves.add(new Move(mask, mask >>> 9));
 					}
 					if(i % 8 != 7) {
-						oppLegalMoves.add(new Move(mask, mask >>> 7, EMPTY, EP_NO, CASTLE_NONE));
+						oppLegalMoves.add(new Move(mask, mask >>> 7));
 					}
 				}
 				else {
 					// Look at the white player's pawns.
 					if(i % 8 != 0) {
-						oppLegalMoves.add(new Move(mask, mask << 7, EMPTY, EP_NO, CASTLE_NONE));
+						oppLegalMoves.add(new Move(mask, mask << 7));
 					}
 					if(i % 8 != 7) {
-						oppLegalMoves.add(new Move(mask, mask << 9, EMPTY, EP_NO, CASTLE_NONE));
+						oppLegalMoves.add(new Move(mask, mask << 9));
 					}
 				}
 			}
@@ -714,51 +704,51 @@ public class Board {
 					// One space forward
 					if(((mask << 8) & this.allPieces) == 0) {
 						if(mask >>> 48 == 0) {
-							result.add(new Move(mask, mask << 8, EMPTY, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask << 8));
 						}
 						else {
-							result.add(new Move(mask, mask << 8, BISHOP, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 8, KNIGHT, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 8, QUEEN, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 8, ROOK, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask << 8, Piece.BISHOP));
+							result.add(new Move(mask, mask << 8, Piece.KNIGHT));
+							result.add(new Move(mask, mask << 8, Piece.QUEEN));
+							result.add(new Move(mask, mask << 8, Piece.ROOK));
 						}
 					}
 					// Two spaces forward
 					if(i < 16 && ((mask << 8) & this.allPieces) == 0 &&
 						((mask << 16) & this.allPieces) == 0) {
-						result.add(new Move(mask, mask << 16, EMPTY, EP_NO, CASTLE_NONE));
+						result.add(new Move(mask, mask << 16));
 					}
 					// Capture left
 					if(i % 8 != 0 && ((mask << 7) & oppPieces) != 0) {
 						if(mask >>> 48 == 0) {
-							result.add(new Move(mask, mask << 7, EMPTY, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask << 7));
 						}
 						else {
-							result.add(new Move(mask, mask << 7, BISHOP, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 7, KNIGHT, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 7, QUEEN, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 7, ROOK, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask << 7, Piece.BISHOP));
+							result.add(new Move(mask, mask << 7, Piece.KNIGHT));
+							result.add(new Move(mask, mask << 7, Piece.QUEEN));
+							result.add(new Move(mask, mask << 7, Piece.ROOK));
 						}
 					}
 					// Capture right
 					if(i % 8 != 7 && ((mask << 9) & oppPieces) != 0) {
 						if(mask >>> 48 == 0) {
-							result.add(new Move(mask, mask << 9, EMPTY, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask << 9));
 						}
 						else {
-							result.add(new Move(mask, mask << 9, BISHOP, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 9, KNIGHT, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 9, QUEEN, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask << 9, ROOK, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask << 9, Piece.BISHOP));
+							result.add(new Move(mask, mask << 9, Piece.KNIGHT));
+							result.add(new Move(mask, mask << 9, Piece.QUEEN));
+							result.add(new Move(mask, mask << 9, Piece.ROOK));
 						}
 					}
 					// En passant
 					if(this.enPassantTarget != 0) {
-						if(i % 8 != 0 && mask >>> 1 == this.enPassantTarget) {
-							result.add(new Move(mask, mask << 7, EMPTY, EP_YES, CASTLE_NONE));
+						if(i % 8 != 0 && mask << 7 == this.enPassantTarget) {
+							result.add(new Move(mask, mask << 7));
 						}
-						if(i % 8 != 7 && mask << 1 == this.enPassantTarget) {
-							result.add(new Move(mask, mask << 9, EMPTY, EP_YES, CASTLE_NONE));
+						if(i % 8 != 7 && mask << 9 == this.enPassantTarget) {
+							result.add(new Move(mask, mask << 9));
 						}
 					}
 				}
@@ -766,51 +756,51 @@ public class Board {
 					// One space forward
 					if(((mask >>> 8) & this.allPieces) == 0) {
 						if(mask >>> 16 != 0) {
-							result.add(new Move(mask, mask >>> 8, EMPTY, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask >>> 8));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 8, BISHOP, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 8, KNIGHT, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 8, QUEEN, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 8, ROOK, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask >>> 8, Piece.BISHOP));
+							result.add(new Move(mask, mask >>> 8, Piece.KNIGHT));
+							result.add(new Move(mask, mask >>> 8, Piece.QUEEN));
+							result.add(new Move(mask, mask >>> 8, Piece.ROOK));
 						}
 					}
 					// Two spaces forward
 					if(i >= 48 && ((mask >>> 8) & this.allPieces) == 0 &&
 						((mask >>> 16) & this.allPieces) == 0) {
-						result.add(new Move(mask, mask >>> 16, EMPTY, EP_NO, CASTLE_NONE));
+						result.add(new Move(mask, mask >>> 16));
 					}
 					// Capture left
 					if(i % 8 != 0 && ((mask >>> 9) & oppPieces) != 0) {
 						if(mask >>> 16 != 0) {
-							result.add(new Move(mask, mask >>> 9, EMPTY, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask >>> 9));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 9, BISHOP, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 9, KNIGHT, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 9, QUEEN, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 9, ROOK, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask >>> 9, Piece.BISHOP));
+							result.add(new Move(mask, mask >>> 9, Piece.KNIGHT));
+							result.add(new Move(mask, mask >>> 9, Piece.QUEEN));
+							result.add(new Move(mask, mask >>> 9, Piece.ROOK));
 						}
 					}
 					// Capture right
 					if(i % 8 != 7 && ((mask >>> 7) & oppPieces) != 0) {
 						if(mask >>> 16 != 0) {
-							result.add(new Move(mask, mask >>> 7, EMPTY, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask >>> 7));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 7, BISHOP, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 7, KNIGHT, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 7, QUEEN, EP_NO, CASTLE_NONE));
-							result.add(new Move(mask, mask >>> 7, ROOK, EP_NO, CASTLE_NONE));
+							result.add(new Move(mask, mask >>> 7, Piece.BISHOP));
+							result.add(new Move(mask, mask >>> 7, Piece.KNIGHT));
+							result.add(new Move(mask, mask >>> 7, Piece.QUEEN));
+							result.add(new Move(mask, mask >>> 7, Piece.ROOK));
 						}
 					}
 					// En passant
 					if(this.enPassantTarget != 0) {
-						if(i % 8 != 0 && mask >>> 1 == this.enPassantTarget) {
-							result.add(new Move(mask, mask >>> 9, EMPTY, EP_YES, CASTLE_NONE));
+						if(i % 8 != 0 && mask >>> 9 == this.enPassantTarget) {
+							result.add(new Move(mask, mask >>> 9));
 						}
-						if(i % 8 != 7 && mask << 1 == this.enPassantTarget) {
-							result.add(new Move(mask, mask >>> 7, EMPTY, EP_YES, CASTLE_NONE));
+						if(i % 8 != 7 && mask >>> 7 == this.enPassantTarget) {
+							result.add(new Move(mask, mask >>> 7));
 						}
 					}
 				}
@@ -838,17 +828,15 @@ public class Board {
 			if(!this.whiteKingMoved && (this.whiteKings & 0x0000000000000010L) != 0) {
 				if(!this.whiteRookHMoved && (this.whiteRooks & 0x0000000000000080L) != 0) {
 					if((this.allPieces & 0x0000000000000060L) == 0) {
-						if(this.verifyCastleCheckRule(CASTLE_WHITE_KINGSIDE)) {
-							result.add(new Move(0x0000000000000010L, 0x0000000000000040L, EMPTY, EP_NO,
-								CASTLE_WHITE_KINGSIDE));
+						if(this.verifyCastleCheckRule(Castle.KINGSIDE_WHITE)) {
+							result.add(new Move(0x0000000000000010L, 0x0000000000000040L));
 						}
 					}
 				}
 				if(!this.whiteRookAMoved && (this.whiteRooks & 0x0000000000000001L) != 0) {
 					if((this.allPieces & 0x000000000000000eL) == 0) {
-						if(this.verifyCastleCheckRule(CASTLE_WHITE_QUEENSIDE)) {
-							result.add(new Move(0x0000000000000010L, 0x0000000000000004L, EMPTY, EP_NO,
-								CASTLE_WHITE_QUEENSIDE));
+						if(this.verifyCastleCheckRule(Castle.QUEENSIDE_WHITE)) {
+							result.add(new Move(0x0000000000000010L, 0x0000000000000004L));
 						}
 					}
 				}
@@ -858,17 +846,15 @@ public class Board {
 			if(!this.blackKingMoved && (this.blackKings & 0x1000000000000000L) != 0) {
 				if(!this.blackRookHMoved && (this.blackRooks & 0x8000000000000000L) != 0) {
 					if((this.allPieces & 0x6000000000000000L) == 0) {
-						if(this.verifyCastleCheckRule(CASTLE_BLACK_KINGSIDE)) {
-							result.add(new Move(0x1000000000000000L, 0x4000000000000000L, EMPTY, EP_NO,
-								CASTLE_BLACK_KINGSIDE));
+						if(this.verifyCastleCheckRule(Castle.KINGSIDE_BLACK)) {
+							result.add(new Move(0x1000000000000000L, 0x4000000000000000L));
 						}
 					}
 				}
 				if(!this.blackRookAMoved && (this.blackRooks & 0x0100000000000000L) != 0) {
 					if((this.allPieces & 0x0e00000000000000L) == 0) {
-						if(this.verifyCastleCheckRule(CASTLE_BLACK_QUEENSIDE)) {
-							result.add(new Move(0x1000000000000000L, 0x0400000000000000L, EMPTY, EP_NO,
-								CASTLE_BLACK_QUEENSIDE));
+						if(this.verifyCastleCheckRule(Castle.QUEENSIDE_BLACK)) {
+							result.add(new Move(0x1000000000000000L, 0x0400000000000000L));
 						}
 					}
 				}
@@ -904,182 +890,179 @@ public class Board {
 		return result;
 	}
 	
-	public void move(Move legalMove) throws IllegalMoveException {
-		this.move(legalMove.source, legalMove.destination, legalMove.promoteTo, legalMove.enPassantCapture, legalMove.castle);
-	}
-	
-	public void move(long source, long dest, int promoteTo, int enPassantCapture, int castle)
+	public void move(Move move)
 			throws IllegalMoveException {
 		// Remove whatever is in the destination spot.
-		if((this.whiteBishops & dest) != 0) {
-			this.whiteBishops &= ~(dest ^ 0);
+		if((this.whiteBishops & move.destination) != 0) {
+			this.whiteBishops &= ~(move.destination ^ 0);
 		}
-		else if((this.whiteKings & dest) != 0) {
-			this.whiteKings &= ~(dest ^ 0);
+		else if((this.whiteKings & move.destination) != 0) {
+			this.whiteKings &= ~(move.destination ^ 0);
 		}
-		else if((this.whiteKnights & dest) != 0) {
-			this.whiteKnights &= ~(dest ^ 0);
+		else if((this.whiteKnights & move.destination) != 0) {
+			this.whiteKnights &= ~(move.destination ^ 0);
 		}
-		else if((this.whitePawns & dest) != 0) {
-			this.whitePawns &= ~(dest ^ 0);
+		else if((this.whitePawns & move.destination) != 0) {
+			this.whitePawns &= ~(move.destination ^ 0);
 		}
-		else if((this.whiteQueens & dest) != 0) {
-			this.whiteQueens &= ~(dest ^ 0);
+		else if((this.whiteQueens & move.destination) != 0) {
+			this.whiteQueens &= ~(move.destination ^ 0);
 		}
-		else if((this.whiteRooks & dest) != 0) {
-			this.whiteRooks &= ~(dest ^ 0);
+		else if((this.whiteRooks & move.destination) != 0) {
+			this.whiteRooks &= ~(move.destination ^ 0);
 		}
-		else if((this.blackBishops & dest) != 0) {
-			this.blackBishops &= ~(dest ^ 0);
+		else if((this.blackBishops & move.destination) != 0) {
+			this.blackBishops &= ~(move.destination ^ 0);
 		}
-		else if((this.blackKings & dest) != 0) {
-			this.blackKings &= ~(dest ^ 0);
+		else if((this.blackKings & move.destination) != 0) {
+			this.blackKings &= ~(move.destination ^ 0);
 		}
-		else if((this.blackKnights & dest) != 0) {
-			this.blackKnights &= ~(dest ^ 0);
+		else if((this.blackKnights & move.destination) != 0) {
+			this.blackKnights &= ~(move.destination ^ 0);
 		}
-		else if((this.blackPawns & dest) != 0) {
-			this.blackPawns &= ~(dest ^ 0);
+		else if((this.blackPawns & move.destination) != 0) {
+			this.blackPawns &= ~(move.destination ^ 0);
 		}
-		else if((this.blackQueens & dest) != 0) {
-			this.blackQueens &= ~(dest ^ 0);
+		else if((this.blackQueens & move.destination) != 0) {
+			this.blackQueens &= ~(move.destination ^ 0);
 		}
-		else if((this.blackRooks & dest) != 0) {
-			this.blackRooks &= ~(dest ^ 0);
-		}
-		
-		if(enPassantCapture == EP_YES) {
-			if(this.turn == WHITE) {
-				this.blackPawns &= ~((dest >>> 8) ^ 0);
-			}
-			else {
-				this.whitePawns &= ~((dest << 8) ^ 0);
-			}
+		else if((this.blackRooks & move.destination) != 0) {
+			this.blackRooks &= ~(move.destination ^ 0);
 		}
 		
 		if(this.turn == WHITE) {
-			if((this.whitePawns & source) != 0 && source << 16 == dest) {
-				this.enPassantTarget = dest;
+			if((this.whitePawns & move.source) != 0 && move.destination == this.enPassantTarget) {
+				this.blackPawns &= ~((move.destination >>> 8) ^ 0);
+			}
+			if((this.whitePawns & move.source) != 0 && move.source << 16 == move.destination) {
+				this.enPassantTarget = move.destination;
 			} else {
 				this.enPassantTarget = 0;
 			}
-			if((this.whiteBishops & source) != 0) {
-				this.whiteBishops &= ~(source ^ 0);
-				this.whiteBishops |= dest;
-			} else if((this.whiteKings & source) != 0) {
-				this.whiteKings &= ~(source ^ 0);
-				this.whiteKings |= dest;
+			if((this.whiteBishops & move.source) != 0) {
+				this.whiteBishops &= ~(move.source ^ 0);
+				this.whiteBishops |= move.destination;
+			} else if((this.whiteKings & move.source) != 0) {
+				this.whiteKings &= ~(move.source ^ 0);
+				this.whiteKings |= move.destination;
 				this.whiteKingMoved = true;
-			} else if((this.whiteKnights & source) != 0) {
-				this.whiteKnights &= ~(source ^ 0);
-				this.whiteKnights |= dest;
-			} else if((this.whitePawns & source) != 0) {
-				this.whitePawns &= ~(source ^ 0);
-				if(dest >>> 56L == 0) {
-					this.whitePawns |= dest;
+				if(move.source > 1L && move.source >>> 2 == move.destination) {
+					// Castle queenside
+					this.whiteRooks &= ~(0x0000000000000001L ^ 0);
+					this.whiteRooks |= 0x0000000000000008L;
+					this.whiteKingMoved = true;
+					this.whiteRookAMoved = true;
 				}
-				else if(promoteTo == BISHOP) {
-					this.whiteBishops |= dest;
+				else if(move.destination > 1L && move.destination >>> 2 == move.source) {
+					// Castle kingside
+					this.whiteRooks &= ~(0x0000000000000080L ^ 0);
+					this.whiteRooks |= 0x0000000000000020L;
+					this.whiteKingMoved = true;
+					this.whiteRookHMoved = true;
 				}
-				else if(promoteTo == KNIGHT) {
-					this.whiteKnights |= dest;
+			} else if((this.whiteKnights & move.source) != 0) {
+				this.whiteKnights &= ~(move.source ^ 0);
+				this.whiteKnights |= move.destination;
+			} else if((this.whitePawns & move.source) != 0) {
+				this.whitePawns &= ~(move.source ^ 0);
+				if(move.destination >>> 56L == 0) {
+					this.whitePawns |= move.destination;
 				}
-				else if(promoteTo == QUEEN) {
-					this.whiteQueens |= dest;
+				else if(move.promoteTo == Piece.BISHOP) {
+					this.whiteBishops |= move.destination;
 				}
-				else if(promoteTo == ROOK) {
-					this.whiteRooks |= dest;
+				else if(move.promoteTo == Piece.KNIGHT) {
+					this.whiteKnights |= move.destination;
+				}
+				else if(move.promoteTo == Piece.QUEEN) {
+					this.whiteQueens |= move.destination;
+				}
+				else if(move.promoteTo == Piece.ROOK) {
+					this.whiteRooks |= move.destination;
 				}
 				else {
 					throw new IllegalMoveException("Don't know what to promote to.");
 				}
-			} else if((this.whiteQueens & source) != 0) {
-				this.whiteQueens &= ~(source ^ 0);
-				this.whiteQueens |= dest;
-			} else if((this.whiteRooks & source) != 0) {
-				this.whiteRooks &= ~(source ^ 0);
-				this.whiteRooks |= dest;
-				if(source == 0x0000000000000001L) {
+			} else if((this.whiteQueens & move.source) != 0) {
+				this.whiteQueens &= ~(move.source ^ 0);
+				this.whiteQueens |= move.destination;
+			} else if((this.whiteRooks & move.source) != 0) {
+				this.whiteRooks &= ~(move.source ^ 0);
+				this.whiteRooks |= move.destination;
+				if(move.source == 0x0000000000000001L) {
 					this.whiteRookAMoved = true;
 				}
-				if(source == 0x0000000000000080L) {
+				if(move.source == 0x0000000000000080L) {
 					this.whiteRookHMoved = true;
 				}
-			}
-			if(castle == CASTLE_WHITE_QUEENSIDE) {
-				this.whiteRooks &= ~(0x0000000000000001L ^ 0);
-				this.whiteRooks |= 0x0000000000000008L;
-				this.whiteKingMoved = true;
-				this.whiteRookAMoved = true;
-			}
-			if(castle == CASTLE_WHITE_KINGSIDE) {
-				this.whiteRooks &= ~(0x0000000000000080L ^ 0);
-				this.whiteRooks |= 0x0000000000000020L;
-				this.whiteKingMoved = true;
-				this.whiteRookHMoved = true;
 			}
 			this.turn = BLACK;
 		}
 		else {
-			if((this.blackPawns & source) != 0 && source >>> 16 == dest) {
-				this.enPassantTarget = dest;
+			if((this.blackPawns & move.source) != 0 && move.destination == this.enPassantTarget) {
+				this.whitePawns &= ~((move.destination << 8) ^ 0);
+			}
+			if((this.blackPawns & move.source) != 0 && move.source >>> 16 == move.destination) {
+				this.enPassantTarget = move.destination;
 			} else {
 				this.enPassantTarget = 0;
 			}
-			if((this.blackBishops & source) != 0) {
-				this.blackBishops &= ~(source ^ 0);
-				this.blackBishops |= dest;
-			} else if((this.blackKings & source) != 0) {
-				this.blackKings &= ~(source ^ 0);
-				this.blackKings |= dest;
+			if((this.blackBishops & move.source) != 0) {
+				this.blackBishops &= ~(move.source ^ 0);
+				this.blackBishops |= move.destination;
+			} else if((this.blackKings & move.source) != 0) {
+				this.blackKings &= ~(move.source ^ 0);
+				this.blackKings |= move.destination;
 				this.blackKingMoved = true;
-			} else if((this.blackKnights & source) != 0) {
-				this.blackKnights &= ~(source ^ 0);
-				this.blackKnights |= dest;
-			} else if((this.blackPawns & source) != 0) {
-				this.blackPawns &= ~(source ^ 0);
-				if(dest >>> 8L != 0) {
-					this.blackPawns |= dest;
+				if(move.source > 1L && move.source >>> 2 == move.destination) {
+					// Castle queenside
+					this.blackRooks &= ~(0x0100000000000000L ^ 0);
+					this.blackRooks |= 0x0800000000000000L;
+					this.blackKingMoved = true;
+					this.blackRookAMoved = true;
 				}
-				else if(promoteTo == BISHOP) {
-					this.blackBishops |= dest;
+				else if(move.destination > 1L && move.destination >>> 2 == move.source) {
+					// Castle kingside
+					this.blackRooks &= ~(0x8000000000000000L ^ 0);
+					this.blackRooks |= 0x2000000000000000L;
+					this.blackKingMoved = true;
+					this.blackRookHMoved = true;
 				}
-				else if(promoteTo == KNIGHT) {
-					this.blackKnights |= dest;
+			} else if((this.blackKnights & move.source) != 0) {
+				this.blackKnights &= ~(move.source ^ 0);
+				this.blackKnights |= move.destination;
+			} else if((this.blackPawns & move.source) != 0) {
+				this.blackPawns &= ~(move.source ^ 0);
+				if(move.destination >>> 8L != 0) {
+					this.blackPawns |= move.destination;
 				}
-				else if(promoteTo == QUEEN) {
-					this.blackQueens |= dest;
+				else if(move.promoteTo == Piece.BISHOP) {
+					this.blackBishops |= move.destination;
 				}
-				else if(promoteTo == ROOK) {
-					this.blackRooks |= dest;
+				else if(move.promoteTo == Piece.KNIGHT) {
+					this.blackKnights |= move.destination;
+				}
+				else if(move.promoteTo == Piece.QUEEN) {
+					this.blackQueens |= move.destination;
+				}
+				else if(move.promoteTo == Piece.ROOK) {
+					this.blackRooks |= move.destination;
 				}
 				else {
 					throw new IllegalMoveException("Don't know what to promote to.");
 				}
-			} else if((this.blackQueens & source) != 0) {
-				this.blackQueens &= ~(source ^ 0);
-				this.blackQueens |= dest;
-			} else if((this.blackRooks & source) != 0) {
-				this.blackRooks &= ~(source ^ 0);
-				this.blackRooks |= dest;
-				if(source == 0x0100000000000000L) {
+			} else if((this.blackQueens & move.source) != 0) {
+				this.blackQueens &= ~(move.source ^ 0);
+				this.blackQueens |= move.destination;
+			} else if((this.blackRooks & move.source) != 0) {
+				this.blackRooks &= ~(move.source ^ 0);
+				this.blackRooks |= move.destination;
+				if(move.source == 0x0100000000000000L) {
 					this.whiteRookAMoved = true;
 				}
-				if(source == 0x8000000000000000L) {
+				if(move.source == 0x8000000000000000L) {
 					this.whiteRookHMoved = true;
 				}
-			}
-			if(castle == CASTLE_BLACK_QUEENSIDE) {
-				this.blackRooks &= ~(0x0100000000000000L ^ 0);
-				this.blackRooks |= 0x0800000000000000L;
-				this.blackKingMoved = true;
-				this.blackRookAMoved = true;
-			}
-			if(castle == CASTLE_BLACK_KINGSIDE) {
-				this.blackRooks &= ~(0x8000000000000000L ^ 0);
-				this.blackRooks |= 0x2000000000000000L;
-				this.blackKingMoved = true;
-				this.blackRookHMoved = true;
 			}
 			this.turn = WHITE;
 		}
