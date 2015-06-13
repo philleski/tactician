@@ -39,7 +39,8 @@ public class Brain {
 			whitePawnCount * this.FITNESS_PAWN +
 			whiteQueenCount * this.FITNESS_QUEEN +
 			whiteRookCount * this.FITNESS_ROOK;
-		return (blackMaterial + whiteMaterial) / (2 * this.FITNESS_START_NOKING);
+		return (blackMaterial + whiteMaterial) /
+				(2 * this.FITNESS_START_NOKING);
 	}
 
 	private float fitness(Board board) {
@@ -69,22 +70,28 @@ public class Brain {
 		
 		float endgameFraction = this.endgameFraction(board);
 		
-		for(int rank = 1; rank < 7; rank++) {   // Since pawns can't be on the edge ranks.
+		// Since pawns can't be on the edge ranks.
+		for(int rank = 1; rank < 7; rank++) {
 			for(int centrality = 0; centrality < 4; centrality++) {
 				// Magic number: a1-h1
 				long rankMaskWhite = 0x00000000000000ffL << (rank * 8);
 				// Magic number: a8-h8
 				long rankMaskBlack = 0xff00000000000000L >>> (rank * 8);
 				// Magic number: a1-a8
-				long centralityMask = (0x0101010101010101L << centrality) | (0x0101010101010101L << (8 - centrality));
+				long centralityMask = (0x0101010101010101L << centrality) |
+						(0x0101010101010101L << (8 - centrality));
 				
-				float pawnFactor = (1 - endgameFraction) * this.FITNESS_PAWN_TABLE_OPENING[rank][centrality] +
-					endgameFraction * this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
+				float pawnFactor = (1 - endgameFraction) *
+						this.FITNESS_PAWN_TABLE_OPENING[rank][centrality];
+				pawnFactor += endgameFraction *
+						this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
 								
 				blackMaterial += pawnFactor *
-					numBitsSet(board.blackPawns & rankMaskBlack & centralityMask);
+					numBitsSet(board.blackPawns & rankMaskBlack &
+							centralityMask);
 				whiteMaterial += pawnFactor *
-					numBitsSet(board.whitePawns & rankMaskWhite & centralityMask);
+					numBitsSet(board.whitePawns & rankMaskWhite &
+							centralityMask);
 			}
 		}
 		
@@ -222,7 +229,8 @@ public class Brain {
 			}
 			catch(IllegalMoveException e) {
 			}
-			float fitness = this.alphabeta(copy, depth - 1, -FITNESS_LARGE, FITNESS_LARGE);
+			float fitness = this.alphabeta(copy, depth - 1, -FITNESS_LARGE,
+					FITNESS_LARGE);
 			fitness += Math.random() * 0.01;
 			if(depth % 2 == 0 && fitness > superlativeFitness) {
 				superlativeFitness = fitness;
@@ -237,7 +245,7 @@ public class Brain {
 	}
 	
 	// These are all in centipawns.
-	private float FITNESS_LARGE = 1000000000;   // A large value used for initialization.
+	private float FITNESS_LARGE = 1000000000;   // FIXME - change to short int and get rid of this
 	private float FITNESS_BISHOP = 333;
 	private float FITNESS_KING = 1000000;
 	private float FITNESS_KNIGHT = 320;

@@ -28,12 +28,15 @@ public class Board {
 	public long blackQueens =	0x0800000000000000L;
 	public long blackRooks =	0x8100000000000000L;
 	
-	public long whitePieces = whiteBishops | whiteKings | whiteKnights | whitePawns | whiteQueens | whiteRooks;
-	public long blackPieces = blackBishops | blackKings | blackKnights | blackPawns | blackQueens | blackRooks;
+	public long whitePieces = whiteBishops | whiteKings | whiteKnights |
+			whitePawns | whiteQueens | whiteRooks;
+	public long blackPieces = blackBishops | blackKings | blackKnights |
+			blackPawns | blackQueens | blackRooks;
 	public long allPieces = whitePieces | blackPieces;
 	
 	public Color turn = Color.WHITE;
-	// If the last move was a double pawn move, this is the destination coordinate.
+	// If the last move was a double pawn move, this is the destination
+	// coordinate.
 	public long enPassantTarget = 0;
 	public boolean whiteCastleRightKingside = true;
 	public boolean whiteCastleRightQueenside = true;
@@ -76,8 +79,8 @@ public class Board {
 		String rowReversed = "";
 		for(long i = 63; i >= 0; i--) {
 			long mask = 1L << i;
-			// The pawn representation is a little nonstandard because it's hard to tell the difference between
-			// 'p' and 'P'.
+			// The pawn representation is a little nonstandard because it's
+			// hard to tell the difference between 'p' and 'P'.
 			if((this.blackBishops & mask) != 0) {
 				rowReversed += 'B';
 			}
@@ -141,8 +144,8 @@ public class Board {
 		return result;
 	}
 	
-	private void appendLegalMovesForPieceDiagonal(long coordIndex, long myPieces, long oppPieces,
-			ArrayList<Move> legalMoves) {
+	private void appendLegalMovesForPieceDiagonal(long coordIndex,
+			long myPieces, long oppPieces, ArrayList<Move> legalMoves) {
 		long mask = 1L << coordIndex;
 		// NW
 		long nw = coordIndex;
@@ -198,8 +201,8 @@ public class Board {
 		}
 	}
 	
-	private void appendLegalMovesForPieceStraight(long coordIndex, long myPieces, long oppPieces,
-			ArrayList<Move> legalMoves) {
+	private void appendLegalMovesForPieceStraight(long coordIndex,
+			long myPieces, long oppPieces, ArrayList<Move> legalMoves) {
 		long mask = 1L << coordIndex;
 		// N
 		long n = coordIndex;
@@ -255,8 +258,8 @@ public class Board {
 		}
 	}
 	
-	private void appendLegalMovesForKnight(long coordIndex, long myPieces, long oppPieces,
-			ArrayList<Move> legalMoves) {
+	private void appendLegalMovesForKnight(long coordIndex, long myPieces,
+			long oppPieces, ArrayList<Move> legalMoves) {
 		long mask = 1L << coordIndex;
 		// NNW
 		if(coordIndex % 8 != 0 && coordIndex < 48) {
@@ -316,8 +319,8 @@ public class Board {
 		}
 	}
 	
-	private void appendLegalMovesForKing(long coordIndex, long myPieces, long oppPieces,
-			ArrayList<Move> legalMoves) {
+	private void appendLegalMovesForKing(long coordIndex, long myPieces,
+			long oppPieces, ArrayList<Move> legalMoves) {
 		long mask = 1L << coordIndex;
 		// NW
 		if(coordIndex % 8 != 0 && coordIndex < 56) {
@@ -377,15 +380,17 @@ public class Board {
 		}
 	}
 	
-	private boolean verifyCastleHelper(long maskStart, long maskEnd, long oppPieceType1,
-			long oppPieceType2, int step) {
-		// Search for enemy bishops/queens or rooks/queens. If there's another piece in the way, stop the
-		// search. oppPieceType1, oppPieceType2 can be this.blackBishops, this.blackQueens or this.blackRooks,
+	private boolean verifyCastleHelper(long maskStart, long maskEnd,
+			long oppPieceType1, long oppPieceType2, int step) {
+		// Search for enemy bishops/queens or rooks/queens. If there's another
+		// piece in the way, stop the search. oppPieceType1, oppPieceType2 can
+		// be this.blackBishops, this.blackQueens or this.blackRooks,
 		// this.blackQueens, for example.
 		long mask = maskStart;
 		while(true) {
 			if((this.allPieces & mask) != 0) {
-				if((oppPieceType1 & mask) != 0 || (oppPieceType2 & mask) != 0) {
+				if((oppPieceType1 & mask) != 0 ||
+						(oppPieceType2 & mask) != 0) {
 					return false;
 				}
 				else {
@@ -393,8 +398,9 @@ public class Board {
 					return true;
 				}
 			}
-			// We couldn't do a conventional while-loop because if we increment the mask above the bounds of a
-			// 64-bit long it could get us in trouble.
+			// We couldn't do a conventional while-loop because if we increment
+			// the mask above the bounds of a 64-bit long it could get us in
+			// trouble.
 			if(mask == maskEnd) {
 				break;
 			}
@@ -409,9 +415,11 @@ public class Board {
 	}
 	
 	private boolean verifyCastleCheckRule(Castle type) {
-		// Make sure the castle isn't happening out of a check or through a check. (If it's into a check the
-		// opponent would take the king in the next move, so the AI wouldn't do it anyway.)
-		// I'm using mask_helper.py to compute these magic-number masks (especially the pawn/knight masks).
+		// Make sure the castle isn't happening out of a check or through a
+		// check. (If it's into a check the opponent would take the king in the
+		// next move, so the AI wouldn't do it anyway.) I'm using
+		// mask_helper.py to compute these magic-number masks (especially the
+		// pawn/knight masks).
 		if(type == Castle.KINGSIDE_WHITE) {
 			// d2, e2, f2, g2
 			if((this.blackPawns & 0x0000000000007800L) != 0) {
@@ -422,38 +430,45 @@ public class Board {
 				return false;
 			}
 			// Left from e1. Magic numbers are d1, a1.
-			if(!this.verifyCastleHelper(0x0000000000000008L, 0x0000000000000001L, this.blackRooks,
-					this.blackQueens, -1)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000000008L, 0x0000000000000001L,
+					this.blackRooks, this.blackQueens, -1)) {
 				return false;
 			}
 			// Left diagonal from e1. Magic numbers are d2, a5.
-			if(!this.verifyCastleHelper(0x0000000000000800L, 0x0000000100000000L, this.blackBishops,
-					this.blackQueens, 7)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000000800L, 0x0000000100000000L,
+					this.blackBishops, this.blackQueens, 7)) {
 				return false;
 			}
 			// Up from e1. Magic numbers are e2, e8.
-			if(!this.verifyCastleHelper(0x0000000000001000L, 0x1000000000000000L, this.blackRooks,
-					this.blackQueens, 8)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000001000L, 0x1000000000000000L,
+					this.blackRooks, this.blackQueens, 8)) {
 				return false;
 			}
 			// Right diagonal from e1. Magic numbers are f2, h4.
-			if(!this.verifyCastleHelper(0x0000000000002000L, 0x0000000080000000L, this.blackBishops,
-					this.blackQueens, 9)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000002000L, 0x0000000080000000L,
+					this.blackBishops, this.blackQueens, 9)) {
 				return false;
 			}
 			// Left diagonal from f1. Magic numbers are e2, a6.
-			if(!this.verifyCastleHelper(0x0000000000001000L, 0x0000010000000000L, this.blackBishops,
-					this.blackQueens, 7)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000001000L, 0x0000010000000000L,
+					this.blackBishops, this.blackQueens, 7)) {
 				return false;
 			}
 			// Up from f1. Magic numbers are f2, f8.
-			if(!this.verifyCastleHelper(0x0000000000000020L, 0x2000000000000000L, this.blackRooks,
-					this.blackQueens, 8)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000000020L, 0x2000000000000000L,
+					this.blackRooks, this.blackQueens, 8)) {
 				return false;
 			}
 			// Right diagonal from f1. Magic numbers are g2, h3.
-			if(!this.verifyCastleHelper(0x0000000000004000L, 0x0000000000800000L, this.blackBishops,
-					this.blackQueens, 9)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000004000L, 0x0000000000800000L,
+					this.blackBishops, this.blackQueens, 9)) {
 				return false;
 			}
 			return true;
@@ -468,38 +483,45 @@ public class Board {
 				return false;
 			}
 			// Right from e1. Magic numbers are f1, h1.
-			if(!this.verifyCastleHelper(0x0000000000000020L, 0x0000000000000080L, this.blackRooks,
-					this.blackQueens, 1)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000000020L, 0x0000000000000080L,
+					this.blackRooks, this.blackQueens, 1)) {
 				return false;
 			}
 			// Left diagonal from e1. Magic numbers are d2, a5.
-			if(!this.verifyCastleHelper(0x0000000000000800L, 0x0000000100000000L, this.blackBishops,
-					this.blackQueens, 7)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000000800L, 0x0000000100000000L,
+					this.blackBishops, this.blackQueens, 7)) {
 				return false;
 			}
 			// Up from e1. Magic numbers are e2, e8.
-			if(!this.verifyCastleHelper(0x0000000000001000L, 0x1000000000000000L, this.blackRooks,
-					this.blackQueens, 8)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000001000L, 0x1000000000000000L,
+					this.blackRooks, this.blackQueens, 8)) {
 				return false;
 			}
 			// Right diagonal from e1. Magic numbers are f2, h4.
-			if(!this.verifyCastleHelper(0x0000000000002000L, 0x0000000080000000L, this.blackBishops,
-					this.blackQueens, 9)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000002000L, 0x0000000080000000L,
+					this.blackBishops, this.blackQueens, 9)) {
 				return false;
 			}
 			// Left diagonal from d1. Magic numbers are c2, a4.
-			if(!this.verifyCastleHelper(0x0000000000000400L, 0x0000000001000000L, this.blackBishops,
-					this.blackQueens, 7)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000000400L, 0x0000000001000000L,
+					this.blackBishops, this.blackQueens, 7)) {
 				return false;
 			}
 			// Up from d1. Magic numbers are d2, d8.
-			if(!this.verifyCastleHelper(0x0000000000000800L, 0x0800000000000000L, this.blackRooks,
-					this.blackQueens, 8)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000000800L, 0x0800000000000000L,
+					this.blackRooks, this.blackQueens, 8)) {
 				return false;
 			}
 			// Right diagonal from d1. Magic numbers are e2, h5.
-			if(!this.verifyCastleHelper(0x0000000000001000L, 0x0000008000000000L, this.blackBishops,
-					this.blackQueens, 9)) {
+			if(!this.verifyCastleHelper(
+					0x0000000000001000L, 0x0000008000000000L,
+					this.blackBishops, this.blackQueens, 9)) {
 				return false;
 			}
 			return true;
@@ -514,38 +536,45 @@ public class Board {
 				return false;
 			}
 			// Left from e8. Magic numbers are d8, a8.
-			if(!this.verifyCastleHelper(0x0800000000000000L, 0x0100000000000000L, this.whiteRooks,
-					this.whiteQueens, -1)) {
+			if(!this.verifyCastleHelper(
+					0x0800000000000000L, 0x0100000000000000L,
+					this.whiteRooks, this.whiteQueens, -1)) {
 				return false;
 			}
 			// Left diagonal from e8. Magic numbers are d7, a4.
-			if(!this.verifyCastleHelper(0x0008000000000000L, 0x0000000001000000L, this.whiteBishops,
-					this.whiteQueens, -9)) {
+			if(!this.verifyCastleHelper(
+					0x0008000000000000L, 0x0000000001000000L,
+					this.whiteBishops, this.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from e8. Magic numbers are e7, e1.
-			if(!this.verifyCastleHelper(0x0010000000000000L, 0x0000000000000010L, this.whiteRooks,
-					this.whiteQueens, -8)) {
+			if(!this.verifyCastleHelper(
+					0x0010000000000000L, 0x0000000000000010L,
+					this.whiteRooks, this.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from e8. Magic numbers are f7, h5.
-			if(!this.verifyCastleHelper(0x0020000000000000L, 0x0000008000000000L, this.whiteBishops,
-					this.whiteQueens, -7)) {
+			if(!this.verifyCastleHelper(
+					0x0020000000000000L, 0x0000008000000000L,
+					this.whiteBishops, this.whiteQueens, -7)) {
 				return false;
 			}
 			// Left diagonal from f8. Magic numbers are e7, a3.
-			if(!this.verifyCastleHelper(0x0010000000000000L, 0x0000000000010000L, this.whiteBishops,
-					this.whiteQueens, -9)) {
+			if(!this.verifyCastleHelper(
+					0x0010000000000000L, 0x0000000000010000L,
+					this.whiteBishops, this.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from f8. Magic numbers are f7, f1.
-			if(!this.verifyCastleHelper(0x0020000000000000L, 0x0000000000000020L, this.whiteRooks,
-					this.whiteQueens, -8)) {
+			if(!this.verifyCastleHelper(
+					0x0020000000000000L, 0x0000000000000020L,
+					this.whiteRooks, this.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from f8. Magic numbers are g7, h6.
-			if(!this.verifyCastleHelper(0x0040000000000000L, 0x0000800000000000L, this.whiteBishops,
-					this.whiteQueens, -7)) {
+			if(!this.verifyCastleHelper(
+					0x0040000000000000L, 0x0000800000000000L,
+					this.whiteBishops, this.whiteQueens, -7)) {
 				return false;
 			}
 			return true;
@@ -560,38 +589,45 @@ public class Board {
 				return false;
 			}
 			// Right from e8. Magic numbers are f8, h8.
-			if(!this.verifyCastleHelper(0x2000000000000000L, 0x8000000000000000L, this.whiteRooks,
-					this.whiteQueens, 1)) {
+			if(!this.verifyCastleHelper(
+					0x2000000000000000L, 0x8000000000000000L,
+					this.whiteRooks, this.whiteQueens, 1)) {
 				return false;
 			}
 			// Left diagonal from e8. Magic numbers are d7, a4.
-			if(!this.verifyCastleHelper(0x0008000000000000L, 0x0000000001000000L, this.whiteBishops,
-					this.whiteQueens, -9)) {
+			if(!this.verifyCastleHelper(
+					0x0008000000000000L, 0x0000000001000000L,
+					this.whiteBishops, this.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from e8. Magic numbers are e7, e1.
-			if(!this.verifyCastleHelper(0x0010000000000000L, 0x0000000000000010L, this.whiteRooks,
-					this.whiteQueens, -8)) {
+			if(!this.verifyCastleHelper(
+					0x0010000000000000L, 0x0000000000000010L,
+					this.whiteRooks, this.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from e8. Magic numbers are f7, h5.
-			if(!this.verifyCastleHelper(0x0020000000000000L, 0x0000008000000000L, this.whiteBishops,
-					this.whiteQueens, -7)) {
+			if(!this.verifyCastleHelper(
+					0x0020000000000000L, 0x0000008000000000L,
+					this.whiteBishops, this.whiteQueens, -7)) {
 				return false;
 			}
 			// Left diagonal from d8. Magic numbers are c7, a5.
-			if(!this.verifyCastleHelper(0x0004000000000000L, 0x0000000100000000L, this.whiteBishops,
-					this.whiteQueens, -9)) {
+			if(!this.verifyCastleHelper(
+					0x0004000000000000L, 0x0000000100000000L,
+					this.whiteBishops, this.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from d8. Magic numbers are d7, d1.
-			if(!this.verifyCastleHelper(0x0008000000000000L, 0x0000000000000008L, this.whiteRooks,
-					this.whiteQueens, -8)) {
+			if(!this.verifyCastleHelper(
+					0x0008000000000000L, 0x0000000000000008L,
+					this.whiteRooks, this.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from d8. Magic numbers are e7, h4.
-			if(!this.verifyCastleHelper(0x0010000000000000L, 0x0000000080000000L, this.whiteBishops,
-					this.whiteQueens, -7)) {
+			if(!this.verifyCastleHelper(
+					0x0010000000000000L, 0x0000000080000000L,
+					this.whiteBishops, this.whiteQueens, -7)) {
 				return false;
 			}
 			return true;
@@ -600,10 +636,11 @@ public class Board {
 	}
 	
 	public boolean isInCheck() {
-		// Not the full list of legal moves (for example not pawns moving forward or castling), but a
-		// superset of the ones that could capture the player's king. Also to speed things up not all of
-		// them are actually legal, but the ones that aren't wouldn't be able to capture the player's
-		// king anyway.
+		// Not the full list of legal moves (for example not pawns moving
+		// forward or castling), but a superset of the ones that could capture
+		// the player's king. Also to speed things up not all of them are
+		// actually legal, but the ones that aren't wouldn't be able to capture
+		// the player's king anyway.
 		ArrayList<Move> oppLegalMoves = new ArrayList<Move>();
 		long myKings = this.getMyKings();
 		long myPieces = this.getMyPieces();
@@ -634,20 +671,26 @@ public class Board {
 				}
 			}
 			else if((this.getOppBishops() & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces, oppLegalMoves);
+				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
+						oppLegalMoves);
 			}
 			else if((this.getOppRooks() & mask) != 0) {
-				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces, oppLegalMoves);
+				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
+						oppLegalMoves);
 			}
 			else if((this.getOppQueens() & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces, oppLegalMoves);
-				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces, oppLegalMoves);
+				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
+						oppLegalMoves);
+				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
+						oppLegalMoves);
 			}
 			else if((this.getOppKnights() & mask) != 0) {
-				this.appendLegalMovesForKnight(i, oppPieces, myPieces, oppLegalMoves);
+				this.appendLegalMovesForKnight(i, oppPieces, myPieces,
+						oppLegalMoves);
 			}
 			else if((this.getOppKings() & mask) != 0) {
-				this.appendLegalMovesForKing(i, oppPieces, myPieces, oppLegalMoves);
+				this.appendLegalMovesForKing(i, oppPieces, myPieces,
+						oppLegalMoves);
 			}
 		}
 		for(Move m : oppLegalMoves) {
@@ -659,9 +702,10 @@ public class Board {
 	}
 	
 	public ArrayList<Move> legalMovesFast() {
-		// Calculate the legal moves without verifying that they don't put the player in check.
-		// extraCapture is for en passant, to list the extra square we're capturing (if 1 destroy the piece
-		// below the destination)
+		// Calculate the legal moves without verifying that they don't put the
+		// player in check. extraCapture is for en passant, to list the extra
+		// square we're capturing (if 1 destroy the piece below the
+		// destination)
 		ArrayList<Move> result = new ArrayList<Move>();
 		
 		long myPieces = this.getMyPieces();
@@ -681,10 +725,14 @@ public class Board {
 							result.add(new Move(mask, mask << 8));
 						}
 						else {
-							result.add(new Move(mask, mask << 8, Piece.BISHOP));
-							result.add(new Move(mask, mask << 8, Piece.KNIGHT));
-							result.add(new Move(mask, mask << 8, Piece.QUEEN));
-							result.add(new Move(mask, mask << 8, Piece.ROOK));
+							result.add(new Move(mask, mask << 8,
+									Piece.BISHOP));
+							result.add(new Move(mask, mask << 8,
+									Piece.KNIGHT));
+							result.add(new Move(mask, mask << 8,
+									Piece.QUEEN));
+							result.add(new Move(mask, mask << 8,
+									Piece.ROOK));
 						}
 					}
 					// Two spaces forward
@@ -698,10 +746,14 @@ public class Board {
 							result.add(new Move(mask, mask << 7));
 						}
 						else {
-							result.add(new Move(mask, mask << 7, Piece.BISHOP));
-							result.add(new Move(mask, mask << 7, Piece.KNIGHT));
-							result.add(new Move(mask, mask << 7, Piece.QUEEN));
-							result.add(new Move(mask, mask << 7, Piece.ROOK));
+							result.add(new Move(mask, mask << 7,
+									Piece.BISHOP));
+							result.add(new Move(mask, mask << 7,
+									Piece.KNIGHT));
+							result.add(new Move(mask, mask << 7,
+									Piece.QUEEN));
+							result.add(new Move(mask, mask << 7,
+									Piece.ROOK));
 						}
 					}
 					// Capture right
@@ -710,10 +762,14 @@ public class Board {
 							result.add(new Move(mask, mask << 9));
 						}
 						else {
-							result.add(new Move(mask, mask << 9, Piece.BISHOP));
-							result.add(new Move(mask, mask << 9, Piece.KNIGHT));
-							result.add(new Move(mask, mask << 9, Piece.QUEEN));
-							result.add(new Move(mask, mask << 9, Piece.ROOK));
+							result.add(new Move(mask, mask << 9,
+									Piece.BISHOP));
+							result.add(new Move(mask, mask << 9,
+									Piece.KNIGHT));
+							result.add(new Move(mask, mask << 9,
+									Piece.QUEEN));
+							result.add(new Move(mask, mask << 9,
+									Piece.ROOK));
 						}
 					}
 					// En passant
@@ -733,10 +789,14 @@ public class Board {
 							result.add(new Move(mask, mask >>> 8));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 8, Piece.BISHOP));
-							result.add(new Move(mask, mask >>> 8, Piece.KNIGHT));
-							result.add(new Move(mask, mask >>> 8, Piece.QUEEN));
-							result.add(new Move(mask, mask >>> 8, Piece.ROOK));
+							result.add(new Move(mask, mask >>> 8,
+									Piece.BISHOP));
+							result.add(new Move(mask, mask >>> 8,
+									Piece.KNIGHT));
+							result.add(new Move(mask, mask >>> 8,
+									Piece.QUEEN));
+							result.add(new Move(mask, mask >>> 8,
+									Piece.ROOK));
 						}
 					}
 					// Two spaces forward
@@ -750,10 +810,14 @@ public class Board {
 							result.add(new Move(mask, mask >>> 9));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 9, Piece.BISHOP));
-							result.add(new Move(mask, mask >>> 9, Piece.KNIGHT));
-							result.add(new Move(mask, mask >>> 9, Piece.QUEEN));
-							result.add(new Move(mask, mask >>> 9, Piece.ROOK));
+							result.add(new Move(mask, mask >>> 9,
+									Piece.BISHOP));
+							result.add(new Move(mask, mask >>> 9,
+									Piece.KNIGHT));
+							result.add(new Move(mask, mask >>> 9,
+									Piece.QUEEN));
+							result.add(new Move(mask, mask >>> 9,
+									Piece.ROOK));
 						}
 					}
 					// Capture right
@@ -762,10 +826,14 @@ public class Board {
 							result.add(new Move(mask, mask >>> 7));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 7, Piece.BISHOP));
-							result.add(new Move(mask, mask >>> 7, Piece.KNIGHT));
-							result.add(new Move(mask, mask >>> 7, Piece.QUEEN));
-							result.add(new Move(mask, mask >>> 7, Piece.ROOK));
+							result.add(new Move(mask, mask >>> 7,
+									Piece.BISHOP));
+							result.add(new Move(mask, mask >>> 7,
+									Piece.KNIGHT));
+							result.add(new Move(mask, mask >>> 7,
+									Piece.QUEEN));
+							result.add(new Move(mask, mask >>> 7,
+									Piece.ROOK));
 						}
 					}
 					// En passant
@@ -780,14 +848,18 @@ public class Board {
 				}
 			}
 			else if((this.getMyBishops() & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces, result);
+				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
+						result);
 			}
 			else if((this.getMyRooks() & mask) != 0) {
-				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces, result);
+				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
+						result);
 			}
 			else if((this.getMyQueens() & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces, result);
-				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces, result);
+				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
+						result);
+				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
+						result);
 			}
 			else if((this.getMyKnights() & mask) != 0) {
 				this.appendLegalMovesForKnight(i, myPieces, oppPieces, result);
@@ -802,14 +874,16 @@ public class Board {
 			if(this.whiteCastleRightKingside) {
 				if((this.allPieces & 0x0000000000000060L) == 0) {
 					if(this.verifyCastleCheckRule(Castle.KINGSIDE_WHITE)) {
-						result.add(new Move(0x0000000000000010L, 0x0000000000000040L));
+						result.add(new Move(0x0000000000000010L,
+								0x0000000000000040L));
 					}
 				}
 			}
 			if(this.whiteCastleRightQueenside) {
 				if((this.allPieces & 0x000000000000000eL) == 0) {
 					if(this.verifyCastleCheckRule(Castle.QUEENSIDE_WHITE)) {
-						result.add(new Move(0x0000000000000010L, 0x0000000000000004L));
+						result.add(new Move(0x0000000000000010L,
+								0x0000000000000004L));
 					}
 				}
 			}
@@ -818,14 +892,16 @@ public class Board {
 			if(this.blackCastleRightKingside) {
 				if((this.allPieces & 0x6000000000000000L) == 0) {
 					if(this.verifyCastleCheckRule(Castle.KINGSIDE_BLACK)) {
-						result.add(new Move(0x1000000000000000L, 0x4000000000000000L));
+						result.add(new Move(0x1000000000000000L,
+								0x4000000000000000L));
 					}
 				}
 			}
 			if(this.blackCastleRightQueenside) {
 				if((this.allPieces & 0x0e00000000000000L) == 0) {
 					if(this.verifyCastleCheckRule(Castle.QUEENSIDE_BLACK)) {
-						result.add(new Move(0x1000000000000000L, 0x0400000000000000L));
+						result.add(new Move(0x1000000000000000L,
+								0x0400000000000000L));
 					}
 				}
 			}
@@ -896,10 +972,12 @@ public class Board {
 		}
 		
 		if(this.turn == Color.WHITE) {
-			if((this.whitePawns & move.source) != 0 && move.destination == this.enPassantTarget) {
+			if((this.whitePawns & move.source) != 0 &&
+					move.destination == this.enPassantTarget) {
 				this.blackPawns &= ~((move.destination >>> 8) ^ 0);
 			}
-			if((this.whitePawns & move.source) != 0 && move.source << 16 == move.destination) {
+			if((this.whitePawns & move.source) != 0 &&
+					move.source << 16 == move.destination) {
 				this.enPassantTarget = move.destination;
 			} else {
 				this.enPassantTarget = 0;
@@ -919,7 +997,8 @@ public class Board {
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 				}
-				else if(move.destination > 1L && move.destination >>> 2 == move.source) {
+				else if(move.destination > 1L &&
+						move.destination >>> 2 == move.source) {
 					// Castle kingside
 					this.whiteRooks &= ~(0x0000000000000080L ^ 0);
 					this.whiteRooks |= 0x0000000000000020L;
@@ -947,7 +1026,8 @@ public class Board {
 					this.whiteRooks |= move.destination;
 				}
 				else {
-					throw new IllegalMoveException("Don't know what to promote to.");
+					throw new IllegalMoveException(
+							"Don't know what to promote to.");
 				}
 			} else if((this.whiteQueens & move.source) != 0) {
 				this.whiteQueens &= ~(move.source ^ 0);
@@ -964,10 +1044,12 @@ public class Board {
 			}
 		}
 		else {
-			if((this.blackPawns & move.source) != 0 && move.destination == this.enPassantTarget) {
+			if((this.blackPawns & move.source) != 0 &&
+					move.destination == this.enPassantTarget) {
 				this.whitePawns &= ~((move.destination << 8) ^ 0);
 			}
-			if((this.blackPawns & move.source) != 0 && move.source >>> 16 == move.destination) {
+			if((this.blackPawns & move.source) != 0 &&
+					move.source >>> 16 == move.destination) {
 				this.enPassantTarget = move.destination;
 			} else {
 				this.enPassantTarget = 0;
@@ -987,7 +1069,8 @@ public class Board {
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 				}
-				else if(move.destination > 1L && move.destination >>> 2 == move.source) {
+				else if(move.destination > 1L &&
+						move.destination >>> 2 == move.source) {
 					// Castle kingside
 					this.blackRooks &= ~(0x8000000000000000L ^ 0);
 					this.blackRooks |= 0x2000000000000000L;
@@ -1015,7 +1098,8 @@ public class Board {
 					this.blackRooks |= move.destination;
 				}
 				else {
-					throw new IllegalMoveException("Don't know what to promote to.");
+					throw new IllegalMoveException(
+							"Don't know what to promote to.");
 				}
 			} else if((this.blackQueens & move.source) != 0) {
 				this.blackQueens &= ~(move.source ^ 0);
@@ -1032,10 +1116,12 @@ public class Board {
 			}
 		}
 		this.turn = Color.getOpposite(this.turn);
-		this.whitePieces = this.whiteBishops | this.whiteKings | this.whiteKnights | this.whitePawns |
-				this.whiteQueens | this.whiteRooks;
-		this.blackPieces = this.blackBishops | this.blackKings | this.blackKnights | this.blackPawns |
-				this.blackQueens | this.blackRooks;
+		this.whitePieces = this.whiteBishops | this.whiteKings |
+				this.whiteKnights | this.whitePawns | this.whiteQueens |
+				this.whiteRooks;
+		this.blackPieces = this.blackBishops | this.blackKings |
+				this.blackKnights | this.blackPawns | this.blackQueens |
+				this.blackRooks;
 		this.allPieces = this.whitePieces | this.blackPieces;
 	}
 	
@@ -1119,7 +1205,8 @@ public class Board {
 				}
 				
 				if(j < placementPartLength - 1) {
-					// If we happen to be on h8 it may cause an out-of-bounds error otherwise.
+					// If we happen to be on h8 it may cause an out-of-bounds
+					// error otherwise.
 					mask <<= 1;
 				}
 			}
@@ -1160,7 +1247,8 @@ public class Board {
 		
 		String enPassantTarget = parts[3];
 		if(!enPassantTarget.equals("-")) {
-			this.enPassantTarget = NotationHelper.squareToCoord(enPassantTarget);
+			this.enPassantTarget = NotationHelper.squareToCoord(
+					enPassantTarget);
 		}
 		
 		// TODO: Implement the halfmove clock and possibly fullmove number.
