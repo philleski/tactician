@@ -110,19 +110,104 @@ public class Brain {
 	private float probeCapture(Board board, long target) {
 		ArrayList<Move> lmf = board.legalMovesFast();
 		float bestFitness = this.fitness(board);
-		for(Move move : lmf) {
-			if(move.destination != target) {
-				continue;
+		Move candidateMove = null;
+		float candidateValue = this.FITNESS_LARGE;
+		if(board.turn == Color.WHITE) {
+			for(Move move : lmf) {
+				if(move.destination != target) {
+					continue;
+				}
+				if((move.source & board.whitePawns) != 0) {
+					if(this.FITNESS_PAWN < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_PAWN;
+					}
+				}
+				else if((move.source & board.whiteKnights) != 0) {
+					if(this.FITNESS_KNIGHT < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_KNIGHT;
+					}
+				}
+				else if((move.source & board.whiteBishops) != 0) {
+					if(this.FITNESS_BISHOP < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_BISHOP;
+					}
+				}
+				else if((move.source & board.whiteRooks) != 0) {
+					if(this.FITNESS_ROOK < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_ROOK;
+					}
+				}
+				else if((move.source & board.whiteQueens) != 0) {
+					if(this.FITNESS_QUEEN < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_QUEEN;
+					}
+				}
+				else {
+					if(this.FITNESS_KING < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_KING;
+					}
+				}
 			}
+		}
+		else {
+			for(Move move : lmf) {
+				if(move.destination != target) {
+					continue;
+				}
+				if((move.source & board.blackPawns) != 0) {
+					if(this.FITNESS_PAWN < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_PAWN;
+					}
+				}
+				else if((move.source & board.blackKnights) != 0) {
+					if(this.FITNESS_KNIGHT < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_KNIGHT;
+					}
+				}
+				else if((move.source & board.blackBishops) != 0) {
+					if(this.FITNESS_BISHOP < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_BISHOP;
+					}
+				}
+				else if((move.source & board.blackRooks) != 0) {
+					if(this.FITNESS_ROOK < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_ROOK;
+					}
+				}
+				else if((move.source & board.blackQueens) != 0) {
+					if(this.FITNESS_QUEEN < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_QUEEN;
+					}
+				}
+				else {
+					if(this.FITNESS_KING < candidateValue) {
+						candidateMove = move;
+						candidateValue = this.FITNESS_KING;
+					}
+				}
+			}
+		}
+		if(candidateMove != null) {
 			Board copy = new Board(board);
 			try {
-				copy.move(move);
+				copy.move(candidateMove);
 			}
 			catch(IllegalMoveException e) {
 			}
-			float candidate = -this.probeCapture(copy, target);
-			if(candidate > bestFitness) {
-				bestFitness = candidate;
+			float candidateFitness = -this.probeCapture(copy, target);
+			if(candidateFitness > bestFitness) {
+				bestFitness = candidateFitness;
 			}
 		}
 		return bestFitness;
