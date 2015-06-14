@@ -108,7 +108,7 @@ public class Brain {
 	}
 	
 	private float probeCapture(Board board, long target) {
-		ArrayList<Move> lmf = board.legalMovesFast();
+		ArrayList<Move> lmf = board.legalMovesFast(true);
 		float bestFitness = this.fitness(board);
 		Move candidateMove = null;
 		float candidateValue = this.FITNESS_LARGE;
@@ -227,7 +227,7 @@ public class Brain {
 		}
 				
 		// Check for stalemate or checkmate.
-		ArrayList<Move> lmf = board.legalMovesFast();
+		ArrayList<Move> lmf = board.legalMovesFast(false);
 		if(lmf.size() <= 8) {
 			boolean isMate = true;
 			long kings = board.blackKings | board.whiteKings;
