@@ -40,7 +40,7 @@ public class Brain {
 			whitePawnCount * this.FITNESS_PAWN +
 			whiteQueenCount * this.FITNESS_QUEEN +
 			whiteRookCount * this.FITNESS_ROOK;
-		return (blackMaterial + whiteMaterial) /
+		return 1 - (blackMaterial + whiteMaterial) /
 				(2 * this.FITNESS_START_NOKING);
 	}
 
