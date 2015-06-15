@@ -59,10 +59,8 @@ public class Brain {
 			kingIndex = board.blackKingIndex;
 			distanceFromHomeRank = 7 - (int)(board.blackKingIndex / 8);
 		}
-		// Centrality is 0 at the a/h files and 3 at the d/e files.
-		int centrality = (int)(3.5f - Math.abs(3.5f - kingIndex % 8));
 		float rankFitness = -50.0f * distanceFromHomeRank * (0.7f - endgameFraction);
-		float fileFitness = -50.0f * centrality * (0.7f - endgameFraction);
+		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8];
 		
 		// FIXME - put in pawn shield and tropism
 		
@@ -321,7 +319,7 @@ public class Brain {
 		int depth = 0;
 		float endgameFraction = this.endgameFraction(board);
 		System.out.println("EF: " + endgameFraction);
-		if(endgameFraction > 0.3) {
+		if(endgameFraction < 0.7) {
 			depth = 5;
 		}
 		else {
@@ -394,4 +392,5 @@ public class Brain {
 		{161, 146, 127, 110},
 		{0, 0, 0, 0}
 	};
+	private float[] FITNESS_KING_FILE = {0, 0, -100, -200, -200, -100, 0, 0};
 }
