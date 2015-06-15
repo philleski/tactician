@@ -27,6 +27,8 @@ public class Board {
 	public long blackPawns =	0x00ff000000000000L;
 	public long blackQueens =	0x0800000000000000L;
 	public long blackRooks =	0x8100000000000000L;
+	public int whiteKingIndex = 4;   // 1L << index is the coordinate.
+	public int blackKingIndex = 60;
 	
 	public long whitePieces = whiteBishops | whiteKings | whiteKnights |
 			whitePawns | whiteQueens | whiteRooks;
@@ -72,6 +74,8 @@ public class Board {
 		this.whiteCastleRightQueenside = other.whiteCastleRightQueenside;
 		this.blackCastleRightKingside = other.blackCastleRightKingside;
 		this.blackCastleRightQueenside = other.blackCastleRightQueenside;
+		this.whiteKingIndex = other.whiteKingIndex;
+		this.blackKingIndex = other.blackKingIndex;
 	}
 	
 	public String toString() {
@@ -1027,6 +1031,36 @@ public class Board {
 		return result;
 	}
 	
+	// https://en.wikipedia.org/wiki/Find_first_set
+	public int coordToIndex(long coord) {
+		int index = 0;
+		if((coord & 0xffffffff00000000L) == 0) {
+			index += 32;
+			coord <<= 32;
+		}
+		if((coord & 0xffff000000000000L) == 0) {
+			index += 16;
+			coord <<= 16;
+		}
+		if((coord & 0xff00000000000000L) == 0) {
+			index += 8;
+			coord <<= 8;
+		}
+		if((coord & 0xf000000000000000L) == 0) {
+			index += 4;
+			coord <<= 4;
+		}
+		if((coord & 0xc000000000000000L) == 0) {
+			index += 2;
+			coord <<= 2;
+		}
+		if((coord & 0x8000000000000000L) == 0) {
+			index++;
+			coord <<= 1;
+		}
+		return index;
+	}
+	
 	public void move(Move move)
 			throws IllegalMoveException {
 		// Remove whatever is in the destination spot.
@@ -1035,6 +1069,7 @@ public class Board {
 		}
 		else if((this.whiteKings & move.destination) != 0) {
 			this.whiteKings &= ~(move.destination ^ 0);
+			this.whiteKingIndex = this.coordToIndex(move.destination);
 		}
 		else if((this.whiteKnights & move.destination) != 0) {
 			this.whiteKnights &= ~(move.destination ^ 0);
@@ -1053,6 +1088,7 @@ public class Board {
 		}
 		else if((this.blackKings & move.destination) != 0) {
 			this.blackKings &= ~(move.destination ^ 0);
+			this.blackKingIndex = this.coordToIndex(move.destination);
 		}
 		else if((this.blackKnights & move.destination) != 0) {
 			this.blackKnights &= ~(move.destination ^ 0);
@@ -1264,6 +1300,7 @@ public class Board {
 				}
 				else if(piece == 'k') {
 					this.blackKings |= mask;
+					this.blackKingIndex = this.coordToIndex(mask);
 				}
 				else if(piece == 'n') {
 					this.blackKnights |= mask;
@@ -1282,6 +1319,7 @@ public class Board {
 				}
 				else if(piece == 'K') {
 					this.whiteKings |= mask;
+					this.whiteKingIndex = this.coordToIndex(mask);
 				}
 				else if(piece == 'N') {
 					this.whiteKnights |= mask;

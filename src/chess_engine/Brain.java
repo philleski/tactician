@@ -40,10 +40,35 @@ public class Brain {
 			whitePawnCount * this.FITNESS_PAWN +
 			whiteQueenCount * this.FITNESS_QUEEN +
 			whiteRookCount * this.FITNESS_ROOK;
-		return (blackMaterial + whiteMaterial) /
+		return 1.0f - (blackMaterial + whiteMaterial) /
 				(2 * this.FITNESS_START_NOKING);
 	}
-
+	
+	private float fitnessKingSafety(Board board, Color color, float endgameFraction) {
+		// The king should be in the corner at the beginning of the game
+		// because it's safer there, but in the center at the end of the game
+		// because it's a fighting piece and the opponent can't really
+		// checkmate it anyway.
+		int distanceFromHomeRank = 0;
+		int kingIndex = 0;
+		if(color == Color.WHITE) {
+			kingIndex = board.whiteKingIndex;
+			distanceFromHomeRank = (int)(kingIndex / 8);
+		}
+		else {
+			kingIndex = board.blackKingIndex;
+			distanceFromHomeRank = 7 - (int)(board.blackKingIndex / 8);
+		}
+		// Centrality is 0 at the a/h files and 3 at the d/e files.
+		int centrality = (int)(3.5f - Math.abs(3.5f - kingIndex % 8));
+		float rankFitness = -50.0f * distanceFromHomeRank * (0.7f - endgameFraction);
+		float fileFitness = -50.0f * centrality * (0.7f - endgameFraction);
+		
+		// FIXME - put in pawn shield and tropism
+		
+		return rankFitness + fileFitness;
+	}
+	
 	private float fitness(Board board) {
 		int blackBishopCount = numBitsSet(board.blackBishops);
 		int blackKingCount = numBitsSet(board.blackKings);
@@ -99,11 +124,15 @@ public class Brain {
 		float fitness = 0;
 		if(board.turn == Color.WHITE) {
 			fitness = whiteMaterial - blackMaterial;
+			fitness += this.fitnessKingSafety(board, Color.WHITE, endgameFraction) -
+					this.fitnessKingSafety(board, Color.BLACK, endgameFraction);
 		}
 		else {
 			fitness = blackMaterial - whiteMaterial;
+			fitness += this.fitnessKingSafety(board, Color.BLACK, endgameFraction) -
+					this.fitnessKingSafety(board, Color.WHITE, endgameFraction);
 		}
-		
+				
 		return fitness;
 	}
 	
