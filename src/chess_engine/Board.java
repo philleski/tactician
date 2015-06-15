@@ -145,146 +145,134 @@ public class Board {
 	}
 	
 	private void appendLegalMovesForPieceDiagonal(long coordIndex,
-			long myPieces, long oppPieces, boolean capturesOnly,
-			ArrayList<Move> legalMoves) {
+			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
+			ArrayList<Move> legalMovesNoncapture) {
 		long mask = 1L << coordIndex;
 		// NW
 		long nw = coordIndex;
 		while(nw % 8 != 0 && nw + 7 < 64) {
 			nw += 7;
 			if(((1L << nw) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << nw));
+				legalMovesCapture.add(new Move(mask, 1L << nw));
 				break;
 			}
 			if(((1L << nw) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << nw));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << nw));
 		}
 		// NE
 		long ne = coordIndex;
 		while(ne % 8 != 7 && ne + 9 < 64) {
 			ne += 9;
 			if(((1L << ne) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << ne));
+				legalMovesCapture.add(new Move(mask, 1L << ne));
 				break;
 			}
 			if(((1L << ne) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << ne));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << ne));
 		}
 		// SW
 		long sw = coordIndex;
 		while(sw % 8 != 0 && sw - 9 >= 0) {
 			sw -= 9;
 			if(((1L << sw) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << sw));
+				legalMovesCapture.add(new Move(mask, 1L << sw));
 				break;
 			}
 			if(((1L << sw) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << sw));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << sw));
 		}
 		// SE
 		long se = coordIndex;
 		while(se % 8 != 7 && se - 7 >= 0) {
 			se -= 7;
 			if(((1L << se) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << se));
+				legalMovesCapture.add(new Move(mask, 1L << se));
 				break;
 			}
 			if(((1L << se) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << se));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << se));
 		}
 	}
 	
 	private void appendLegalMovesForPieceStraight(long coordIndex,
-			long myPieces, long oppPieces, boolean capturesOnly,
-			ArrayList<Move> legalMoves) {
+			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
+			ArrayList<Move> legalMovesNoncapture) {
 		long mask = 1L << coordIndex;
 		// N
 		long n = coordIndex;
 		while(n + 8 < 64) {
 			n += 8;
 			if(((1L << n) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << n));
+				legalMovesCapture.add(new Move(mask, 1L << n));
 				break;
 			}
 			if(((1L << n) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << n));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << n));
 		}
 		// W
 		long w = coordIndex;
 		while(w % 8 != 0) {
 			w -= 1;
 			if(((1L << w) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << w));
+				legalMovesCapture.add(new Move(mask, 1L << w));
 				break;
 			}
 			if(((1L << w) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << w));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << w));
 		}
 		// E
 		long e = coordIndex;
 		while(e % 8 != 7) {
 			e += 1;
 			if(((1L << e) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << e));
+				legalMovesCapture.add(new Move(mask, 1L << e));
 				break;
 			}
 			if(((1L << e) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << e));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << e));
 		}
 		// S
 		long s = coordIndex;
 		while(s - 8 >= 0) {
 			s -= 8;
 			if(((1L << s) & oppPieces) != 0) {
-				legalMoves.add(new Move(mask, 1L << s));
+				legalMovesCapture.add(new Move(mask, 1L << s));
 				break;
 			}
 			if(((1L << s) & myPieces) != 0) {
 				break;
 			}
-			if(!capturesOnly) {
-				legalMoves.add(new Move(mask, 1L << s));
-			}
+			legalMovesNoncapture.add(new Move(mask, 1L << s));
 		}
 	}
 	
 	private void appendLegalMovesForKnight(long coordIndex, long myPieces,
-			long oppPieces, boolean capturesOnly, ArrayList<Move> legalMoves) {
+			long oppPieces, ArrayList<Move> legalMovesCapture,
+			ArrayList<Move> legalMovesNoncapture) {
 		long mask = 1L << coordIndex;
 		// NNW
 		if(coordIndex % 8 != 0 && coordIndex < 48) {
 			long next = coordIndex + 15;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -292,8 +280,11 @@ public class Board {
 		if(coordIndex % 8 != 7 && coordIndex < 48) {
 			long next = coordIndex + 17;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -301,8 +292,11 @@ public class Board {
 		if(coordIndex % 8 > 1 && coordIndex < 56) {
 			long next = coordIndex + 6;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -310,8 +304,11 @@ public class Board {
 		if(coordIndex % 8 < 6 && coordIndex < 56) {
 			long next = coordIndex + 10;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -319,8 +316,11 @@ public class Board {
 		if(coordIndex % 8 > 1 && coordIndex >= 8) {
 			long next = coordIndex - 10;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -328,8 +328,11 @@ public class Board {
 		if(coordIndex % 8 < 6 && coordIndex >= 8) {
 			long next = coordIndex - 6;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -337,8 +340,11 @@ public class Board {
 		if(coordIndex % 8 != 0 && coordIndex >= 16) {
 			long next = coordIndex - 17;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -346,22 +352,29 @@ public class Board {
 		if(coordIndex % 8 != 7 && coordIndex >= 16) {
 			long next = coordIndex - 15;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
 	}
 	
 	private void appendLegalMovesForKing(long coordIndex, long myPieces,
-			long oppPieces, boolean capturesOnly, ArrayList<Move> legalMoves) {
+			long oppPieces, ArrayList<Move> legalMovesCapture,
+			ArrayList<Move> legalMovesNoncapture) {
 		long mask = 1L << coordIndex;
 		// NW
 		if(coordIndex % 8 != 0 && coordIndex < 56) {
 			long next = coordIndex + 7;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -369,8 +382,11 @@ public class Board {
 		if(coordIndex < 56) {
 			long next = coordIndex + 8;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -378,8 +394,11 @@ public class Board {
 		if(coordIndex % 8 != 7 && coordIndex < 56) {
 			long next = coordIndex + 9;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -387,8 +406,11 @@ public class Board {
 		if(coordIndex % 8 != 0) {
 			long next = coordIndex - 1;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -396,8 +418,11 @@ public class Board {
 		if(coordIndex % 8 != 7) {
 			long next = coordIndex + 1;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -405,8 +430,11 @@ public class Board {
 		if(coordIndex % 8 != 0 && coordIndex >= 8) {
 			long next = coordIndex - 9;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -414,8 +442,11 @@ public class Board {
 		if(coordIndex >= 8) {
 			long next = coordIndex - 8;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -423,8 +454,11 @@ public class Board {
 		if(coordIndex % 8 != 7 && coordIndex >= 8) {
 			long next = coordIndex - 7;
 			if(((1L << next) & myPieces) == 0) {
-				if(!capturesOnly || ((1L << next) & oppPieces) != 0) {
-					legalMoves.add(new Move(mask, 1L << next));
+				if(((1L << next) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(mask, 1L << next));
+				}
+				else {
+					legalMovesNoncapture.add(new Move(mask, 1L << next));
 				}
 			}
 		}
@@ -691,7 +725,8 @@ public class Board {
 		// the player's king. Also to speed things up not all of them are
 		// actually legal, but the ones that aren't wouldn't be able to capture
 		// the player's king anyway.
-		ArrayList<Move> oppLegalMoves = new ArrayList<Move>();
+		ArrayList<Move> oppLegalMovesCapture = new ArrayList<Move>();
+		ArrayList<Move> oppLegalMovesNoncapture = new ArrayList<Move>();
 		long myKings = this.getMyKings();
 		long myPieces = this.getMyPieces();
 		long oppPieces = this.getOppPieces();
@@ -704,46 +739,46 @@ public class Board {
 				if(this.turn == Color.WHITE) {
 					// Look at the black player's pawns.
 					if(i % 8 != 0) {
-						oppLegalMoves.add(new Move(mask, mask >>> 9));
+						oppLegalMovesCapture.add(new Move(mask, mask >>> 9));
 					}
 					if(i % 8 != 7) {
-						oppLegalMoves.add(new Move(mask, mask >>> 7));
+						oppLegalMovesCapture.add(new Move(mask, mask >>> 7));
 					}
 				}
 				else {
 					// Look at the white player's pawns.
 					if(i % 8 != 0) {
-						oppLegalMoves.add(new Move(mask, mask << 7));
+						oppLegalMovesCapture.add(new Move(mask, mask << 7));
 					}
 					if(i % 8 != 7) {
-						oppLegalMoves.add(new Move(mask, mask << 9));
+						oppLegalMovesCapture.add(new Move(mask, mask << 9));
 					}
 				}
 			}
 			else if((this.getOppBishops() & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
-						false, oppLegalMoves);
+						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 			else if((this.getOppRooks() & mask) != 0) {
 				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
-						false, oppLegalMoves);
+						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 			else if((this.getOppQueens() & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
-						false, oppLegalMoves);
+						oppLegalMovesCapture, oppLegalMovesNoncapture);
 				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
-						false, oppLegalMoves);
+						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 			else if((this.getOppKnights() & mask) != 0) {
 				this.appendLegalMovesForKnight(i, oppPieces, myPieces,
-						false, oppLegalMoves);
+						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 			else if((this.getOppKings() & mask) != 0) {
 				this.appendLegalMovesForKing(i, oppPieces, myPieces,
-						false, oppLegalMoves);
+						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 		}
-		for(Move m : oppLegalMoves) {
+		for(Move m : oppLegalMovesCapture) {
 			if((m.destination & myKings) != 0) {
 				return true;
 			}
@@ -756,7 +791,8 @@ public class Board {
 		// player in check. extraCapture is for en passant, to list the extra
 		// square we're capturing (if 1 destroy the piece below the
 		// destination)
-		ArrayList<Move> result = new ArrayList<Move>();
+		ArrayList<Move> legalMovesCapture = new ArrayList<Move>();
+		ArrayList<Move> legalMovesNoncapture = new ArrayList<Move>();
 		
 		long myPieces = this.getMyPieces();
 		long oppPieces = this.getOppPieces();
@@ -769,159 +805,155 @@ public class Board {
 			}
 			if((this.getMyPawns() & mask) != 0) {
 				if(this.turn == Color.WHITE) {
-					if(!capturesOnly) {
-						// One space forward
-						if(((mask << 8) & this.allPieces) == 0) {
-							if(mask >>> 48 == 0) {
-								result.add(new Move(mask, mask << 8));
-							}
-							else {
-								result.add(new Move(mask, mask << 8,
-										Piece.BISHOP));
-								result.add(new Move(mask, mask << 8,
-										Piece.KNIGHT));
-								result.add(new Move(mask, mask << 8,
-										Piece.QUEEN));
-								result.add(new Move(mask, mask << 8,
-										Piece.ROOK));
-							}
+					// One space forward
+					if(((mask << 8) & this.allPieces) == 0) {
+						if(mask >>> 48 == 0) {
+							legalMovesNoncapture.add(new Move(mask, mask << 8));
 						}
-						// Two spaces forward
-						if(i < 16 && ((mask << 8) & this.allPieces) == 0 &&
-							((mask << 16) & this.allPieces) == 0) {
-							result.add(new Move(mask, mask << 16));
+						else {
+							legalMovesNoncapture.add(new Move(mask, mask << 8,
+									Piece.BISHOP));
+							legalMovesNoncapture.add(new Move(mask, mask << 8,
+									Piece.KNIGHT));
+							legalMovesNoncapture.add(new Move(mask, mask << 8,
+									Piece.QUEEN));
+							legalMovesNoncapture.add(new Move(mask, mask << 8,
+									Piece.ROOK));
 						}
+					}
+					// Two spaces forward
+					if(i < 16 && ((mask << 8) & this.allPieces) == 0 &&
+						((mask << 16) & this.allPieces) == 0) {
+						legalMovesNoncapture.add(new Move(mask, mask << 16));
 					}
 					// Capture left
 					if(i % 8 != 0 && ((mask << 7) & oppPieces) != 0) {
 						if(mask >>> 48 == 0) {
-							result.add(new Move(mask, mask << 7));
+							legalMovesCapture.add(new Move(mask, mask << 7));
 						}
 						else {
-							result.add(new Move(mask, mask << 7,
+							legalMovesCapture.add(new Move(mask, mask << 7,
 									Piece.BISHOP));
-							result.add(new Move(mask, mask << 7,
+							legalMovesCapture.add(new Move(mask, mask << 7,
 									Piece.KNIGHT));
-							result.add(new Move(mask, mask << 7,
+							legalMovesCapture.add(new Move(mask, mask << 7,
 									Piece.QUEEN));
-							result.add(new Move(mask, mask << 7,
+							legalMovesCapture.add(new Move(mask, mask << 7,
 									Piece.ROOK));
 						}
 					}
 					// Capture right
 					if(i % 8 != 7 && ((mask << 9) & oppPieces) != 0) {
 						if(mask >>> 48 == 0) {
-							result.add(new Move(mask, mask << 9));
+							legalMovesCapture.add(new Move(mask, mask << 9));
 						}
 						else {
-							result.add(new Move(mask, mask << 9,
+							legalMovesCapture.add(new Move(mask, mask << 9,
 									Piece.BISHOP));
-							result.add(new Move(mask, mask << 9,
+							legalMovesCapture.add(new Move(mask, mask << 9,
 									Piece.KNIGHT));
-							result.add(new Move(mask, mask << 9,
+							legalMovesCapture.add(new Move(mask, mask << 9,
 									Piece.QUEEN));
-							result.add(new Move(mask, mask << 9,
+							legalMovesCapture.add(new Move(mask, mask << 9,
 									Piece.ROOK));
 						}
 					}
 					// En passant
 					if(this.enPassantTarget != 0) {
 						if(i % 8 != 0 && mask << 7 == this.enPassantTarget) {
-							result.add(new Move(mask, mask << 7));
+							legalMovesCapture.add(new Move(mask, mask << 7));
 						}
 						if(i % 8 != 7 && mask << 9 == this.enPassantTarget) {
-							result.add(new Move(mask, mask << 9));
+							legalMovesCapture.add(new Move(mask, mask << 9));
 						}
 					}
 				}
 				else {
-					if(!capturesOnly) {
-						// One space forward
-						if(((mask >>> 8) & this.allPieces) == 0) {
-							if(mask >>> 16 != 0) {
-								result.add(new Move(mask, mask >>> 8));
-							}
-							else {
-								result.add(new Move(mask, mask >>> 8,
-										Piece.BISHOP));
-								result.add(new Move(mask, mask >>> 8,
-										Piece.KNIGHT));
-								result.add(new Move(mask, mask >>> 8,
-										Piece.QUEEN));
-								result.add(new Move(mask, mask >>> 8,
-										Piece.ROOK));
-							}
+					// One space forward
+					if(((mask >>> 8) & this.allPieces) == 0) {
+						if(mask >>> 16 != 0) {
+							legalMovesNoncapture.add(new Move(mask, mask >>> 8));
 						}
-						// Two spaces forward
-						if(i >= 48 && ((mask >>> 8) & this.allPieces) == 0 &&
-							((mask >>> 16) & this.allPieces) == 0) {
-							result.add(new Move(mask, mask >>> 16));
+						else {
+							legalMovesNoncapture.add(new Move(mask, mask >>> 8,
+									Piece.BISHOP));
+							legalMovesNoncapture.add(new Move(mask, mask >>> 8,
+									Piece.KNIGHT));
+							legalMovesNoncapture.add(new Move(mask, mask >>> 8,
+									Piece.QUEEN));
+							legalMovesNoncapture.add(new Move(mask, mask >>> 8,
+									Piece.ROOK));
 						}
+					}
+					// Two spaces forward
+					if(i >= 48 && ((mask >>> 8) & this.allPieces) == 0 &&
+						((mask >>> 16) & this.allPieces) == 0) {
+						legalMovesNoncapture.add(new Move(mask, mask >>> 16));
 					}
 					// Capture left
 					if(i % 8 != 0 && ((mask >>> 9) & oppPieces) != 0) {
 						if(mask >>> 16 != 0) {
-							result.add(new Move(mask, mask >>> 9));
+							legalMovesCapture.add(new Move(mask, mask >>> 9));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 9,
+							legalMovesCapture.add(new Move(mask, mask >>> 9,
 									Piece.BISHOP));
-							result.add(new Move(mask, mask >>> 9,
+							legalMovesCapture.add(new Move(mask, mask >>> 9,
 									Piece.KNIGHT));
-							result.add(new Move(mask, mask >>> 9,
+							legalMovesCapture.add(new Move(mask, mask >>> 9,
 									Piece.QUEEN));
-							result.add(new Move(mask, mask >>> 9,
+							legalMovesCapture.add(new Move(mask, mask >>> 9,
 									Piece.ROOK));
 						}
 					}
 					// Capture right
 					if(i % 8 != 7 && ((mask >>> 7) & oppPieces) != 0) {
 						if(mask >>> 16 != 0) {
-							result.add(new Move(mask, mask >>> 7));
+							legalMovesCapture.add(new Move(mask, mask >>> 7));
 						}
 						else {
-							result.add(new Move(mask, mask >>> 7,
+							legalMovesCapture.add(new Move(mask, mask >>> 7,
 									Piece.BISHOP));
-							result.add(new Move(mask, mask >>> 7,
+							legalMovesCapture.add(new Move(mask, mask >>> 7,
 									Piece.KNIGHT));
-							result.add(new Move(mask, mask >>> 7,
+							legalMovesCapture.add(new Move(mask, mask >>> 7,
 									Piece.QUEEN));
-							result.add(new Move(mask, mask >>> 7,
+							legalMovesCapture.add(new Move(mask, mask >>> 7,
 									Piece.ROOK));
 						}
 					}
 					// En passant
 					if(this.enPassantTarget != 0) {
 						if(i % 8 != 0 && mask >>> 9 == this.enPassantTarget) {
-							result.add(new Move(mask, mask >>> 9));
+							legalMovesCapture.add(new Move(mask, mask >>> 9));
 						}
 						if(i % 8 != 7 && mask >>> 7 == this.enPassantTarget) {
-							result.add(new Move(mask, mask >>> 7));
+							legalMovesCapture.add(new Move(mask, mask >>> 7));
 						}
 					}
 				}
 			}
 			else if((this.getMyBishops() & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
-						capturesOnly, result);
+						legalMovesCapture, legalMovesNoncapture);
 			}
 			else if((this.getMyRooks() & mask) != 0) {
 				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
-						capturesOnly, result);
+						legalMovesCapture, legalMovesNoncapture);
 			}
 			else if((this.getMyQueens() & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
-						capturesOnly, result);
+						legalMovesCapture, legalMovesNoncapture);
 				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
-						capturesOnly, result);
+						legalMovesCapture, legalMovesNoncapture);
 			}
 			else if((this.getMyKnights() & mask) != 0) {
-				this.appendLegalMovesForKnight(i, myPieces, oppPieces, capturesOnly,
-						result);
+				this.appendLegalMovesForKnight(i, myPieces, oppPieces,
+						legalMovesCapture, legalMovesNoncapture);
 			}
 			else if((this.getMyKings() & mask) != 0) {
-				this.appendLegalMovesForKing(i, myPieces, oppPieces, capturesOnly,
-						result);
+				this.appendLegalMovesForKing(i, myPieces, oppPieces,
+						legalMovesCapture, legalMovesNoncapture);
 			}
 		}
 		
@@ -931,7 +963,7 @@ public class Board {
 				if(this.whiteCastleRightKingside) {
 					if((this.allPieces & 0x0000000000000060L) == 0) {
 						if(this.verifyCastleCheckRule(Castle.KINGSIDE_WHITE)) {
-							result.add(new Move(0x0000000000000010L,
+							legalMovesNoncapture.add(new Move(0x0000000000000010L,
 									0x0000000000000040L));
 						}
 					}
@@ -939,7 +971,7 @@ public class Board {
 				if(this.whiteCastleRightQueenside) {
 					if((this.allPieces & 0x000000000000000eL) == 0) {
 						if(this.verifyCastleCheckRule(Castle.QUEENSIDE_WHITE)) {
-							result.add(new Move(0x0000000000000010L,
+							legalMovesNoncapture.add(new Move(0x0000000000000010L,
 									0x0000000000000004L));
 						}
 					}
@@ -949,7 +981,7 @@ public class Board {
 				if(this.blackCastleRightKingside) {
 					if((this.allPieces & 0x6000000000000000L) == 0) {
 						if(this.verifyCastleCheckRule(Castle.KINGSIDE_BLACK)) {
-							result.add(new Move(0x1000000000000000L,
+							legalMovesNoncapture.add(new Move(0x1000000000000000L,
 									0x4000000000000000L));
 						}
 					}
@@ -957,7 +989,7 @@ public class Board {
 				if(this.blackCastleRightQueenside) {
 					if((this.allPieces & 0x0e00000000000000L) == 0) {
 						if(this.verifyCastleCheckRule(Castle.QUEENSIDE_BLACK)) {
-							result.add(new Move(0x1000000000000000L,
+							legalMovesNoncapture.add(new Move(0x1000000000000000L,
 									0x0400000000000000L));
 						}
 					}
@@ -965,7 +997,13 @@ public class Board {
 			}
 		}
 		
-		return result;
+		if(capturesOnly) {
+			return legalMovesCapture;
+		}
+		else {
+			legalMovesCapture.addAll(legalMovesNoncapture);
+			return legalMovesCapture;
+		}
 	}
 	
 	public ArrayList<Move> legalMoves() {
