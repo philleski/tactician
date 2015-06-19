@@ -1380,7 +1380,10 @@ public class Board {
 		}
 		
 		String enPassantTarget = parts[3];
-		if(!enPassantTarget.equals("-")) {
+		if(enPassantTarget.equals("-")) {
+			this.enPassantTarget = 0;
+		}
+		else {
 			this.enPassantTarget = NotationHelper.squareToCoord(
 					enPassantTarget);
 		}

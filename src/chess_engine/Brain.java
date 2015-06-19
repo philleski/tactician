@@ -393,6 +393,6 @@ public class Brain {
 		{161, 146, 127, 110},
 		{0, 0, 0, 0}
 	};
-	private float FITNESS_KING_RANK_FACTOR = 200;
+	private float FITNESS_KING_RANK_FACTOR = 50;
 	private float[] FITNESS_KING_FILE = {0, 0, -50, -100, -100, -50, 0, 0};
 }
