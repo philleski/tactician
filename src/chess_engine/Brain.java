@@ -57,10 +57,10 @@ public class Brain {
 		}
 		else {
 			kingIndex = board.blackKingIndex;
-			distanceFromHomeRank = 7 - (int)(board.blackKingIndex / 8);
+			distanceFromHomeRank = 7 - (int)(kingIndex / 8);
 		}
-		float rankFitness = -50.0f * distanceFromHomeRank * (0.7f - endgameFraction);
-		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8];
+		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.7f - endgameFraction);
+		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.7f - endgameFraction);
 		
 		// FIXME - put in pawn shield and tropism
 		
@@ -130,7 +130,7 @@ public class Brain {
 			fitness += this.fitnessKingSafety(board, Color.BLACK, endgameFraction) -
 					this.fitnessKingSafety(board, Color.WHITE, endgameFraction);
 		}
-				
+						
 		return fitness;
 	}
 	
@@ -345,6 +345,7 @@ public class Brain {
 			float fitness = this.alphabeta(copy, depth - 1, -FITNESS_LARGE,
 					FITNESS_LARGE);
 			fitness += Math.random() * 0.01;
+			
 			if(depth % 2 == 0 && fitness > superlativeFitness) {
 				superlativeFitness = fitness;
 				bestMove = move;
@@ -392,5 +393,6 @@ public class Brain {
 		{161, 146, 127, 110},
 		{0, 0, 0, 0}
 	};
-	private float[] FITNESS_KING_FILE = {0, 0, -100, -200, -200, -100, 0, 0};
+	private float FITNESS_KING_RANK_FACTOR = 200;
+	private float[] FITNESS_KING_FILE = {0, 0, -50, -100, -100, -50, 0, 0};
 }

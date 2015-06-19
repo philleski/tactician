@@ -1033,32 +1033,32 @@ public class Board {
 	
 	// https://en.wikipedia.org/wiki/Find_first_set
 	public int coordToIndex(long coord) {
-		int index = 0;
+		int leadingZeros = 0;
 		if((coord & 0xffffffff00000000L) == 0) {
-			index += 32;
+			leadingZeros += 32;
 			coord <<= 32;
 		}
 		if((coord & 0xffff000000000000L) == 0) {
-			index += 16;
+			leadingZeros += 16;
 			coord <<= 16;
 		}
 		if((coord & 0xff00000000000000L) == 0) {
-			index += 8;
+			leadingZeros += 8;
 			coord <<= 8;
 		}
 		if((coord & 0xf000000000000000L) == 0) {
-			index += 4;
+			leadingZeros += 4;
 			coord <<= 4;
 		}
 		if((coord & 0xc000000000000000L) == 0) {
-			index += 2;
+			leadingZeros += 2;
 			coord <<= 2;
 		}
 		if((coord & 0x8000000000000000L) == 0) {
-			index++;
+			leadingZeros++;
 			coord <<= 1;
 		}
-		return index;
+		return 64 - leadingZeros;
 	}
 	
 	public void move(Move move)
@@ -1069,7 +1069,6 @@ public class Board {
 		}
 		else if((this.whiteKings & move.destination) != 0) {
 			this.whiteKings &= ~(move.destination ^ 0);
-			this.whiteKingIndex = this.coordToIndex(move.destination);
 		}
 		else if((this.whiteKnights & move.destination) != 0) {
 			this.whiteKnights &= ~(move.destination ^ 0);
@@ -1088,7 +1087,6 @@ public class Board {
 		}
 		else if((this.blackKings & move.destination) != 0) {
 			this.blackKings &= ~(move.destination ^ 0);
-			this.blackKingIndex = this.coordToIndex(move.destination);
 		}
 		else if((this.blackKnights & move.destination) != 0) {
 			this.blackKnights &= ~(move.destination ^ 0);
@@ -1137,6 +1135,7 @@ public class Board {
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 				}
+				this.whiteKingIndex = this.coordToIndex(move.destination);
 			} else if((this.whiteKnights & move.source) != 0) {
 				this.whiteKnights &= ~(move.source ^ 0);
 				this.whiteKnights |= move.destination;
@@ -1209,6 +1208,7 @@ public class Board {
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 				}
+				this.blackKingIndex = this.coordToIndex(move.destination);
 			} else if((this.blackKnights & move.source) != 0) {
 				this.blackKnights &= ~(move.source ^ 0);
 				this.blackKnights |= move.destination;
