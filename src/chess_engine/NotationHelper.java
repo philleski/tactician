@@ -3,6 +3,36 @@ package chess_engine;
 import java.util.ArrayList;
 
 public class NotationHelper {
+	// https://en.wikipedia.org/wiki/Find_first_set
+	public int coordToIndex(long coord) {
+		int leadingZeros = 0;
+		if((coord & 0xffffffff00000000L) == 0) {
+			leadingZeros += 32;
+			coord <<= 32;
+		}
+		if((coord & 0xffff000000000000L) == 0) {
+			leadingZeros += 16;
+			coord <<= 16;
+		}
+		if((coord & 0xff00000000000000L) == 0) {
+			leadingZeros += 8;
+			coord <<= 8;
+		}
+		if((coord & 0xf000000000000000L) == 0) {
+			leadingZeros += 4;
+			coord <<= 4;
+		}
+		if((coord & 0xc000000000000000L) == 0) {
+			leadingZeros += 2;
+			coord <<= 2;
+		}
+		if((coord & 0x8000000000000000L) == 0) {
+			leadingZeros++;
+			coord <<= 1;
+		}
+		return 64 - leadingZeros;
+	}
+	
 	public static String coordToSquare(long coord) {
 		String file;
 		String rank;
