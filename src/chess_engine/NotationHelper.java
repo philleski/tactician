@@ -30,7 +30,7 @@ public class NotationHelper {
 			leadingZeros++;
 			coord <<= 1;
 		}
-		return 64 - leadingZeros;
+		return 63 - leadingZeros;
 	}
 	
 	public static String coordToSquare(long coord) {
