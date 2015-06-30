@@ -4,22 +4,24 @@ public class TranspositionTable {
 	// TODO - Refactor these into their own files.
 	// https://chessprogramming.wikispaces.com/Node+Types#PV
 	public enum TranspositionType {
-		NODE_PV,
-		NODE_CUT,
-		NODE_ALL
+		NODE_EXACT,
+		NODE_ALPHA,
+		NODE_BETA
 	}
 	
 	public class TranspositionEntry {
 		public TranspositionEntry() {
 		}
 		
-		public TranspositionEntry(long positionHash, float fitness,
-				TranspositionType type) {
+		public TranspositionEntry(int depth, long positionHash,
+				float fitness, TranspositionType type) {
+			this.depth = depth;
 			this.positionHash = positionHash;
 			this.fitness = fitness;
 			this.type = type;
 		}
 		
+		public int depth = 0;
 		public long positionHash = 0;
 		public float fitness = 0;
 		public TranspositionType type = null;
@@ -39,29 +41,16 @@ public class TranspositionTable {
 		return ((int)positionHash & 0x7fffffff) % this.size;
 	}
 	
-	public void put(long positionHash, float fitness, TranspositionType type) {
+	public void put(int depth, long positionHash, float fitness, TranspositionType type) {
 		// Assume we won't store more than MAX_INT entries.
 		this.data[this.index(positionHash)] =
-				new TranspositionEntry(positionHash, fitness, type);
+				new TranspositionEntry(depth, positionHash, fitness, type);
 	}
-	
-	private int hits = 0;
-	private int collisions = 0;
-	private int nones = 0;
 	
 	public TranspositionEntry get(long positionHash) {
 		TranspositionEntry entry = this.data[this.index(positionHash)];
 		if(entry.positionHash == positionHash) {
-			hits++;
-			// System.out.println(hits + " " + collisions + " " + nones);
 			return entry;
-		}
-		else if(entry.positionHash != 0) {
-			collisions++;
-			// System.out.println(hits + " " + collisions + " " + nones);
-		} else {
-			nones++;
-			// System.out.println(hits + " " + collisions + " " + nones);
 		}
 		return null;
 	}
