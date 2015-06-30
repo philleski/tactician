@@ -7,19 +7,19 @@ public class Move {
 		this.promoteTo = Piece.NOPIECE;
 	}
 	
-	public Move(long source, long destination) {
+	public Move(byte source, byte destination) {
 		this.source = source;
 		this.destination = destination;
 		this.promoteTo = Piece.NOPIECE;
 	}
 	
-	public Move(long source, long destination, Piece promoteTo) {
+	public Move(byte source, byte destination, Piece promoteTo) {
 		this.source = source;
 		this.destination = destination;
 		this.promoteTo = promoteTo;
 	}
 		
-	public long source;
-	public long destination;
+	public byte source;
+	public byte destination;
 	public Piece promoteTo;
 }

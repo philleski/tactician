@@ -201,105 +201,104 @@ public class Board {
 	// TODO - restructure move so that we don't have to call coordToIndex each time.
 	public void move(Move move)
 			throws IllegalMoveException {
-		int sourceIndex = notationHelper.coordToIndex(move.source);
-		int destinationIndex = notationHelper.coordToIndex(move.destination);
-				
+		long sourceMask = 1L << move.source;
+		long destinationMask = 1L << move.destination;
 		// Remove whatever is in the destination spot.
-		if((this.whiteBishops & move.destination) != 0) {
-			this.whiteBishops &= ~(move.destination ^ 0);
+		if((this.whiteBishops & destinationMask) != 0) {
+			this.whiteBishops &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskWhiteBishop(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.whiteKings & move.destination) != 0) {
-			this.whiteKings &= ~(move.destination ^ 0);
+		else if((this.whiteKings & destinationMask) != 0) {
+			this.whiteKings &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskWhiteKing(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.whiteKnights & move.destination) != 0) {
-			this.whiteKnights &= ~(move.destination ^ 0);
+		else if((this.whiteKnights & destinationMask) != 0) {
+			this.whiteKnights &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskWhiteKnight(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.whitePawns & move.destination) != 0) {
-			this.whitePawns &= ~(move.destination ^ 0);
+		else if((this.whitePawns & destinationMask) != 0) {
+			this.whitePawns &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.whiteQueens & move.destination) != 0) {
-			this.whiteQueens &= ~(move.destination ^ 0);
+		else if((this.whiteQueens & destinationMask) != 0) {
+			this.whiteQueens &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskWhiteQueen(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.whiteRooks & move.destination) != 0) {
-			this.whiteRooks &= ~(move.destination ^ 0);
+		else if((this.whiteRooks & destinationMask) != 0) {
+			this.whiteRooks &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskWhiteRook(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.blackBishops & move.destination) != 0) {
-			this.blackBishops &= ~(move.destination ^ 0);
+		else if((this.blackBishops & destinationMask) != 0) {
+			this.blackBishops &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskBlackBishop(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.blackKings & move.destination) != 0) {
-			this.blackKings &= ~(move.destination ^ 0);
+		else if((this.blackKings & destinationMask) != 0) {
+			this.blackKings &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskBlackKing(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.blackKnights & move.destination) != 0) {
-			this.blackKnights &= ~(move.destination ^ 0);
+		else if((this.blackKnights & destinationMask) != 0) {
+			this.blackKnights &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskBlackKnight(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.blackPawns & move.destination) != 0) {
-			this.blackPawns &= ~(move.destination ^ 0);
+		else if((this.blackPawns & destinationMask) != 0) {
+			this.blackPawns &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.blackQueens & move.destination) != 0) {
-			this.blackQueens &= ~(move.destination ^ 0);
+		else if((this.blackQueens & destinationMask) != 0) {
+			this.blackQueens &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskBlackQueen(
-					destinationIndex);
+					move.destination);
 		}
-		else if((this.blackRooks & move.destination) != 0) {
-			this.blackRooks &= ~(move.destination ^ 0);
+		else if((this.blackRooks & destinationMask) != 0) {
+			this.blackRooks &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskBlackRook(
-					destinationIndex);
+					move.destination);
 		}
 		
 		if(this.turn == Color.WHITE) {
-			if((this.whitePawns & move.source) != 0 &&
-					move.destination == this.enPassantTarget) {
-				this.blackPawns &= ~((move.destination >>> 8) ^ 0);
+			if((this.whitePawns & sourceMask) != 0 &&
+					destinationMask == this.enPassantTarget) {
+				this.blackPawns &= ~((destinationMask >>> 8) ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-						destinationIndex - 8);
+						(byte)(move.destination - 8));
 			}
-			if((this.whitePawns & move.source) != 0 &&
-					move.source << 16 == move.destination) {
-				this.enPassantTarget = move.destination >> 8;
+			if((this.whitePawns & sourceMask) != 0 &&
+					sourceMask << 16 == destinationMask) {
+				this.enPassantTarget = destinationMask >> 8;
 				this.positionHash ^=
 						this.positionHasher.getMaskEnPassantTarget(
-								destinationIndex - 8);
+								(byte)(move.destination - 8));
 			} else {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
-							this.positionHasher.getMaskEnPassantTarget(
+							this.positionHasher.getMaskEnPassantTarget((byte)
 									notationHelper.coordToIndex(
 											this.enPassantTarget));
 				}
 				this.enPassantTarget = 0;
 			}
-			if((this.whitePawns & move.source) != 0) {
+			if((this.whitePawns & sourceMask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-						sourceIndex, destinationIndex);
+						move.source, move.destination);
 			}
-			if((this.whiteBishops & move.source) != 0) {
-				this.whiteBishops &= ~(move.source ^ 0);
-				this.whiteBishops |= move.destination;
+			if((this.whiteBishops & sourceMask) != 0) {
+				this.whiteBishops &= ~(sourceMask ^ 0);
+				this.whiteBishops |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteBishop(
-						sourceIndex, destinationIndex);
-			} else if((this.whiteKings & move.source) != 0) {
-				this.whiteKings &= ~(move.source ^ 0);
-				this.whiteKings |= move.destination;
+						move.source, move.destination);
+			} else if((this.whiteKings & sourceMask) != 0) {
+				this.whiteKings &= ~(sourceMask ^ 0);
+				this.whiteKings |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
@@ -307,95 +306,93 @@ public class Board {
 						this.blackCastleRightQueenside);
 				this.whiteCastleRightKingside = false;
 				this.whiteCastleRightQueenside = false;
-				if(move.source > 1L && move.source >>> 2 == move.destination) {
+				if(move.source - 2 == move.destination) {
 					// Castle queenside
 					this.whiteRooks &= ~(0x0000000000000001L ^ 0);
 					this.whiteRooks |= 0x0000000000000008L;
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskWhiteRook(
-							0, 3);
+							(byte)0, (byte)3);
 				}
-				else if(move.destination > 1L &&
-						move.destination >>> 2 == move.source) {
+				else if(move.source + 2 == move.destination) {
 					// Castle kingside
 					this.whiteRooks &= ~(0x0000000000000080L ^ 0);
 					this.whiteRooks |= 0x0000000000000020L;
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskWhiteRook(
-							5, 7);
+							(byte)5, (byte)7);
 				}
-				this.whiteKingIndex = 
-						notationHelper.coordToIndex(move.destination);
+				this.whiteKingIndex = move.destination;
 				this.positionHash ^= this.positionHasher.getMaskWhiteKing(
-						sourceIndex, destinationIndex);
+						move.source, move.destination);
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
 						this.blackCastleRightKingside,
 						this.blackCastleRightQueenside);
-			} else if((this.whiteKnights & move.source) != 0) {
-				this.whiteKnights &= ~(move.source ^ 0);
-				this.whiteKnights |= move.destination;
+			} else if((this.whiteKnights & sourceMask) != 0) {
+				this.whiteKnights &= ~(sourceMask ^ 0);
+				this.whiteKnights |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteKnight(
-						sourceIndex, destinationIndex);
-			} else if((this.whitePawns & move.source) != 0) {
-				this.whitePawns &= ~(move.source ^ 0);
+						move.source, move.destination);
+			} else if((this.whitePawns & sourceMask) != 0) {
+				this.whitePawns &= ~(sourceMask ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-						sourceIndex);
-				if(move.destination >>> 56L == 0) {
-					this.whitePawns |= move.destination;
+						move.source);
+				if(move.destination < 56) {
+					this.whitePawns |= destinationMask;
 					this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-							destinationIndex);
+							move.destination);
 				}
 				else if(move.promoteTo == Piece.BISHOP) {
-					this.whiteBishops |= move.destination;
+					this.whiteBishops |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteBishop(
-									destinationIndex);
+									move.destination);
 				}
 				else if(move.promoteTo == Piece.KNIGHT) {
-					this.whiteKnights |= move.destination;
+					this.whiteKnights |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteKnight(
-									destinationIndex);
+									move.destination);
 				}
 				else if(move.promoteTo == Piece.QUEEN) {
-					this.whiteQueens |= move.destination;
+					this.whiteQueens |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteQueen(
-									destinationIndex);
+									move.destination);
 				}
 				else if(move.promoteTo == Piece.ROOK) {
-					this.whiteRooks |= move.destination;
+					this.whiteRooks |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteRook(
-									destinationIndex);
+									move.destination);
 				}
 				else {
 					throw new IllegalMoveException(
 							"Don't know what to promote to.");
 				}
-			} else if((this.whiteQueens & move.source) != 0) {
-				this.whiteQueens &= ~(move.source ^ 0);
-				this.whiteQueens |= move.destination;
+			} else if((this.whiteQueens & sourceMask) != 0) {
+				this.whiteQueens &= ~(sourceMask ^ 0);
+				this.whiteQueens |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteQueen(
-						sourceIndex, destinationIndex);
-			} else if((this.whiteRooks & move.source) != 0) {
-				this.whiteRooks &= ~(move.source ^ 0);
-				this.whiteRooks |= move.destination;
+						move.source, move.destination);
+			} else if((this.whiteRooks & sourceMask) != 0) {
+				this.whiteRooks &= ~(sourceMask ^ 0);
+				this.whiteRooks |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteRook(
-						sourceIndex, destinationIndex);
+						move.source, move.destination);
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
 						this.blackCastleRightKingside,
 						this.blackCastleRightQueenside);
-				if(move.source == 0x0000000000000001L) {
+				if(move.source == 0) {
 					this.whiteCastleRightQueenside = false;
 				}
-				if(move.source == 0x0000000000000080L) {
+				else if(move.source == 7) {
 					this.whiteCastleRightKingside = false;
 				}
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
@@ -406,39 +403,39 @@ public class Board {
 			}
 		}
 		else {
-			if((this.blackPawns & move.source) != 0 &&
-					move.destination == this.enPassantTarget) {
-				this.whitePawns &= ~((move.destination << 8) ^ 0);
+			if((this.blackPawns & sourceMask) != 0 &&
+					destinationMask == this.enPassantTarget) {
+				this.whitePawns &= ~((destinationMask << 8) ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-						destinationIndex + 8);
+						(byte)(move.destination + 8));
 			}
-			if((this.blackPawns & move.source) != 0 &&
-					move.source >>> 16 == move.destination) {
-				this.enPassantTarget = move.destination << 8;
+			if((this.blackPawns & sourceMask) != 0 &&
+					sourceMask >>> 16 == destinationMask) {
+				this.enPassantTarget = destinationMask << 8;
 				this.positionHash ^=
 						this.positionHasher.getMaskEnPassantTarget(
-								destinationIndex + 8);
+								(byte)(move.destination + 8));
 			} else {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
-							this.positionHasher.getMaskEnPassantTarget(
+							this.positionHasher.getMaskEnPassantTarget((byte)
 									notationHelper.coordToIndex(
 											this.enPassantTarget));
 				}
 				this.enPassantTarget = 0;
 			}
-			if((this.blackPawns & move.source) != 0) {
+			if((this.blackPawns & sourceMask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-						sourceIndex, destinationIndex);
+						move.source, move.destination);
 			}
-			if((this.blackBishops & move.source) != 0) {
-				this.blackBishops &= ~(move.source ^ 0);
-				this.blackBishops |= move.destination;
+			if((this.blackBishops & sourceMask) != 0) {
+				this.blackBishops &= ~(sourceMask ^ 0);
+				this.blackBishops |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackBishop(
-						sourceIndex, destinationIndex);
-			} else if((this.blackKings & move.source) != 0) {
-				this.blackKings &= ~(move.source ^ 0);
-				this.blackKings |= move.destination;
+						move.source, move.destination);
+			} else if((this.blackKings & sourceMask) != 0) {
+				this.blackKings &= ~(sourceMask ^ 0);
+				this.blackKings |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
@@ -446,95 +443,93 @@ public class Board {
 						this.blackCastleRightQueenside);
 				this.blackCastleRightKingside = false;
 				this.blackCastleRightQueenside = false;
-				if(move.source > 1L && move.source >>> 2 == move.destination) {
+				if(move.source - 2 == move.destination) {
 					// Castle queenside
 					this.blackRooks &= ~(0x0100000000000000L ^ 0);
 					this.blackRooks |= 0x0800000000000000L;
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskBlackRook(
-							56, 59);
+							(byte)56, (byte)59);
 				}
-				else if(move.destination > 1L &&
-						move.destination >>> 2 == move.source) {
+				else if(move.source + 2 == move.destination) {
 					// Castle kingside
 					this.blackRooks &= ~(0x8000000000000000L ^ 0);
 					this.blackRooks |= 0x2000000000000000L;
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskBlackRook(
-							61, 63);
+							(byte)61, (byte)63);
 				}
-				this.blackKingIndex = 
-						notationHelper.coordToIndex(move.destination);
+				this.blackKingIndex = move.destination;
 				this.positionHash ^= this.positionHasher.getMaskBlackKing(
-						sourceIndex, destinationIndex);
+						move.source, move.destination);
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
 						this.blackCastleRightKingside,
 						this.blackCastleRightQueenside);
-			} else if((this.blackKnights & move.source) != 0) {
-				this.blackKnights &= ~(move.source ^ 0);
-				this.blackKnights |= move.destination;
+			} else if((this.blackKnights & sourceMask) != 0) {
+				this.blackKnights &= ~(sourceMask ^ 0);
+				this.blackKnights |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackKnight(
-						sourceIndex, destinationIndex);
-			} else if((this.blackPawns & move.source) != 0) {
-				this.blackPawns &= ~(move.source ^ 0);
+						move.source, move.destination);
+			} else if((this.blackPawns & sourceMask) != 0) {
+				this.blackPawns &= ~(sourceMask ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-						sourceIndex);
-				if(move.destination >>> 8L != 0) {
-					this.blackPawns |= move.destination;
+						move.source);
+				if(move.destination > 7) {
+					this.blackPawns |= destinationMask;
 					this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-							destinationIndex);
+							move.destination);
 				}
 				else if(move.promoteTo == Piece.BISHOP) {
-					this.blackBishops |= move.destination;
+					this.blackBishops |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackBishop(
-									destinationIndex);
+									move.destination);
 				}
 				else if(move.promoteTo == Piece.KNIGHT) {
-					this.blackKnights |= move.destination;
+					this.blackKnights |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackKnight(
-									destinationIndex);
+									move.destination);
 				}
 				else if(move.promoteTo == Piece.QUEEN) {
-					this.blackQueens |= move.destination;
+					this.blackQueens |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackQueen(
-									destinationIndex);
+									move.destination);
 				}
 				else if(move.promoteTo == Piece.ROOK) {
-					this.blackRooks |= move.destination;
+					this.blackRooks |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackRook(
-									destinationIndex);
+									move.destination);
 				}
 				else {
 					throw new IllegalMoveException(
 							"Don't know what to promote to.");
 				}
-			} else if((this.blackQueens & move.source) != 0) {
-				this.blackQueens &= ~(move.source ^ 0);
-				this.blackQueens |= move.destination;
+			} else if((this.blackQueens & sourceMask) != 0) {
+				this.blackQueens &= ~(sourceMask ^ 0);
+				this.blackQueens |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackQueen(
-						sourceIndex, destinationIndex);
-			} else if((this.blackRooks & move.source) != 0) {
-				this.blackRooks &= ~(move.source ^ 0);
-				this.blackRooks |= move.destination;
+						move.source, move.destination);
+			} else if((this.blackRooks & sourceMask) != 0) {
+				this.blackRooks &= ~(sourceMask ^ 0);
+				this.blackRooks |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackRook(
-						sourceIndex, destinationIndex);
+						move.source, move.destination);
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
 						this.blackCastleRightKingside,
 						this.blackCastleRightQueenside);
-				if(move.source == 0x0100000000000000L) {
+				if(move.source == 56) {
 					this.blackCastleRightQueenside = false;
 				}
-				if(move.source == 0x8000000000000000L) {
+				else if(move.source == 63) {
 					this.blackCastleRightKingside = false;
 				}
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
@@ -694,7 +689,7 @@ public class Board {
 	}
 	
 	private void setPositionHash() {
-		for(int i = 0; i < 64; i++) {
+		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
 			if((this.blackBishops & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackBishop(i);

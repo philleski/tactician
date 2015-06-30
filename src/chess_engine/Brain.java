@@ -67,9 +67,7 @@ public class Brain {
 		}
 		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.7f - endgameFraction);
 		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.7f - endgameFraction);
-		
-		// FIXME - put in pawn shield and tropism
-		
+				
 		return rankFitness + fileFitness;
 	}
 	
@@ -140,7 +138,7 @@ public class Brain {
 		return fitness;
 	}
 	
-	private float probeCapture(Board board, long target) {
+	private float probeCapture(Board board, byte target) {
 		ArrayList<Move> lmf = board.legalMovesFast(true);
 		float bestFitness = this.fitness(board);
 		Move candidateMove = null;
@@ -150,31 +148,32 @@ public class Brain {
 				if(move.destination != target) {
 					continue;
 				}
-				if((move.source & board.whitePawns) != 0) {
+				long sourceMask = 1L << move.source;
+				if((sourceMask & board.whitePawns) != 0) {
 					if(this.FITNESS_PAWN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_PAWN;
 					}
 				}
-				else if((move.source & board.whiteKnights) != 0) {
+				else if((sourceMask & board.whiteKnights) != 0) {
 					if(this.FITNESS_KNIGHT < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_KNIGHT;
 					}
 				}
-				else if((move.source & board.whiteBishops) != 0) {
+				else if((sourceMask & board.whiteBishops) != 0) {
 					if(this.FITNESS_BISHOP < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_BISHOP;
 					}
 				}
-				else if((move.source & board.whiteRooks) != 0) {
+				else if((sourceMask & board.whiteRooks) != 0) {
 					if(this.FITNESS_ROOK < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_ROOK;
 					}
 				}
-				else if((move.source & board.whiteQueens) != 0) {
+				else if((sourceMask & board.whiteQueens) != 0) {
 					if(this.FITNESS_QUEEN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_QUEEN;
@@ -193,31 +192,32 @@ public class Brain {
 				if(move.destination != target) {
 					continue;
 				}
-				if((move.source & board.blackPawns) != 0) {
+				long sourceMask = 1L << move.source;
+				if((sourceMask & board.blackPawns) != 0) {
 					if(this.FITNESS_PAWN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_PAWN;
 					}
 				}
-				else if((move.source & board.blackKnights) != 0) {
+				else if((sourceMask & board.blackKnights) != 0) {
 					if(this.FITNESS_KNIGHT < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_KNIGHT;
 					}
 				}
-				else if((move.source & board.blackBishops) != 0) {
+				else if((sourceMask & board.blackBishops) != 0) {
 					if(this.FITNESS_BISHOP < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_BISHOP;
 					}
 				}
-				else if((move.source & board.blackRooks) != 0) {
+				else if((sourceMask & board.blackRooks) != 0) {
 					if(this.FITNESS_ROOK < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_ROOK;
 					}
 				}
-				else if((move.source & board.blackQueens) != 0) {
+				else if((sourceMask & board.blackQueens) != 0) {
 					if(this.FITNESS_QUEEN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_QUEEN;
@@ -274,7 +274,7 @@ public class Brain {
 			boolean isMate = true;
 			long kings = board.blackKings | board.whiteKings;
 			for(Move move : lmf) {
-				if((move.source & kings) == 0) {
+				if(((1L << move.source) & kings) == 0) {
 					isMate = false;
 					break;
 				}
@@ -295,7 +295,7 @@ public class Brain {
 		long superlativePositionHash = 0;
 		for(Move move : lmf) {
 			Board copy = new Board(board);
-			if((move.destination & copy.allPieces) != 0) {
+			if(((1L << move.destination) & copy.allPieces) != 0) {
 				isCapture = true;
 			}
 			try {
@@ -401,9 +401,7 @@ public class Brain {
 			depth = 7;
 		}
 		System.out.println("Depth: " + depth);
-		
-		this.transpositionTable = new TranspositionTable(TABLE_SIZE);
-		
+				
 		Move bestMove = null;
 		float superlativeFitness = 0;
 		if(depth % 2 == 0) {

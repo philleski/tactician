@@ -36,110 +36,110 @@ public class PositionHasher {
 	//    has a total of 16 bits. These bits map to a1-h1 and then a8-h8 in the
 	//    black pawn mask.
 	
-	public long getMaskBlackBishop(int index) {
+	public long getMaskBlackBishop(byte index) {
 		return this.blackBishopMask[index];
 	}
 	
-	public long getMaskBlackBishop(int index, int index2) {
+	public long getMaskBlackBishop(byte index, byte index2) {
 		return this.blackBishopMask[index] ^ this.blackBishopMask[index2];
 	}
 	
-	public long getMaskBlackKing(int index) {
+	public long getMaskBlackKing(byte index) {
 		return this.blackKingMask[index];
 	}
 	
-	public long getMaskBlackKing(int index, int index2) {
+	public long getMaskBlackKing(byte index, byte index2) {
 		return this.blackKingMask[index] ^ this.blackKingMask[index2];
 	}
 	
-	public long getMaskBlackKnight(int index) {
+	public long getMaskBlackKnight(byte index) {
 		return this.blackKnightMask[index];
 	}
 	
-	public long getMaskBlackKnight(int index, int index2) {
+	public long getMaskBlackKnight(byte index, byte index2) {
 		return this.blackKnightMask[index] ^ this.blackKnightMask[index2];
 	}
 	
-	public long getMaskBlackPawn(int index) {
+	public long getMaskBlackPawn(byte index) {
 		return this.blackPawnMask[index];
 	}
 	
-	public long getMaskBlackPawn(int index, int index2) {
+	public long getMaskBlackPawn(byte index, byte index2) {
 		return this.blackPawnMask[index] ^ this.blackPawnMask[index2];
 	}
 	
-	public long getMaskBlackQueen(int index) {
+	public long getMaskBlackQueen(byte index) {
 		return this.blackQueenMask[index];
 	}
 	
-	public long getMaskBlackQueen(int index, int index2) {
+	public long getMaskBlackQueen(byte index, byte index2) {
 		return this.blackQueenMask[index] ^ this.blackQueenMask[index2];
 	}
 	
-	public long getMaskBlackRook(int index) {
+	public long getMaskBlackRook(byte index) {
 		return this.blackRookMask[index];
 	}
 	
-	public long getMaskBlackRook(int index, int index2) {
+	public long getMaskBlackRook(byte index, byte index2) {
 		return this.blackRookMask[index] ^ this.blackRookMask[index2];
 	}
 	
-	public long getMaskWhiteBishop(int index) {
+	public long getMaskWhiteBishop(byte index) {
 		return this.whiteBishopMask[index];
 	}
 	
-	public long getMaskWhiteBishop(int index, int index2) {
+	public long getMaskWhiteBishop(byte index, byte index2) {
 		return this.whiteBishopMask[index] ^ this.whiteBishopMask[index2];
 	}
 	
-	public long getMaskWhiteKing(int index) {
+	public long getMaskWhiteKing(byte index) {
 		return this.whiteKingMask[index];
 	}
 	
-	public long getMaskWhiteKing(int index, int index2) {
+	public long getMaskWhiteKing(byte index, byte index2) {
 		return this.whiteKingMask[index] ^ this.whiteKingMask[index2];
 	}
 	
-	public long getMaskWhiteKnight(int index) {
+	public long getMaskWhiteKnight(byte index) {
 		return this.whiteKnightMask[index];
 	}
 	
-	public long getMaskWhiteKnight(int index, int index2) {
+	public long getMaskWhiteKnight(byte index, byte index2) {
 		return this.whiteKnightMask[index] ^ this.whiteKnightMask[index2];
 	}
 	
-	public long getMaskWhitePawn(int index) {
+	public long getMaskWhitePawn(byte index) {
 		return this.whitePawnMask[index];
 	}
 	
-	public long getMaskWhitePawn(int index, int index2) {
+	public long getMaskWhitePawn(byte index, byte index2) {
 		return this.whitePawnMask[index] ^ this.whitePawnMask[index2];
 	}
 	
-	public long getMaskWhiteQueen(int index) {
+	public long getMaskWhiteQueen(byte index) {
 		return this.whiteQueenMask[index];
 	}
 	
-	public long getMaskWhiteQueen(int index, int index2) {
+	public long getMaskWhiteQueen(byte index, byte index2) {
 		return this.whiteQueenMask[index] ^ this.whiteQueenMask[index2];
 	}
 	
-	public long getMaskWhiteRook(int index) {
+	public long getMaskWhiteRook(byte index) {
 		return this.whiteRookMask[index];
 	}
 	
-	public long getMaskWhiteRook(int index, int index2) {
+	public long getMaskWhiteRook(byte index, byte index2) {
 		return this.whiteRookMask[index] ^ this.whiteRookMask[index2];
 	}
 	
-	public long getMaskEnPassantTarget(int index) {
+	public long getMaskEnPassantTarget(byte index) {
 		return this.whitePawnMask[index % 8];
 	}
 	
 	public long getMaskCastleRights(boolean whiteKingside,
 			boolean whiteQueenside, boolean blackKingside,
 			boolean blackQueenside) {
-		int index = 0;
+		byte index = 0;
 		if(whiteKingside) {
 			index += 56;
 		}

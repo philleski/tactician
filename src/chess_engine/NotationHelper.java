@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 public class NotationHelper {
 	// https://en.wikipedia.org/wiki/Find_first_set
-	public int coordToIndex(long coord) {
-		int leadingZeros = 0;
+	public byte coordToIndex(long coord) {
+		byte leadingZeros = 0;
 		if((coord & 0xffffffff00000000L) == 0) {
 			leadingZeros += 32;
 			coord <<= 32;
@@ -30,7 +30,7 @@ public class NotationHelper {
 			leadingZeros++;
 			coord <<= 1;
 		}
-		return 63 - leadingZeros;
+		return (byte)(63 - leadingZeros);
 	}
 	
 	public static String coordToSquare(long coord) {
@@ -45,7 +45,7 @@ public class NotationHelper {
 		rank = Integer.toString((offset / 8) + 1);
 		return file + rank;
 	}
-	
+		
 	public static long squareToCoord(String square) {
 		int file = Integer.parseInt("" + (square.charAt(0) - 96));
 		int rank = Integer.parseInt(square.substring(1, 2));
@@ -59,19 +59,20 @@ public class NotationHelper {
 			throw new IllegalMoveException("Illegal move: too short.");
 		}
 		for(Move m : board.legalMoves()) {
-			String sourceSquare = coordToSquare(m.source);
+			long sourceMask = 1L << m.source;
+			String sourceSquare = coordToSquare(sourceMask);
 			if(algebraic.equals("O-O")) {
-				if((m.source & board.whiteKings) != 0 ||
-						(m.source & board.blackKings) != 0) {
-					if(m.destination > 1L && m.destination >>> 2 == m.source) {
+				if((sourceMask & board.whiteKings) != 0 ||
+						(sourceMask & board.blackKings) != 0) {
+					if(m.source + 2 == m.destination) {
 						return m;
 					}
 				}
 			}
 			else if(algebraic.equals("O-O-O")) {
-				if((m.source & board.whiteKings) != 0 ||
-						(m.source & board.blackKings) != 0) {
-					if(m.source > 1L && m.source >>> 2 == m.destination) {
+				if((sourceMask & board.whiteKings) != 0 ||
+						(sourceMask & board.blackKings) != 0) {
+					if(m.source - 2 == m.destination) {
 						return m;
 					}
 				}
@@ -100,8 +101,8 @@ public class NotationHelper {
 					continue;
 				}
 				if(algebraic.charAt(0) >= 'a' && algebraic.charAt(0) <= 'h') {
-					if((m.source & board.whitePawns) != 0 ||
-							(m.source & board.blackPawns) != 0) {
+					if((sourceMask & board.whitePawns) != 0 ||
+							(sourceMask & board.blackPawns) != 0) {
 						if(algebraic.charAt(0) == sourceSquare.charAt(0)) {
 							if(m.promoteTo == Piece.NOPIECE) {
 								return m;
@@ -128,8 +129,8 @@ public class NotationHelper {
 					}
 				}
 				else if(algebraic.charAt(0) == 'K') {
-					if((m.source & board.whiteKings) != 0 ||
-							(m.source & board.blackKings) != 0) {
+					if((sourceMask & board.whiteKings) != 0 ||
+							(sourceMask & board.blackKings) != 0) {
 						return m;
 					}
 				}
@@ -166,26 +167,26 @@ public class NotationHelper {
 						}
 					}
 					if(algebraic.charAt(0) == 'B') {
-						if((m.source & board.whiteBishops) != 0 ||
-								(m.source & board.blackBishops) != 0) {
+						if((sourceMask & board.whiteBishops) != 0 ||
+								(sourceMask & board.blackBishops) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'N') {
-						if((m.source & board.whiteKnights) != 0 ||
-								(m.source & board.blackKnights) != 0) {
+						if((sourceMask & board.whiteKnights) != 0 ||
+								(sourceMask & board.blackKnights) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'Q') {
-						if((m.source & board.whiteQueens) != 0 ||
-								(m.source & board.blackQueens) != 0) {
+						if((sourceMask & board.whiteQueens) != 0 ||
+								(sourceMask & board.blackQueens) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'R') {
-						if((m.source & board.whiteRooks) != 0 ||
-								(m.source & board.blackRooks) != 0) {
+						if((sourceMask & board.whiteRooks) != 0 ||
+								(sourceMask & board.blackRooks) != 0) {
 							return m;
 						}
 					}
@@ -196,15 +197,16 @@ public class NotationHelper {
 	}
 	
 	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves,
-			long pieceFamily, long source, long dest) {
+			long pieceFamily, byte source, byte dest) {
 		ArrayList<String> piecesToDest = new ArrayList<String>();
 		String sourceSquare = coordToSquare(source);
+		long sourceMask = 1L << source;
 		for(Move m : legalMoves) {
 			if(dest != m.destination) {
 				continue;
 			}
-			if((m.source & pieceFamily) != 0) {
-				piecesToDest.add(coordToSquare(m.source));
+			if((sourceMask & pieceFamily) != 0) {
+				piecesToDest.add(coordToSquare(sourceMask));
 			}
 		}
 		int sharedFiles = 0;
@@ -232,8 +234,8 @@ public class NotationHelper {
 	}
 	
 	public String moveToLongAlgebraic(Board board, Move move) {
-		String result = coordToSquare(move.source) +
-				coordToSquare(move.destination);
+		String result = coordToSquare(1L << move.source) +
+				coordToSquare(1L << move.destination);
 		if(move.promoteTo == Piece.BISHOP) {
 			result += "b";
 		}
@@ -253,6 +255,9 @@ public class NotationHelper {
 		String sourceSquare = coordToSquare(move.source);
 		String destSquare = coordToSquare(move.destination);
 		
+		long sourceMask = 1L << move.source;
+		long destinationMask = 1L << move.destination;
+		
 		ArrayList<Move> legalMoves = board.legalMoves();
 		
 		String bishopAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
@@ -269,18 +274,18 @@ public class NotationHelper {
 				move.destination);
 
 		boolean capturing = false;
-		if((move.destination & board.allPieces) != 0) {
+		if((destinationMask & board.allPieces) != 0) {
 			capturing = true;
 		}
-		else if(move.destination == board.enPassantTarget) {
-			if((move.source & board.whitePawns) != 0 ||
-					(move.source & board.blackPawns) != 0) {
+		else if(destinationMask == board.enPassantTarget) {
+			if((sourceMask & board.whitePawns) != 0 ||
+					(sourceMask & board.blackPawns) != 0) {
 				capturing = true;
 			}
 		}
 		String temp;
-		if((move.source & board.whiteBishops) != 0 ||
-				(move.source & board.blackBishops) != 0) {
+		if((sourceMask & board.whiteBishops) != 0 ||
+				(sourceMask & board.blackBishops) != 0) {
 			if(capturing) {
 				return "B" + bishopAmbiguity + "x" + destSquare;
 			}
@@ -288,14 +293,12 @@ public class NotationHelper {
 				return "B" + bishopAmbiguity + destSquare;
 			}
 		}
-		else if((move.source & board.whiteKings) != 0 ||
-				(move.source & board.blackKings) != 0) {
-			if(move.destination > 1L &&
-					move.destination >>> 2 == move.source) {
+		else if((sourceMask & board.whiteKings) != 0 ||
+				(sourceMask & board.blackKings) != 0) {
+			if(move.source + 2 == move.destination) {
 				return "O-O";
 			}
-			else if(move.source > 1L &&
-					move.source >>> 2 == move.destination) {
+			else if(move.source - 2 == move.destination) {
 				return "O-O-O";
 			}
 			else if(capturing) {
@@ -305,8 +308,8 @@ public class NotationHelper {
 				return "K" + destSquare;
 			}
 		}
-		else if((move.source & board.whiteKnights) != 0 ||
-				(move.source & board.blackKnights) != 0) {
+		else if((sourceMask & board.whiteKnights) != 0 ||
+				(sourceMask & board.blackKnights) != 0) {
 			if(capturing) {
 				return "N" + knightAmbiguity + "x" + destSquare;
 			}
@@ -314,8 +317,8 @@ public class NotationHelper {
 				return "N" + knightAmbiguity + destSquare;
 			}
 		}
-		else if((move.source & board.whitePawns) != 0 ||
-				(move.source & board.blackPawns) != 0) {
+		else if((sourceMask & board.whitePawns) != 0 ||
+				(sourceMask & board.blackPawns) != 0) {
 			if(capturing) {
 				temp = sourceSquare.substring(0, 1) + "x" + destSquare;
 			}
@@ -338,8 +341,8 @@ public class NotationHelper {
 				return temp + "=R";
 			}
 		}
-		else if((move.source & board.whiteQueens) != 0 ||
-				(move.source & board.blackQueens) != 0) {
+		else if((sourceMask & board.whiteQueens) != 0 ||
+				(sourceMask & board.blackQueens) != 0) {
 			if(capturing) {
 				return "Q" + queenAmbiguity + "x" + destSquare;
 			}
@@ -347,8 +350,8 @@ public class NotationHelper {
 				return "Q" + queenAmbiguity + destSquare;
 			}
 		}
-		else if((move.source & board.whiteRooks) != 0 ||
-				(move.source & board.blackRooks) != 0) {
+		else if((sourceMask & board.whiteRooks) != 0 ||
+				(sourceMask & board.blackRooks) != 0) {
 			if(capturing) {
 				return "R" + rookAmbiguity + "x" + destSquare;
 			}
