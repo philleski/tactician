@@ -6,8 +6,10 @@ import chess_engine.Board;
 import chess_engine.IllegalMoveException;
 
 public class Brain {
+	static int TABLE_SIZE = 4 * 1024 * 1024;
+	
 	public Brain() {
-		this.transpositionTable = new TranspositionTable(2 * 1024 * 1024);
+		this.transpositionTable = new TranspositionTable(TABLE_SIZE);
 	}
 	
 	private static int numBitsSet(long x) {
@@ -247,7 +249,16 @@ public class Brain {
 	private float alphabeta(Board board, int depth, float alpha, float beta) {
 		// http://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
 		if(depth == 0) {
-			return this.fitness(board);
+			TranspositionTable.TranspositionEntry entry =
+					this.transpositionTable.get(board.positionHash);
+			if(entry != null && entry.depth == 0) {
+				return entry.fitness;
+			}
+			float fitness = this.fitness(board);
+			this.transpositionTable.put(depth, board.positionHash,
+					fitness,
+					TranspositionTable.TranspositionType.NODE_EXACT);
+			return fitness;
 		}
 		float superlativeFitness = 0;
 		if(depth % 2 == 0) {
@@ -280,10 +291,13 @@ public class Brain {
 			}
 		}
 		
+		boolean isCapture = false;
 		long superlativePositionHash = 0;
-		boolean cutoff = false;
 		for(Move move : lmf) {
 			Board copy = new Board(board);
+			if((move.destination & copy.allPieces) != 0) {
+				isCapture = true;
+			}
 			try {
 				copy.move(move);
 			}
@@ -292,12 +306,41 @@ public class Brain {
 			float fitness = 0;
 			TranspositionTable.TranspositionEntry entry =
 					this.transpositionTable.get(copy.positionHash);
-			if(entry != null) {
-				// FIXME - this is probably too naive
-				fitness = entry.fitness;
+			boolean found = false;
+			if(entry != null && entry.depth == depth) {
+				if(entry.type == TranspositionTable.TranspositionType.NODE_EXACT) {
+					fitness = entry.fitness;
+					found = true;
+				}
+				else {
+					if(depth % 2 == 0) {
+						if(entry.type == TranspositionTable.TranspositionType.NODE_ALPHA) {
+							if(entry.fitness > alpha) {
+								alpha = entry.fitness;
+								if(superlativeFitness < alpha) {
+									superlativeFitness = entry.fitness;
+									superlativePositionHash = copy.positionHash;
+								}
+								found = true;
+							}
+						}
+					}
+					else {
+						if(entry.type == TranspositionTable.TranspositionType.NODE_BETA) {
+							if(entry.fitness < beta) {
+								beta = entry.fitness;
+								if(superlativeFitness > beta) {
+									superlativeFitness = entry.fitness;
+									superlativePositionHash = copy.positionHash;
+								}
+								found = true;
+							}
+						}
+					}
+				}
 			}
-			else {
-				if(depth == 1 && (move.destination & copy.allPieces) != 0) {
+			if(!found) {
+				if(depth == 1 && isCapture) {
 					// This is to deal with the scenario where say the queen
 					// captures a heavily guarded pawn right when the depth
 					// expires.
@@ -307,6 +350,7 @@ public class Brain {
 					fitness = this.alphabeta(copy, depth - 1, alpha, beta);
 				}
 			}
+			// System.out.println("Count: " + exactCount + " " + alphaCount + " " + betaCount + " " + foundCount + " " + totalCount);
 			if(depth % 2 == 0 && fitness > superlativeFitness) {
 				superlativeFitness = fitness;
 				superlativePositionHash = copy.positionHash;
@@ -314,7 +358,6 @@ public class Brain {
 					alpha = superlativeFitness;
 				}
 				if(beta <= alpha) {
-					cutoff = true;
 					break;
 				}
 			}
@@ -325,25 +368,24 @@ public class Brain {
 					beta = superlativeFitness;
 				}
 				if(beta <= alpha) {
-					cutoff = true;
 					break;
 				}
 			}
 		}
-		if(cutoff) {
-			this.transpositionTable.put(superlativePositionHash,
+		if(superlativeFitness < alpha) {
+			this.transpositionTable.put(depth, superlativePositionHash,
 					superlativeFitness,
-					TranspositionTable.TranspositionType.NODE_CUT);
+					TranspositionTable.TranspositionType.NODE_ALPHA);
 		}
-		else if(superlativeFitness < alpha || superlativeFitness > beta) {
-			this.transpositionTable.put(superlativePositionHash,
+		else if(superlativeFitness > beta) {
+			this.transpositionTable.put(depth, superlativePositionHash,
 					superlativeFitness,
-					TranspositionTable.TranspositionType.NODE_ALL);
+					TranspositionTable.TranspositionType.NODE_BETA);
 		}
 		else {
-			this.transpositionTable.put(superlativePositionHash,
+			this.transpositionTable.put(depth, superlativePositionHash,
 					superlativeFitness,
-					TranspositionTable.TranspositionType.NODE_PV);
+					TranspositionTable.TranspositionType.NODE_EXACT);
 		}
 		return superlativeFitness;
 	}
@@ -353,12 +395,14 @@ public class Brain {
 		float endgameFraction = this.endgameFraction(board);
 		System.out.println("EF: " + endgameFraction);
 		if(endgameFraction < 0.8) {
-			depth = 5;
-		}
-		else {
 			depth = 6;
 		}
+		else {
+			depth = 7;
+		}
 		System.out.println("Depth: " + depth);
+		
+		this.transpositionTable = new TranspositionTable(TABLE_SIZE);
 		
 		Move bestMove = null;
 		float superlativeFitness = 0;

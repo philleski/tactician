@@ -266,7 +266,6 @@ public class Board {
 					destinationIndex);
 		}
 		
-		// FIXME - getting really low number of hits in transposition table (7,971 / 11,619,421)
 		if(this.turn == Color.WHITE) {
 			if((this.whitePawns & move.source) != 0 &&
 					move.destination == this.enPassantTarget) {
@@ -276,10 +275,10 @@ public class Board {
 			}
 			if((this.whitePawns & move.source) != 0 &&
 					move.source << 16 == move.destination) {
-				this.enPassantTarget = move.destination;
+				this.enPassantTarget = move.destination >> 8;
 				this.positionHash ^=
 						this.positionHasher.getMaskEnPassantTarget(
-								destinationIndex);
+								destinationIndex - 8);
 			} else {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
@@ -291,7 +290,7 @@ public class Board {
 			}
 			if((this.whitePawns & move.source) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-						sourceIndex);
+						sourceIndex, destinationIndex);
 			}
 			if((this.whiteBishops & move.source) != 0) {
 				this.whiteBishops &= ~(move.source ^ 0);
@@ -415,10 +414,10 @@ public class Board {
 			}
 			if((this.blackPawns & move.source) != 0 &&
 					move.source >>> 16 == move.destination) {
-				this.enPassantTarget = move.destination;
+				this.enPassantTarget = move.destination << 8;
 				this.positionHash ^=
 						this.positionHasher.getMaskEnPassantTarget(
-								destinationIndex);
+								destinationIndex + 8);
 			} else {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
@@ -430,7 +429,7 @@ public class Board {
 			}
 			if((this.blackPawns & move.source) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-						sourceIndex);
+						sourceIndex, destinationIndex);
 			}
 			if((this.blackBishops & move.source) != 0) {
 				this.blackBishops &= ~(move.source ^ 0);

@@ -679,13 +679,13 @@ public class LegalMoveGenerator {
 						}
 						else {
 							legalMovesNoncapture.add(new Move(mask, mask << 8,
-									Piece.BISHOP));
+									Piece.QUEEN));
 							legalMovesNoncapture.add(new Move(mask, mask << 8,
 									Piece.KNIGHT));
 							legalMovesNoncapture.add(new Move(mask, mask << 8,
-									Piece.QUEEN));
-							legalMovesNoncapture.add(new Move(mask, mask << 8,
 									Piece.ROOK));
+							legalMovesNoncapture.add(new Move(mask, mask << 8,
+									Piece.BISHOP));
 						}
 					}
 					// Two spaces forward
