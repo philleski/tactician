@@ -10,19 +10,20 @@ public class Board {
 	
 	// All the state information below.
 	
-	// bits correspond to board squares A1, B1, C1, ...
-	public long whiteBishops =	notationHelper.generateMask("c1", "f1"); // 0x0000000000000024L;
-	public long whiteKings =	0x0000000000000010L;
-	public long whiteKnights =	0x0000000000000042L;
-	public long whitePawns =	0x000000000000ff00L;
-	public long whiteQueens =	0x0000000000000008L;
-	public long whiteRooks =	0x0000000000000081L;
-	public long blackBishops =	0x2400000000000000L;
-	public long blackKings =	0x1000000000000000L;
-	public long blackKnights =	0x4200000000000000L;
-	public long blackPawns =	0x00ff000000000000L;
-	public long blackQueens =	0x0800000000000000L;
-	public long blackRooks =	0x8100000000000000L;
+	public long whiteBishops = notationHelper.generateMask("c1", "f1");
+	public long whiteKings = notationHelper.generateMask("e1");
+	public long whiteKnights = notationHelper.generateMask("b1", "g1");
+	public long whitePawns = notationHelper.generateMask(
+			"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2");
+	public long whiteQueens = notationHelper.generateMask("d1");
+	public long whiteRooks = notationHelper.generateMask("a1", "h1");
+	public long blackBishops = notationHelper.generateMask("c8", "f8");
+	public long blackKings = notationHelper.generateMask("e8");
+	public long blackKnights = notationHelper.generateMask("b8", "g8");
+	public long blackPawns = notationHelper.generateMask(
+			"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7");
+	public long blackQueens = notationHelper.generateMask("d8");
+	public long blackRooks = notationHelper.generateMask("a8", "h8");
 	public int whiteKingIndex = 4;   // 1L << index is the coordinate.
 	public int blackKingIndex = 60;
 	
@@ -47,18 +48,20 @@ public class Board {
 	public Board() {
 		this.positionHasher = new PositionHasher();
 		
-		this.whiteBishops =	0x0000000000000024L;
-		this.whiteKings =	0x0000000000000010L;
-		this.whiteKnights =	0x0000000000000042L;
-		this.whitePawns =	0x000000000000ff00L;
-		this.whiteQueens =	0x0000000000000008L;
-		this.whiteRooks =	0x0000000000000081L;
-		this.blackBishops =	0x2400000000000000L;
-		this.blackKings =	0x1000000000000000L;
-		this.blackKnights =	0x4200000000000000L;
-		this.blackPawns =	0x00ff000000000000L;
-		this.blackQueens =	0x0800000000000000L;
-		this.blackRooks =	0x8100000000000000L;
+		this.whiteBishops =	notationHelper.generateMask("c1", "f1");
+		this.whiteKings = notationHelper.generateMask("e1");
+		this.whiteKnights =	notationHelper.generateMask("b1", "g1");
+		this.whitePawns =notationHelper.generateMask(
+				"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2");
+		this.whiteQueens = notationHelper.generateMask("d1");
+		this.whiteRooks = notationHelper.generateMask("a1", "h1");
+		this.blackBishops =	notationHelper.generateMask("c8", "f8");
+		this.blackKings = notationHelper.generateMask("e8");
+		this.blackKnights =	notationHelper.generateMask("b8", "g8");
+		this.blackPawns = notationHelper.generateMask(
+				"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7");
+		this.blackQueens = notationHelper.generateMask("d8");
+		this.blackRooks = notationHelper.generateMask("a8", "h8");
 		this.whiteKingIndex = 4;   // 1L << index is the coordinate.
 		this.blackKingIndex = 60;
 		
