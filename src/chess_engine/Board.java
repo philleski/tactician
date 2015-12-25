@@ -11,7 +11,7 @@ public class Board {
 	// All the state information below.
 	
 	// bits correspond to board squares A1, B1, C1, ...
-	public long whiteBishops =	0x0000000000000024L;
+	public long whiteBishops =	notationHelper.generateMask("c1", "f1"); // 0x0000000000000024L;
 	public long whiteKings =	0x0000000000000010L;
 	public long whiteKnights =	0x0000000000000042L;
 	public long whitePawns =	0x000000000000ff00L;

@@ -361,4 +361,12 @@ public class NotationHelper {
 		}
 		return "";
 	}
+	
+	public long generateMask(String... squares) {
+		long result = 0;
+		for(String square : squares) {
+			result |= squareToCoord(square);
+		}
+		return result;
+	}
 }

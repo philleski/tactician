@@ -291,6 +291,44 @@ public class Brain {
 			}
 		}
 		
+		Move killer = null;
+		float killerFitness = 0;
+		if(depth % 2 == 0) {
+			killerFitness = FITNESS_LARGE;
+		}
+		else {
+			killerFitness = -FITNESS_LARGE;
+		}
+		for(Move move : lmf) {
+			Board copy = new Board(board);
+			try {
+				copy.move(move);
+			}
+			catch(IllegalMoveException e) {
+			}
+			TranspositionTable.TranspositionEntry entry =
+					this.transpositionTable.get(copy.positionHash);
+			if(entry != null) {
+				if(depth % 2 == 0 && entry.fitness < killerFitness) {
+					killer = move;
+				}
+				else if(depth % 2 == 1 && entry.fitness > killerFitness) {
+					killer = move;
+				}
+			}
+		}
+		if(killer != null) {
+			ArrayList<Move> lmfNew = new ArrayList<Move>();
+			lmfNew.add(killer);
+			for(Move move : lmf) {
+				// FIXME - have to deal with promotion
+				if(move.source != killer.source && move.destination != killer.destination) {
+					lmfNew.add(move);
+				}
+			}
+			lmf = lmfNew;
+		}
+		
 		boolean isCapture = false;
 		long superlativePositionHash = 0;
 		for(Move move : lmf) {
@@ -390,18 +428,7 @@ public class Brain {
 		return superlativeFitness;
 	}
 	
-	public Move getMove(Board board) {
-		int depth = 0;
-		float endgameFraction = this.endgameFraction(board);
-		System.out.println("EF: " + endgameFraction);
-		if(endgameFraction < 0.8) {
-			depth = 6;
-		}
-		else {
-			depth = 7;
-		}
-		System.out.println("Depth: " + depth);
-				
+	private Move getMoveToDepth(Board board, int depth) {
 		Move bestMove = null;
 		float superlativeFitness = 0;
 		if(depth % 2 == 0) {
@@ -431,6 +458,24 @@ public class Brain {
 			}
 		}
 		return bestMove;
+	}
+	
+	public Move getMove(Board board) {
+		int depth = 0;
+		float endgameFraction = this.endgameFraction(board);
+		System.out.println("EF: " + endgameFraction);
+		if(endgameFraction < 0.8) {
+			depth = 4;
+		}
+		else {
+			depth = 5;
+		}
+		System.out.println("Depth: " + depth);
+		Move move = null;
+		for(int d = 1; d <= depth; d++) {
+			move = this.getMoveToDepth(board, d);
+		}
+		return move;
 	}
 	
 	private TranspositionTable transpositionTable = null;
