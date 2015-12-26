@@ -18,6 +18,21 @@ public class Move {
 		this.destination = destination;
 		this.promoteTo = promoteTo;
 	}
+	
+	public Move(String source, String destination) {
+		this.source = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
+				source));
+		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
+				destination));
+	}
+	
+	public Move(String source, String destination, Piece promoteTo) {
+		this.source = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
+				source));
+		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
+				destination));
+		this.promoteTo = promoteTo;
+	}
 		
 	public byte source;
 	public byte destination;

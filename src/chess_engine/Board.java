@@ -207,6 +207,7 @@ public class Board {
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
 		// Remove whatever is in the destination spot.
+
 		if((this.whiteBishops & destinationMask) != 0) {
 			this.whiteBishops &= ~(destinationMask ^ 0);
 			this.positionHash ^= this.positionHasher.getMaskWhiteBishop(
@@ -277,6 +278,12 @@ public class Board {
 			}
 			if((this.whitePawns & sourceMask) != 0 &&
 					sourceMask << 16 == destinationMask) {
+				if(this.enPassantTarget != 0) {
+					this.positionHash ^=
+							this.positionHasher.getMaskEnPassantTarget((byte)
+									NotationHelper.coordToIndex(
+											this.enPassantTarget));
+				}
 				this.enPassantTarget = destinationMask >> 8;
 				this.positionHash ^=
 						this.positionHasher.getMaskEnPassantTarget(
@@ -285,14 +292,10 @@ public class Board {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
 							this.positionHasher.getMaskEnPassantTarget((byte)
-									notationHelper.coordToIndex(
+									NotationHelper.coordToIndex(
 											this.enPassantTarget));
 				}
 				this.enPassantTarget = 0;
-			}
-			if((this.whitePawns & sourceMask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-						move.source, move.destination);
 			}
 			if((this.whiteBishops & sourceMask) != 0) {
 				this.whiteBishops &= ~(sourceMask ^ 0);
@@ -414,6 +417,12 @@ public class Board {
 			}
 			if((this.blackPawns & sourceMask) != 0 &&
 					sourceMask >>> 16 == destinationMask) {
+				if(this.enPassantTarget != 0) {
+					this.positionHash ^=
+							this.positionHasher.getMaskEnPassantTarget((byte)
+									NotationHelper.coordToIndex(
+											this.enPassantTarget));
+				}
 				this.enPassantTarget = destinationMask << 8;
 				this.positionHash ^=
 						this.positionHasher.getMaskEnPassantTarget(
@@ -422,14 +431,10 @@ public class Board {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
 							this.positionHasher.getMaskEnPassantTarget((byte)
-									notationHelper.coordToIndex(
+									NotationHelper.coordToIndex(
 											this.enPassantTarget));
 				}
 				this.enPassantTarget = 0;
-			}
-			if((this.blackPawns & sourceMask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-						move.source, move.destination);
 			}
 			if((this.blackBishops & sourceMask) != 0) {
 				this.blackBishops &= ~(sourceMask ^ 0);
@@ -598,7 +603,7 @@ public class Board {
 				}
 				else if(piece == 'k') {
 					this.blackKings |= mask;
-					this.blackKingIndex = notationHelper.coordToIndex(mask);
+					this.blackKingIndex = NotationHelper.coordToIndex(mask);
 				}
 				else if(piece == 'n') {
 					this.blackKnights |= mask;
@@ -617,7 +622,7 @@ public class Board {
 				}
 				else if(piece == 'K') {
 					this.whiteKings |= mask;
-					this.whiteKingIndex = notationHelper.coordToIndex(mask);
+					this.whiteKingIndex = NotationHelper.coordToIndex(mask);
 				}
 				else if(piece == 'N') {
 					this.whiteKnights |= mask;

@@ -388,7 +388,6 @@ public class Brain {
 					fitness = this.alphabeta(copy, depth - 1, alpha, beta);
 				}
 			}
-			// System.out.println("Count: " + exactCount + " " + alphaCount + " " + betaCount + " " + foundCount + " " + totalCount);
 			if(depth % 2 == 0 && fitness > superlativeFitness) {
 				superlativeFitness = fitness;
 				superlativePositionHash = copy.positionHash;
@@ -465,10 +464,10 @@ public class Brain {
 		float endgameFraction = this.endgameFraction(board);
 		System.out.println("EF: " + endgameFraction);
 		if(endgameFraction < 0.8) {
-			depth = 4;
+			depth = 5;
 		}
 		else {
-			depth = 5;
+			depth = 6;
 		}
 		System.out.println("Depth: " + depth);
 		Move move = null;

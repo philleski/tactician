@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class NotationHelper {
 	// https://en.wikipedia.org/wiki/Find_first_set
-	public byte coordToIndex(long coord) {
+	public static byte coordToIndex(long coord) {
 		byte leadingZeros = 0;
 		if((coord & 0xffffffff00000000L) == 0) {
 			leadingZeros += 32;
@@ -31,6 +31,14 @@ public class NotationHelper {
 			coord <<= 1;
 		}
 		return (byte)(63 - leadingZeros);
+	}
+	
+	public static String indexToSquare(byte index) {
+		String file;
+		String rank;
+		file = "" + ((char)(index % 8 + 97));
+		rank = Integer.toString((index / 8) + 1);
+		return file + rank;
 	}
 	
 	public static String coordToSquare(long coord) {
