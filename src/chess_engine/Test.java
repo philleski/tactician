@@ -59,6 +59,86 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	// FIXME - keep adding position hash tests
+	@org.junit.Test
+	public void testPositionHashRook() throws IllegalMoveException {
+		Board board1 = new Board();
+		board1.move(new Move("a2", "a4"));
+		board1.move(new Move("a7", "a5"));
+		board1.move(new Move("a1", "a2"));
+		board1.move(new Move("a8", "a7"));
+		board1.move(new Move("a2", "a3"));
+		board1.move(new Move("a7", "a6"));
+		Board board2 = new Board();
+		board2.move(new Move("a2", "a4"));
+		board2.move(new Move("a7", "a5"));
+		board2.move(new Move("a1", "a3"));
+		board2.move(new Move("a8", "a6"));
+		assertEquals(board1.positionHash, board2.positionHash);
+	}
+	
+	@org.junit.Test
+	public void testPositionHashQueen() throws IllegalMoveException {
+		Board board1 = new Board();
+		board1.move(new Move("e2", "e4"));
+		board1.move(new Move("a7", "a5"));
+		board1.move(new Move("d1", "h5"));
+		board1.move(new Move("a5", "a4"));
+		board1.move(new Move("h5", "f7"));
+		Board board2 = new Board();
+		board2.move(new Move("e2", "e4"));
+		board2.move(new Move("a7", "a5"));
+		board2.move(new Move("d1", "f3"));
+		board2.move(new Move("a5", "a4"));
+		board2.move(new Move("f3", "f7"));
+		assertEquals(board1.positionHash, board2.positionHash);
+	}
+	
+	@org.junit.Test
+	public void testPositionHashKing() throws IllegalMoveException {
+		Board board1 = new Board();
+		board1.move(new Move("e2", "e4"));
+		board1.move(new Move("a7", "a5"));
+		board1.move(new Move("d2", "d4"));
+		board1.move(new Move("a5", "a4"));
+		board1.move(new Move("e1", "e2"));
+		Board board2 = new Board();
+		board2.move(new Move("e2", "e4"));
+		board2.move(new Move("a7", "a6"));
+		board2.move(new Move("d2", "d4"));
+		board2.move(new Move("a6", "a5"));
+		board2.move(new Move("e1", "d2"));
+		board2.move(new Move("a5", "a4"));
+		board2.move(new Move("d2", "e2"));
+		assertEquals(board1.positionHash, board2.positionHash);
+	}
+	
+	@org.junit.Test
+	public void testPositionHashCastle() throws IllegalMoveException {
+		Board board1 = new Board();
+		board1.move(new Move("e2", "e4"));
+		board1.move(new Move("a7", "a5"));
+		board1.move(new Move("f1", "d3"));
+		board1.move(new Move("a5", "a4"));
+		board1.move(new Move("g1", "f3"));
+		board1.move(new Move("a4", "a3"));
+		board1.move(new Move("e1", "g1"));
+		Board board2 = new Board();
+		board2.move(new Move("e2", "e4"));
+		board2.move(new Move("a7", "a5"));
+		board2.move(new Move("f1", "d3"));
+		board2.move(new Move("a5", "a4"));
+		board2.move(new Move("g1", "f3"));
+		board2.move(new Move("a4", "a3"));
+		board2.move(new Move("e1", "e2"));
+		board2.move(new Move("b8", "c6"));
+		board2.move(new Move("h1", "e1"));
+		board2.move(new Move("c6", "b8"));
+		board2.move(new Move("e2", "f1"));
+		board2.move(new Move("b8", "c6"));
+		board2.move(new Move("f1", "g1"));
+		board2.move(new Move("c6", "b8"));
+		board2.move(new Move("e1", "f1"));
+		assertEquals(board1.positionHash, board2.positionHash);
+	}
 
 }

@@ -6,7 +6,7 @@ import chess_engine.Board;
 import chess_engine.IllegalMoveException;
 
 public class Brain {
-	static int TABLE_SIZE = 4 * 1024 * 1024;
+	static int TABLE_SIZE = 2 * 1024 * 1024;   // We get occasional memory overflows when it's 4 * 1024 * 1024.
 	
 	public Brain() {
 		this.transpositionTable = new TranspositionTable(TABLE_SIZE);
@@ -289,44 +289,6 @@ public class Brain {
 					return 0;
 				}
 			}
-		}
-		
-		Move killer = null;
-		float killerFitness = 0;
-		if(depth % 2 == 0) {
-			killerFitness = FITNESS_LARGE;
-		}
-		else {
-			killerFitness = -FITNESS_LARGE;
-		}
-		for(Move move : lmf) {
-			Board copy = new Board(board);
-			try {
-				copy.move(move);
-			}
-			catch(IllegalMoveException e) {
-			}
-			TranspositionTable.TranspositionEntry entry =
-					this.transpositionTable.get(copy.positionHash);
-			if(entry != null) {
-				if(depth % 2 == 0 && entry.fitness < killerFitness) {
-					killer = move;
-				}
-				else if(depth % 2 == 1 && entry.fitness > killerFitness) {
-					killer = move;
-				}
-			}
-		}
-		if(killer != null) {
-			ArrayList<Move> lmfNew = new ArrayList<Move>();
-			lmfNew.add(killer);
-			for(Move move : lmf) {
-				// FIXME - have to deal with promotion
-				if(move.source != killer.source && move.destination != killer.destination) {
-					lmfNew.add(move);
-				}
-			}
-			lmf = lmfNew;
 		}
 		
 		boolean isCapture = false;
