@@ -426,10 +426,10 @@ public class Brain {
 		float endgameFraction = this.endgameFraction(board);
 		System.out.println("EF: " + endgameFraction);
 		if(endgameFraction < 0.8) {
-			depth = 5;
+			depth = 4;
 		}
 		else {
-			depth = 6;
+			depth = 5;
 		}
 		System.out.println("Depth: " + depth);
 		Move move = null;

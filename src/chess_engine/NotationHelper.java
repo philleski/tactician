@@ -45,6 +45,9 @@ public class NotationHelper {
 		String file;
 		String rank;
 		int offset = 0;
+		if(coord == 0) {
+			return "a1";
+		}
 		while((coord & 1L) == 0) {
 			coord = coord >>> 1;
 			offset++;
@@ -262,12 +265,12 @@ public class NotationHelper {
 	public String moveToAlgebraic(Board board, Move move) {
 		String sourceSquare = coordToSquare(move.source);
 		String destSquare = coordToSquare(move.destination);
-		
+				
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
-		
+				
 		ArrayList<Move> legalMoves = board.legalMoves();
-		
+				
 		String bishopAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
 				board.whiteBishops | board.blackBishops, move.source,
 				move.destination);
@@ -280,7 +283,7 @@ public class NotationHelper {
 		String rookAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
 				board.whiteRooks | board.blackRooks, move.source,
 				move.destination);
-
+		
 		boolean capturing = false;
 		if((destinationMask & board.allPieces) != 0) {
 			capturing = true;
@@ -291,6 +294,7 @@ public class NotationHelper {
 				capturing = true;
 			}
 		}
+				
 		String temp;
 		if((sourceMask & board.whiteBishops) != 0 ||
 				(sourceMask & board.blackBishops) != 0) {

@@ -33,6 +33,26 @@ public class Move {
 				destination));
 		this.promoteTo = promoteTo;
 	}
+	
+	public String toString() {
+		String sourceStr = NotationHelper.indexToSquare(this.source);
+		String destinationStr = NotationHelper.indexToSquare(this.destination);
+		String promoteToStr = "";
+		if(promoteTo == Piece.NOPIECE) {
+			promoteToStr = "";
+		} else if(promoteTo == Piece.QUEEN) {
+			promoteToStr = "Q";
+		} else if(promoteTo == Piece.ROOK) {
+			promoteToStr = "R";
+		} else if(promoteTo == Piece.BISHOP) {
+			promoteToStr = "B";
+		} else if(promoteTo == Piece.KNIGHT) {
+			promoteToStr = "N";
+		} else {
+			promoteToStr = "?";
+		}
+		return sourceStr + destinationStr + promoteToStr;
+	}
 		
 	public byte source;
 	public byte destination;

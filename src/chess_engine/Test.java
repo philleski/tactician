@@ -140,5 +140,16 @@ public class Test {
 		board2.move(new Move("e1", "f1"));
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
+	
+	@org.junit.Test
+	public void testBrainMateInOne() throws IllegalMoveException {
+		Board board = new Board();
+		board.move(new Move("f2", "f3"));
+		board.move(new Move("e7", "e5"));
+		board.move(new Move("g2", "g4"));
+		Brain brain = new Brain();
+		Move move = brain.getMove(board);
+		assertEquals(move.toString(), "d8h4");
+	}
 
 }
