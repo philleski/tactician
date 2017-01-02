@@ -454,37 +454,37 @@ public class LegalMoveGenerator {
 				return false;
 			}
 			// Left from e8.
-			if(!this.verifyCastleHelper(board, maskD8, maskA8,
+			if(!this.verifyCastleHelper(board, this.maskD8, this.maskA8,
 					board.whiteRooks, board.whiteQueens, -1)) {
 				return false;
 			}
 			// Left diagonal from e8. Magic numbers are d7, a4.
-			if(!this.verifyCastleHelper(board, maskD7, maskA4,
+			if(!this.verifyCastleHelper(board, this.maskD7, this.maskA4,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from e8. Magic numbers are e7, e1.
-			if(!this.verifyCastleHelper(board, maskE7, maskE1,
+			if(!this.verifyCastleHelper(board, this.maskE7, this.maskE1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from e8. Magic numbers are f7, h5.
-			if(!this.verifyCastleHelper(board, maskF7, maskH5,
+			if(!this.verifyCastleHelper(board, this.maskF7, this.maskH5,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
 			// Left diagonal from f8. Magic numbers are e7, a3.
-			if(!this.verifyCastleHelper(board, maskE7, maskA3,
+			if(!this.verifyCastleHelper(board, this.maskE7, this.maskA3,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from f8. Magic numbers are f7, f1.
-			if(!this.verifyCastleHelper(board, maskF7, maskF1,
+			if(!this.verifyCastleHelper(board, this.maskF7, this.maskF1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from f8. Magic numbers are g7, h6.
-			if(!this.verifyCastleHelper(board, maskG7, maskH6,
+			if(!this.verifyCastleHelper(board, this.maskG7, this.maskH6,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
@@ -498,37 +498,37 @@ public class LegalMoveGenerator {
 				return false;
 			}
 			// Right from e8.
-			if(!this.verifyCastleHelper(board, maskF8, maskH8,
+			if(!this.verifyCastleHelper(board, this.maskF8, this.maskH8,
 					board.whiteRooks, board.whiteQueens, 1)) {
 				return false;
 			}
 			// Left diagonal from e8.
-			if(!this.verifyCastleHelper(board, maskD7, maskA4,
+			if(!this.verifyCastleHelper(board, this.maskD7, this.maskA4,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from e8.
-			if(!this.verifyCastleHelper(board, maskE7, maskE1,
+			if(!this.verifyCastleHelper(board, this.maskE7, this.maskE1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from e8.
-			if(!this.verifyCastleHelper(board, maskF7, maskH5,
+			if(!this.verifyCastleHelper(board, this.maskF7, this.maskH5,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
 			// Left diagonal from d8.
-			if(!this.verifyCastleHelper(board, maskC7, maskA5,
+			if(!this.verifyCastleHelper(board, this.maskC7, this.maskA5,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from d8.
-			if(!this.verifyCastleHelper(board, maskD7, maskD1,
+			if(!this.verifyCastleHelper(board, this.maskD7, this.maskD1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from d8.
-			if(!this.verifyCastleHelper(board, maskE7, maskH4,
+			if(!this.verifyCastleHelper(board, this.maskE7, this.maskH4,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
