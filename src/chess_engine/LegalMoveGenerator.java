@@ -780,7 +780,7 @@ public class LegalMoveGenerator {
 		if(!capturesOnly) {
 			if(board.turn == Color.WHITE) {
 				if(board.whiteCastleRightKingside) {
-					if((board.allPieces & 0x0000000000000060L) == 0) {
+					if((board.allPieces & this.maskWhiteCastleKingsideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE_WHITE)) {
 							// e1-g1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)6));
@@ -788,7 +788,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.whiteCastleRightQueenside) {
-					if((board.allPieces & 0x000000000000000eL) == 0) {
+					if((board.allPieces & this.maskWhiteCastleQueensideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE_WHITE)) {
 							// e1-c1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)2));
@@ -798,7 +798,7 @@ public class LegalMoveGenerator {
 			}
 			else {
 				if(board.blackCastleRightKingside) {
-					if((board.allPieces & 0x6000000000000000L) == 0) {
+					if((board.allPieces & this.maskBlackCastleKingsideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE_BLACK)) {
 							// e8-g8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)62));
@@ -806,7 +806,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.blackCastleRightQueenside) {
-					if((board.allPieces & 0x0e00000000000000L) == 0) {
+					if((board.allPieces & this.maskBlackCastleQueensideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE_BLACK)) {
 							// e8-c8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)58));
@@ -1002,6 +1002,15 @@ public class LegalMoveGenerator {
 	private long maskH5 = notationHelper.generateMask("h5");
 	private long maskH6 = notationHelper.generateMask("h6");
 	private long maskH8 = notationHelper.generateMask("h8");
+	
+	private long maskWhiteCastleKingsideSpace =
+			notationHelper.generateMask("f1", "g1");
+	private long maskWhiteCastleQueensideSpace =
+			notationHelper.generateMask("b1", "c1", "d1");
+	private long maskBlackCastleKingsideSpace =
+			notationHelper.generateMask("f8", "g8");
+	private long maskBlackCastleQueensideSpace =
+			notationHelper.generateMask("b8", "c8", "d8");
 	
 	private long preventWhiteCastleKingsidePawns =
 			notationHelper.generateMask("d2", "e2", "f2", "g2");

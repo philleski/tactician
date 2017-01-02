@@ -151,5 +151,4 @@ public class Test {
 		Move move = brain.getMove(board);
 		assertEquals(move.toString(), "d8h4");
 	}
-
 }

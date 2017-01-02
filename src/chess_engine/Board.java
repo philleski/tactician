@@ -3,59 +3,6 @@ package chess_engine;
 import java.util.ArrayList;
 
 public class Board {
-	
-	private static LegalMoveGenerator legalMoveGenerator = new LegalMoveGenerator();
-	private static NotationHelper notationHelper = new NotationHelper();
-	private PositionHasher positionHasher = null;
-	
-	// All the state information below.
-	
-	public long whiteBishops = notationHelper.generateMask("c1", "f1");
-	public long whiteKings = notationHelper.generateMask("e1");
-	public long whiteKnights = notationHelper.generateMask("b1", "g1");
-	public long whitePawns = notationHelper.generateMask(
-			"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2");
-	public long whiteQueens = notationHelper.generateMask("d1");
-	public long whiteRooks = notationHelper.generateMask("a1", "h1");
-	public long blackBishops = notationHelper.generateMask("c8", "f8");
-	public long blackKings = notationHelper.generateMask("e8");
-	public long blackKnights = notationHelper.generateMask("b8", "g8");
-	public long blackPawns = notationHelper.generateMask(
-			"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7");
-	public long blackQueens = notationHelper.generateMask("d8");
-	public long blackRooks = notationHelper.generateMask("a8", "h8");
-	
-	// Convenience masks for castling
-	public long maskA1Negative = ~(notationHelper.generateMask("a1") ^ 0);
-	public long maskA8Negative = ~(notationHelper.generateMask("a8") ^ 0);
-	public long maskH1Negative = ~(notationHelper.generateMask("h1") ^ 0);
-	public long maskH8Negative = ~(notationHelper.generateMask("h8") ^ 0);
-	public long maskD1 = notationHelper.generateMask("d1");
-	public long maskD8 = notationHelper.generateMask("d8");
-	public long maskF1 = notationHelper.generateMask("f1");
-	public long maskF8 = notationHelper.generateMask("f8");
-	
-	public int whiteKingIndex = 4;   // 1L << index is the coordinate.
-	public int blackKingIndex = 60;
-	
-	public long whitePieces = whiteBishops | whiteKings | whiteKnights |
-			whitePawns | whiteQueens | whiteRooks;
-	public long blackPieces = blackBishops | blackKings | blackKnights |
-			blackPawns | blackQueens | blackRooks;
-	public long allPieces = whitePieces | blackPieces;
-	
-	public Color turn = Color.WHITE;
-	// If the last move was a double pawn move, this is the destination
-	// coordinate.
-	public long enPassantTarget = 0;
-	public boolean whiteCastleRightKingside = true;
-	public boolean whiteCastleRightQueenside = true;
-	public boolean blackCastleRightKingside = true;
-	public boolean blackCastleRightQueenside = true;
-	
-	// This is used for the transposition tables.
-	public long positionHash = 0;
-	
 	public Board() {
 		this.positionHasher = new PositionHasher();
 		
@@ -758,4 +705,55 @@ public class Board {
 				this.blackCastleRightKingside, this.blackCastleRightQueenside);
 	}
 
+	private static LegalMoveGenerator legalMoveGenerator = new LegalMoveGenerator();
+	private static NotationHelper notationHelper = new NotationHelper();
+	private PositionHasher positionHasher = null;
+	
+	// All the state information below.
+	
+	public long whiteBishops = notationHelper.generateMask("c1", "f1");
+	public long whiteKings = notationHelper.generateMask("e1");
+	public long whiteKnights = notationHelper.generateMask("b1", "g1");
+	public long whitePawns = notationHelper.generateMask(
+			"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2");
+	public long whiteQueens = notationHelper.generateMask("d1");
+	public long whiteRooks = notationHelper.generateMask("a1", "h1");
+	public long blackBishops = notationHelper.generateMask("c8", "f8");
+	public long blackKings = notationHelper.generateMask("e8");
+	public long blackKnights = notationHelper.generateMask("b8", "g8");
+	public long blackPawns = notationHelper.generateMask(
+			"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7");
+	public long blackQueens = notationHelper.generateMask("d8");
+	public long blackRooks = notationHelper.generateMask("a8", "h8");
+	
+	// Convenience masks for castling
+	public long maskA1Negative = ~(notationHelper.generateMask("a1") ^ 0);
+	public long maskA8Negative = ~(notationHelper.generateMask("a8") ^ 0);
+	public long maskH1Negative = ~(notationHelper.generateMask("h1") ^ 0);
+	public long maskH8Negative = ~(notationHelper.generateMask("h8") ^ 0);
+	public long maskD1 = notationHelper.generateMask("d1");
+	public long maskD8 = notationHelper.generateMask("d8");
+	public long maskF1 = notationHelper.generateMask("f1");
+	public long maskF8 = notationHelper.generateMask("f8");
+	
+	public int whiteKingIndex = 4;   // 1L << index is the coordinate.
+	public int blackKingIndex = 60;
+	
+	public long whitePieces = whiteBishops | whiteKings | whiteKnights |
+			whitePawns | whiteQueens | whiteRooks;
+	public long blackPieces = blackBishops | blackKings | blackKnights |
+			blackPawns | blackQueens | blackRooks;
+	public long allPieces = whitePieces | blackPieces;
+	
+	public Color turn = Color.WHITE;
+	// If the last move was a double pawn move, this is the destination
+	// coordinate.
+	public long enPassantTarget = 0;
+	public boolean whiteCastleRightKingside = true;
+	public boolean whiteCastleRightQueenside = true;
+	public boolean blackCastleRightKingside = true;
+	public boolean blackCastleRightQueenside = true;
+	
+	// This is used for the transposition tables.
+	public long positionHash = 0;
 };
