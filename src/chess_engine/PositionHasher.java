@@ -5,7 +5,7 @@ import java.util.Random;
 // https://en.wikipedia.org/wiki/Zobrist_hashing
 public class PositionHasher {
 	public PositionHasher() {
-		// We want the Zorbist tables to be "messy" but be exactly the same
+		// We want the Zobrist tables to be "messy" but be exactly the same
 		// every time the chess engine runs. This at least helps with
 		// debugging.
 		Random generator = new Random(0);
@@ -35,6 +35,39 @@ public class PositionHasher {
 	//    pawns. [whiteKingside, whiteQueenside, blackKingside, blackQueenside]
 	//    has a total of 16 bits. These bits map to a1-h1 and then a8-h8 in the
 	//    black pawn mask.
+	
+	public long getMask(Color color, Piece piece, byte index) {
+		if(color == Color.WHITE) {
+			if(piece == Piece.BISHOP) {
+				return getMaskWhiteBishop(index);
+			} else if(piece == Piece.KING) {
+				return getMaskWhiteKing(index);
+			} else if(piece == Piece.KNIGHT) {
+				return getMaskWhiteKnight(index);
+			} else if(piece == Piece.PAWN) {
+				return getMaskWhitePawn(index);
+			} else if(piece == Piece.QUEEN) {
+				return getMaskWhiteQueen(index);
+			} else if(piece == Piece.ROOK) {
+				return getMaskWhiteRook(index);
+			}
+		} else {
+			if(piece == Piece.BISHOP) {
+				return getMaskBlackBishop(index);
+			} else if(piece == Piece.KING) {
+				return getMaskBlackKing(index);
+			} else if(piece == Piece.KNIGHT) {
+				return getMaskBlackKnight(index);
+			} else if(piece == Piece.PAWN) {
+				return getMaskBlackPawn(index);
+			} else if(piece == Piece.QUEEN) {
+				return getMaskBlackQueen(index);
+			} else if(piece == Piece.ROOK) {
+				return getMaskBlackRook(index);
+			}
+		}
+		return 0;
+	}
 	
 	public long getMaskBlackBishop(byte index) {
 		return this.blackBishopMask[index];

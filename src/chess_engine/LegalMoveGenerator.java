@@ -327,7 +327,7 @@ public class LegalMoveGenerator {
 		// this.blackQueens, for example.
 		long mask = maskStart;
 		while(true) {
-			if((board.allPieces & mask) != 0) {
+			if((board.allPieces.data & mask) != 0) {
 				if((oppPieceType1 & mask) != 0 ||
 						(oppPieceType2 & mask) != 0) {
 					return false;
@@ -360,176 +360,176 @@ public class LegalMoveGenerator {
 		// mask_helper.py to compute these magic-number masks (especially the
 		// pawn/knight masks).
 		if(type == Castle.KINGSIDE_WHITE) {
-			if((board.blackPawns & this.preventWhiteCastleKingsidePawns) != 0) {
+			if((board.bitboards.get(Color.BLACK).get(Piece.PAWN).data & this.preventWhiteCastleKingsidePawns) != 0) {
 				return false;
 			}
-			if((board.blackKnights & this.preventWhiteCastleKingsideKnights) != 0) {
+			if((board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & this.preventWhiteCastleKingsideKnights) != 0) {
 				return false;
 			}
 			if(!this.verifyCastleHelper(board, this.maskD1, this.maskA1,
-					board.blackRooks, board.blackQueens, -1)) {
+					board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, -1)) {
 				return false;
 			}
 			// Left diagonal from e1.
 			if(!this.verifyCastleHelper(board, this.maskD2, this.maskA5,
-					board.blackBishops, board.blackQueens, 7)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 7)) {
 				return false;
 			}
 			// Up from e1.
 			if(!this.verifyCastleHelper(board, this.maskE2, this.maskE8,
-					board.blackRooks, board.blackQueens, 8)) {
+					board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 8)) {
 				return false;
 			}
 			// Right diagonal from e1.
 			if(!this.verifyCastleHelper(board, this.maskF2, this.maskH4,
-					board.blackBishops, board.blackQueens, 9)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 9)) {
 				return false;
 			}
 			// Left diagonal from f1.
 			if(!this.verifyCastleHelper(board, this.maskE2, this.maskA6,
-					board.blackBishops, board.blackQueens, 7)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 7)) {
 				return false;
 			}
 			// Up from f1.
 			if(!this.verifyCastleHelper(board, this.maskF2, this.maskF8,
-					board.blackRooks, board.blackQueens, 8)) {
+					board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 8)) {
 				return false;
 			}
 			// Right diagonal from f1.
 			if(!this.verifyCastleHelper(board, this.maskG2, this.maskH3,
-					board.blackBishops, board.blackQueens, 9)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 9)) {
 				return false;
 			}
 			return true;
 		}
 		else if(type == Castle.QUEENSIDE_WHITE) {
-			if((board.blackPawns & this.preventWhiteCastleQueensidePawns) != 0) {
+			if((board.bitboards.get(Color.BLACK).get(Piece.PAWN).data & this.preventWhiteCastleQueensidePawns) != 0) {
 				return false;
 			}
-			if((board.blackKnights & this.preventWhiteCastleQueensideKnights) != 0) {
+			if((board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & this.preventWhiteCastleQueensideKnights) != 0) {
 				return false;
 			}
 			// Right from e1.
 			if(!this.verifyCastleHelper(board, this.maskF1, this.maskH1,
-					board.blackRooks, board.blackQueens, 1)) {
+					board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 1)) {
 				return false;
 			}
 			// Left diagonal from e1.
 			if(!this.verifyCastleHelper(board, this.maskD2, this.maskA5,
-					board.blackBishops, board.blackQueens, 7)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 7)) {
 				return false;
 			}
 			// Up from e1.
 			if(!this.verifyCastleHelper(board, this.maskE2, this.maskE8,
-					board.blackRooks, board.blackQueens, 8)) {
+					board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 8)) {
 				return false;
 			}
 			// Right diagonal from e1.
 			if(!this.verifyCastleHelper(board, this.maskF2, this.maskH4,
-					board.blackBishops, board.blackQueens, 9)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 9)) {
 				return false;
 			}
 			// Left diagonal from d1.
 			if(!this.verifyCastleHelper(board, this.maskC2, this.maskA4,
-					board.blackBishops, board.blackQueens, 7)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 7)) {
 				return false;
 			}
 			// Up from d1.
 			if(!this.verifyCastleHelper(board, this.maskD2, this.maskD8,
-					board.blackRooks, board.blackQueens, 8)) {
+					board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 8)) {
 				return false;
 			}
 			// Right diagonal from d1.
 			if(!this.verifyCastleHelper(board, this.maskE2, this.maskH5,
-					board.blackBishops, board.blackQueens, 9)) {
+					board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, 9)) {
 				return false;
 			}
 			return true;
 		}
 		else if(type == Castle.KINGSIDE_BLACK) {
-			if((board.whitePawns & this.preventBlackCastleKingsidePawns) != 0) {
+			if((board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & this.preventBlackCastleKingsidePawns) != 0) {
 				return false;
 			}
-			if((board.whiteKnights & this.preventBlackCastleKingsideKnights) != 0) {
+			if((board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & this.preventBlackCastleKingsideKnights) != 0) {
 				return false;
 			}
 			// Left from e8.
 			if(!this.verifyCastleHelper(board, this.maskD8, this.maskA8,
-					board.whiteRooks, board.whiteQueens, -1)) {
+					board.bitboards.get(Color.WHITE).get(Piece.ROOK).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -1)) {
 				return false;
 			}
 			// Left diagonal from e8. Magic numbers are d7, a4.
 			if(!this.verifyCastleHelper(board, this.maskD7, this.maskA4,
-					board.whiteBishops, board.whiteQueens, -9)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -9)) {
 				return false;
 			}
 			// Down from e8. Magic numbers are e7, e1.
 			if(!this.verifyCastleHelper(board, this.maskE7, this.maskE1,
-					board.whiteRooks, board.whiteQueens, -8)) {
+					board.bitboards.get(Color.WHITE).get(Piece.ROOK).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -8)) {
 				return false;
 			}
 			// Right diagonal from e8. Magic numbers are f7, h5.
 			if(!this.verifyCastleHelper(board, this.maskF7, this.maskH5,
-					board.whiteBishops, board.whiteQueens, -7)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -7)) {
 				return false;
 			}
 			// Left diagonal from f8. Magic numbers are e7, a3.
 			if(!this.verifyCastleHelper(board, this.maskE7, this.maskA3,
-					board.whiteBishops, board.whiteQueens, -9)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -9)) {
 				return false;
 			}
 			// Down from f8. Magic numbers are f7, f1.
 			if(!this.verifyCastleHelper(board, this.maskF7, this.maskF1,
-					board.whiteRooks, board.whiteQueens, -8)) {
+					board.bitboards.get(Color.WHITE).get(Piece.ROOK).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -8)) {
 				return false;
 			}
 			// Right diagonal from f8. Magic numbers are g7, h6.
 			if(!this.verifyCastleHelper(board, this.maskG7, this.maskH6,
-					board.whiteBishops, board.whiteQueens, -7)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -7)) {
 				return false;
 			}
 			return true;
 		}
 		else if(type == Castle.QUEENSIDE_BLACK) {
-			if((board.whitePawns & this.preventBlackCastleQueensidePawns) != 0) {
+			if((board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & this.preventBlackCastleQueensidePawns) != 0) {
 				return false;
 			}
-			if((board.whiteKnights & this.preventBlackCastleQueensideKnights) != 0) {
+			if((board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & this.preventBlackCastleQueensideKnights) != 0) {
 				return false;
 			}
 			// Right from e8.
 			if(!this.verifyCastleHelper(board, this.maskF8, this.maskH8,
-					board.whiteRooks, board.whiteQueens, 1)) {
+					board.bitboards.get(Color.WHITE).get(Piece.ROOK).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, 1)) {
 				return false;
 			}
 			// Left diagonal from e8.
 			if(!this.verifyCastleHelper(board, this.maskD7, this.maskA4,
-					board.whiteBishops, board.whiteQueens, -9)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -9)) {
 				return false;
 			}
 			// Down from e8.
 			if(!this.verifyCastleHelper(board, this.maskE7, this.maskE1,
-					board.whiteRooks, board.whiteQueens, -8)) {
+					board.bitboards.get(Color.WHITE).get(Piece.ROOK).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -8)) {
 				return false;
 			}
 			// Right diagonal from e8.
 			if(!this.verifyCastleHelper(board, this.maskF7, this.maskH5,
-					board.whiteBishops, board.whiteQueens, -7)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -7)) {
 				return false;
 			}
 			// Left diagonal from d8.
 			if(!this.verifyCastleHelper(board, this.maskC7, this.maskA5,
-					board.whiteBishops, board.whiteQueens, -9)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -9)) {
 				return false;
 			}
 			// Down from d8.
 			if(!this.verifyCastleHelper(board, this.maskD7, this.maskD1,
-					board.whiteRooks, board.whiteQueens, -8)) {
+					board.bitboards.get(Color.WHITE).get(Piece.ROOK).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -8)) {
 				return false;
 			}
 			// Right diagonal from d8.
 			if(!this.verifyCastleHelper(board, this.maskE7, this.maskH4,
-					board.whiteBishops, board.whiteQueens, -7)) {
+					board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data, board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data, -7)) {
 				return false;
 			}
 			return true;
@@ -625,7 +625,7 @@ public class LegalMoveGenerator {
 			if((this.getMyPawns(board) & mask) != 0) {
 				if(board.turn == Color.WHITE) {
 					// One space forward
-					if(((mask << 8) & board.allPieces) == 0) {
+					if(((mask << 8) & board.allPieces.data) == 0) {
 						if(mask >>> 48 == 0) {
 							legalMovesNoncapture.add(new Move(i, (byte)(i + 8)));
 						}
@@ -641,8 +641,8 @@ public class LegalMoveGenerator {
 						}
 					}
 					// Two spaces forward
-					if(i < 16 && ((mask << 8) & board.allPieces) == 0 &&
-						((mask << 16) & board.allPieces) == 0) {
+					if(i < 16 && ((mask << 8) & board.allPieces.data) == 0 &&
+						((mask << 16) & board.allPieces.data) == 0) {
 						legalMovesNoncapture.add(new Move(i, (byte)(i + 16)));
 					}
 					// Capture left
@@ -689,7 +689,7 @@ public class LegalMoveGenerator {
 				}
 				else {
 					// One space forward
-					if(((mask >>> 8) & board.allPieces) == 0) {
+					if(((mask >>> 8) & board.allPieces.data) == 0) {
 						if(mask >>> 16 != 0) {
 							legalMovesNoncapture.add(new Move(i, (byte)(i - 8)));
 						}
@@ -705,8 +705,8 @@ public class LegalMoveGenerator {
 						}
 					}
 					// Two spaces forward
-					if(i >= 48 && ((mask >>> 8) & board.allPieces) == 0 &&
-						((mask >>> 16) & board.allPieces) == 0) {
+					if(i >= 48 && ((mask >>> 8) & board.allPieces.data) == 0 &&
+						((mask >>> 16) & board.allPieces.data) == 0) {
 						legalMovesNoncapture.add(new Move(i, (byte)(i - 16)));
 					}
 					// Capture left
@@ -780,7 +780,7 @@ public class LegalMoveGenerator {
 		if(!capturesOnly) {
 			if(board.turn == Color.WHITE) {
 				if(board.whiteCastleRightKingside) {
-					if((board.allPieces & this.maskWhiteCastleKingsideSpace) == 0) {
+					if((board.allPieces.data & this.maskWhiteCastleKingsideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE_WHITE)) {
 							// e1-g1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)6));
@@ -788,7 +788,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.whiteCastleRightQueenside) {
-					if((board.allPieces & this.maskWhiteCastleQueensideSpace) == 0) {
+					if((board.allPieces.data & this.maskWhiteCastleQueensideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE_WHITE)) {
 							// e1-c1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)2));
@@ -798,7 +798,7 @@ public class LegalMoveGenerator {
 			}
 			else {
 				if(board.blackCastleRightKingside) {
-					if((board.allPieces & this.maskBlackCastleKingsideSpace) == 0) {
+					if((board.allPieces.data & this.maskBlackCastleKingsideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE_BLACK)) {
 							// e8-g8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)62));
@@ -806,7 +806,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.blackCastleRightQueenside) {
-					if((board.allPieces & this.maskBlackCastleQueensideSpace) == 0) {
+					if((board.allPieces.data & this.maskBlackCastleQueensideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE_BLACK)) {
 							// e8-c8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)58));
@@ -848,127 +848,127 @@ public class LegalMoveGenerator {
 	
 	private long getMyBishops(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.whiteBishops;
+			return board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data;
 		}
 		else {
-			return board.blackBishops;
+			return board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data;
 		}
 	}
 	
 	private long getMyKings(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.whiteKings;
+			return board.bitboards.get(Color.WHITE).get(Piece.KING).data;
 		}
 		else {
-			return board.blackKings;
+			return board.bitboards.get(Color.BLACK).get(Piece.KING).data;
 		}
 	}
 	
 	private long getMyKnights(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.whiteKnights;
+			return board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data;
 		}
 		else {
-			return board.blackKnights;
+			return board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data;
 		}
 	}
 	
 	private long getMyPawns(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.whitePawns;
+			return board.bitboards.get(Color.WHITE).get(Piece.PAWN).data;
 		}
 		else {
-			return board.blackPawns;
+			return board.bitboards.get(Color.BLACK).get(Piece.PAWN).data;
 		}
 	}
 	
 	private long getMyQueens(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.whiteQueens;
+			return board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data;
 		}
 		else {
-			return board.blackQueens;
+			return board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data;
 		}
 	}
 	
 	private long getMyRooks(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.whiteRooks;
+			return board.bitboards.get(Color.WHITE).get(Piece.ROOK).data;
 		}
 		else {
-			return board.blackRooks;
+			return board.bitboards.get(Color.BLACK).get(Piece.ROOK).data;
 		}
 	}
 	
 	private long getMyPieces(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.whitePieces;
+			return board.whitePieces.data;
 		}
 		else {
-			return board.blackPieces;
+			return board.blackPieces.data;
 		}
 	}
 	
 	private long getOppBishops(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.blackBishops;
+			return board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data;
 		}
 		else {
-			return board.whiteBishops;
+			return board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data;
 		}
 	}
 	
 	private long getOppKings(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.blackKings;
+			return board.bitboards.get(Color.BLACK).get(Piece.KING).data;
 		}
 		else {
-			return board.whiteKings;
+			return board.bitboards.get(Color.WHITE).get(Piece.KING).data;
 		}
 	}
 	
 	private long getOppKnights(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.blackKnights;
+			return board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data;
 		}
 		else {
-			return board.whiteKnights;
+			return board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data;
 		}
 	}
 	
 	private long getOppPawns(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.blackPawns;
+			return board.bitboards.get(Color.BLACK).get(Piece.PAWN).data;
 		}
 		else {
-			return board.whitePawns;
+			return board.bitboards.get(Color.WHITE).get(Piece.PAWN).data;
 		}
 	}
 	
 	private long getOppQueens(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.blackQueens;
+			return board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data;
 		}
 		else {
-			return board.whiteQueens;
+			return board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data;
 		}
 	}
 	
 	private long getOppRooks(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.blackRooks;
+			return board.bitboards.get(Color.BLACK).get(Piece.ROOK).data;
 		}
 		else {
-			return board.whiteRooks;
+			return board.bitboards.get(Color.WHITE).get(Piece.ROOK).data;
 		}
 	}
 	
 	private long getOppPieces(Board board) {
 		if(board.turn == Color.WHITE) {
-			return board.blackPieces;
+			return board.blackPieces.data;
 		}
 		else {
-			return board.whitePieces;
+			return board.whitePieces.data;
 		}
 	}
 	

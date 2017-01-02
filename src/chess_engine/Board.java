@@ -1,33 +1,32 @@
 package chess_engine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Board {
 	public Board() {
 		this.positionHasher = new PositionHasher();
+		Map<Piece, Bitboard> whiteBitboards = new HashMap<Piece, Bitboard>();
+		Map<Piece, Bitboard> blackBitboards = new HashMap<Piece, Bitboard>();
+		whiteBitboards.put(Piece.BISHOP, new Bitboard("c1", "f1"));
+		whiteBitboards.put(Piece.KING, new Bitboard("e1"));
+		whiteBitboards.put(Piece.KNIGHT, new Bitboard("b1", "g1"));
+		whiteBitboards.put(Piece.PAWN, new Bitboard(
+			"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"));
+		whiteBitboards.put(Piece.QUEEN, new Bitboard("d1"));
+		whiteBitboards.put(Piece.ROOK, new Bitboard("a1", "h1"));
+		for(Map.Entry<Piece, Bitboard> entry : whiteBitboards.entrySet()) {
+			Piece piece = entry.getKey();
+			Bitboard bitboard = entry.getValue();
+			blackBitboards.put(piece, bitboard.flip());
+		}
+		this.bitboards.put(Color.WHITE, whiteBitboards);
+		this.bitboards.put(Color.BLACK, blackBitboards);
+		updateSummaryBitboards();
 		
-		this.whiteBishops =	notationHelper.generateMask("c1", "f1");
-		this.whiteKings = notationHelper.generateMask("e1");
-		this.whiteKnights =	notationHelper.generateMask("b1", "g1");
-		this.whitePawns =notationHelper.generateMask(
-				"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2");
-		this.whiteQueens = notationHelper.generateMask("d1");
-		this.whiteRooks = notationHelper.generateMask("a1", "h1");
-		this.blackBishops =	notationHelper.generateMask("c8", "f8");
-		this.blackKings = notationHelper.generateMask("e8");
-		this.blackKnights =	notationHelper.generateMask("b8", "g8");
-		this.blackPawns = notationHelper.generateMask(
-				"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7");
-		this.blackQueens = notationHelper.generateMask("d8");
-		this.blackRooks = notationHelper.generateMask("a8", "h8");
 		this.whiteKingIndex = 4;   // 1L << index is the coordinate.
 		this.blackKingIndex = 60;
-		
-		this.whitePieces = this.whiteBishops | this.whiteKings | this.whiteKnights |
-				this.whitePawns | this.whiteQueens | this.whiteRooks;
-		this.blackPieces = this.blackBishops | this.blackKings | this.blackKnights |
-				this.blackPawns | this.blackQueens | this.blackRooks;
-		this.allPieces = this.whitePieces | this.blackPieces;
 		
 		this.turn = Color.WHITE;
 		// If the last move was a double pawn move, this is the destination
@@ -42,25 +41,19 @@ public class Board {
 	}
 	
 	public Board(Board other) {
-		this.whiteBishops = other.whiteBishops;
-		this.whiteKings = other.whiteKings;
-		this.whiteKnights = other.whiteKnights;
-		this.whitePawns = other.whitePawns;
-		this.whiteQueens = other.whiteQueens;
-		this.whiteRooks = other.whiteRooks;
-		this.blackBishops = other.blackBishops;
-		this.blackKings = other.blackKings;
-		this.blackKnights = other.blackKnights;
-		this.blackPawns = other.blackPawns;
-		this.blackQueens = other.blackQueens;
-		this.blackRooks = other.blackRooks;
-		this.whitePieces = this.whiteBishops | this.whiteKings |
-				this.whiteKnights | this.whitePawns | this.whiteQueens |
-				this.whiteRooks;
-		this.blackPieces = this.blackBishops | this.blackKings |
-				this.blackKnights | this.blackPawns | this.blackQueens |
-				this.blackRooks;
-		this.allPieces = this.whitePieces | this.blackPieces;
+		this.bitboards.clear();
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : other.bitboards.entrySet()) {
+			Color color = entry1.getKey();
+			Map<Piece, Bitboard> bitboardsForColor = new HashMap<Piece, Bitboard>();
+			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+				Piece piece = entry2.getKey();
+				Bitboard bitboard = entry2.getValue();
+				bitboardsForColor.put(piece, bitboard.copy());
+			}
+			this.bitboards.put(color, bitboardsForColor);
+		}
+		updateSummaryBitboards();
+		
 		this.turn = other.turn;
 		this.enPassantTarget = other.enPassantTarget;
 		this.whiteCastleRightKingside = other.whiteCastleRightKingside;
@@ -79,47 +72,24 @@ public class Board {
 		String rowReversed = "";
 		for(long i = 63; i >= 0; i--) {
 			long mask = 1L << i;
-			// The pawn representation is a little nonstandard because it's
-			// hard to tell the difference between 'p' and 'P'.
-			if((this.blackBishops & mask) != 0) {
-				rowReversed += 'B';
+			
+			char representation = ' ';
+			for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+				Color color = entry1.getKey();
+				for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+					Piece piece = entry2.getKey();
+					Bitboard bitboard = entry2.getValue();
+					if((bitboard.data & mask) != 0) {
+						if(piece == Piece.KNIGHT) {
+							representation = 'N';
+						}
+						if(color == Color.WHITE) {
+							representation = (char) (representation - 'A' + 'a');
+						}
+					}
+				}
 			}
-			else if((this.blackKings & mask) != 0) {
-				rowReversed += 'K';
-			}
-			else if((this.blackKnights & mask) != 0) {
-				rowReversed += 'N';
-			}
-			else if((this.blackPawns & mask) != 0) {
-				rowReversed += 'p';
-			}
-			else if((this.blackQueens & mask) != 0) {
-				rowReversed += 'Q';
-			}
-			else if((this.blackRooks & mask) != 0) {
-				rowReversed += 'R';
-			}
-			else if((this.whiteBishops & mask) != 0) {
-				rowReversed += 'b';
-			}
-			else if((this.whiteKings & mask) != 0) {
-				rowReversed += 'k';
-			}
-			else if((this.whiteKnights & mask) != 0) {
-				rowReversed += 'n';
-			}
-			else if((this.whitePawns & mask) != 0) {
-				rowReversed += 'o';
-			}
-			else if((this.whiteQueens & mask) != 0) {
-				rowReversed += 'q';
-			}
-			else if((this.whiteRooks & mask) != 0) {
-				rowReversed += 'r';
-			}
-			else {
-				rowReversed += ' ';
-			}
+			rowReversed += representation;
 			if(i % 8 == 0) {
 				result += new StringBuilder(rowReversed).reverse().toString();
 				result += '\n';
@@ -144,6 +114,25 @@ public class Board {
 		return result;
 	}
 	
+	public void updateSummaryBitboards() {
+		this.whitePieces = new Bitboard();
+		this.blackPieces = new Bitboard();
+		this.allPieces = new Bitboard();
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+			Color color = entry1.getKey();
+			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+				Bitboard bitboard = entry2.getValue();
+				if(color == Color.WHITE) {
+					this.whitePieces.data |= bitboard.data;
+					this.allPieces.data |= bitboard.data;
+				} else {
+					this.blackPieces.data |= bitboard.data;
+					this.allPieces.data |= bitboard.data;
+				}
+			}
+		}
+	}
+	
 	public boolean isInCheck() {
 		// Determining whether the board is in check involves a lot of legal
 		// move generation internals, especially if we want it to be fast. So
@@ -164,76 +153,32 @@ public class Board {
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
 		// Remove whatever is in the destination spot.
-
-		if((this.whiteBishops & destinationMask) != 0) {
-			this.whiteBishops &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskWhiteBishop(
-					move.destination);
-		}
-		else if((this.whiteKings & destinationMask) != 0) {
-			this.whiteKings &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskWhiteKing(
-					move.destination);
-		}
-		else if((this.whiteKnights & destinationMask) != 0) {
-			this.whiteKnights &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskWhiteKnight(
-					move.destination);
-		}
-		else if((this.whitePawns & destinationMask) != 0) {
-			this.whitePawns &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskWhitePawn(
-					move.destination);
-		}
-		else if((this.whiteQueens & destinationMask) != 0) {
-			this.whiteQueens &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskWhiteQueen(
-					move.destination);
-		}
-		else if((this.whiteRooks & destinationMask) != 0) {
-			this.whiteRooks &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskWhiteRook(
-					move.destination);
-		}
-		else if((this.blackBishops & destinationMask) != 0) {
-			this.blackBishops &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskBlackBishop(
-					move.destination);
-		}
-		else if((this.blackKings & destinationMask) != 0) {
-			this.blackKings &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskBlackKing(
-					move.destination);
-		}
-		else if((this.blackKnights & destinationMask) != 0) {
-			this.blackKnights &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskBlackKnight(
-					move.destination);
-		}
-		else if((this.blackPawns & destinationMask) != 0) {
-			this.blackPawns &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskBlackPawn(
-					move.destination);
-		}
-		else if((this.blackQueens & destinationMask) != 0) {
-			this.blackQueens &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskBlackQueen(
-					move.destination);
-		}
-		else if((this.blackRooks & destinationMask) != 0) {
-			this.blackRooks &= ~(destinationMask ^ 0);
-			this.positionHash ^= this.positionHasher.getMaskBlackRook(
-					move.destination);
+		
+		boolean found = false;
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+			Color color = entry1.getKey();
+			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+				Piece piece = entry2.getKey();
+				Bitboard bitboard = entry2.getValue();
+				if((bitboard.data & destinationMask) != 0) {
+					bitboard.data &= ~(destinationMask ^ 0);
+					this.positionHash ^= this.positionHasher.getMask(color, piece, move.destination);
+					break;
+				}
+			}
+			if(found) {
+				break;
+			}
 		}
 		
 		if(this.turn == Color.WHITE) {
-			if((this.whitePawns & sourceMask) != 0 &&
+			if((this.bitboards.get(Color.WHITE).get(Piece.PAWN).data & sourceMask) != 0 &&
 					destinationMask == this.enPassantTarget) {
-				this.blackPawns &= ~((destinationMask >>> 8) ^ 0);
+				this.bitboards.get(Color.BLACK).get(Piece.PAWN).data &= ~((destinationMask >>> 8) ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskBlackPawn(
 						(byte)(move.destination - 8));
 			}
-			if((this.whitePawns & sourceMask) != 0 &&
+			if((this.bitboards.get(Color.WHITE).get(Piece.PAWN).data & sourceMask) != 0 &&
 					sourceMask << 16 == destinationMask) {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
@@ -254,14 +199,14 @@ public class Board {
 				}
 				this.enPassantTarget = 0;
 			}
-			if((this.whiteBishops & sourceMask) != 0) {
-				this.whiteBishops &= ~(sourceMask ^ 0);
-				this.whiteBishops |= destinationMask;
+			if((this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data & sourceMask) != 0) {
+				this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteBishop(
 						move.source, move.destination);
-			} else if((this.whiteKings & sourceMask) != 0) {
-				this.whiteKings &= ~(sourceMask ^ 0);
-				this.whiteKings |= destinationMask;
+			} else if((this.bitboards.get(Color.WHITE).get(Piece.KING).data & sourceMask) != 0) {
+				this.bitboards.get(Color.WHITE).get(Piece.KING).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.WHITE).get(Piece.KING).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
@@ -271,8 +216,8 @@ public class Board {
 				this.whiteCastleRightQueenside = false;
 				if(move.source - 2 == move.destination) {
 					// Castle queenside
-					this.whiteRooks &= this.maskA1Negative;
-					this.whiteRooks |= this.maskD1;
+					this.bitboards.get(Color.WHITE).get(Piece.ROOK).data &= this.maskA1Negative;
+					this.bitboards.get(Color.WHITE).get(Piece.ROOK).data |= this.maskD1;
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskWhiteRook(
@@ -280,8 +225,8 @@ public class Board {
 				}
 				else if(move.source + 2 == move.destination) {
 					// Castle kingside
-					this.whiteRooks &= this.maskH1Negative;
-					this.whiteRooks |= this.maskF1;
+					this.bitboards.get(Color.WHITE).get(Piece.ROOK).data &= this.maskH1Negative;
+					this.bitboards.get(Color.WHITE).get(Piece.ROOK).data |= this.maskF1;
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskWhiteRook(
@@ -295,40 +240,40 @@ public class Board {
 						this.whiteCastleRightQueenside,
 						this.blackCastleRightKingside,
 						this.blackCastleRightQueenside);
-			} else if((this.whiteKnights & sourceMask) != 0) {
-				this.whiteKnights &= ~(sourceMask ^ 0);
-				this.whiteKnights |= destinationMask;
+			} else if((this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & sourceMask) != 0) {
+				this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteKnight(
 						move.source, move.destination);
-			} else if((this.whitePawns & sourceMask) != 0) {
-				this.whitePawns &= ~(sourceMask ^ 0);
+			} else if((this.bitboards.get(Color.WHITE).get(Piece.PAWN).data & sourceMask) != 0) {
+				this.bitboards.get(Color.WHITE).get(Piece.PAWN).data &= ~(sourceMask ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskWhitePawn(
 						move.source);
 				if(move.destination < 56) {
-					this.whitePawns |= destinationMask;
+					this.bitboards.get(Color.WHITE).get(Piece.PAWN).data |= destinationMask;
 					this.positionHash ^= this.positionHasher.getMaskWhitePawn(
 							move.destination);
 				}
 				else if(move.promoteTo == Piece.BISHOP) {
-					this.whiteBishops |= destinationMask;
+					this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteBishop(
 									move.destination);
 				}
 				else if(move.promoteTo == Piece.KNIGHT) {
-					this.whiteKnights |= destinationMask;
+					this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteKnight(
 									move.destination);
 				}
 				else if(move.promoteTo == Piece.QUEEN) {
-					this.whiteQueens |= destinationMask;
+					this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteQueen(
 									move.destination);
 				}
 				else if(move.promoteTo == Piece.ROOK) {
-					this.whiteRooks |= destinationMask;
+					this.bitboards.get(Color.WHITE).get(Piece.ROOK).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskWhiteRook(
 									move.destination);
@@ -337,14 +282,14 @@ public class Board {
 					throw new IllegalMoveException(
 							"Don't know what to promote to.");
 				}
-			} else if((this.whiteQueens & sourceMask) != 0) {
-				this.whiteQueens &= ~(sourceMask ^ 0);
-				this.whiteQueens |= destinationMask;
+			} else if((this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data & sourceMask) != 0) {
+				this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteQueen(
 						move.source, move.destination);
-			} else if((this.whiteRooks & sourceMask) != 0) {
-				this.whiteRooks &= ~(sourceMask ^ 0);
-				this.whiteRooks |= destinationMask;
+			} else if((this.bitboards.get(Color.WHITE).get(Piece.ROOK).data & sourceMask) != 0) {
+				this.bitboards.get(Color.WHITE).get(Piece.ROOK).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.WHITE).get(Piece.ROOK).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskWhiteRook(
 						move.source, move.destination);
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
@@ -366,13 +311,13 @@ public class Board {
 			}
 		}
 		else {
-			if((this.blackPawns & sourceMask) != 0 &&
+			if((this.bitboards.get(Color.BLACK).get(Piece.PAWN).data & sourceMask) != 0 &&
 					destinationMask == this.enPassantTarget) {
-				this.whitePawns &= ~((destinationMask << 8) ^ 0);
+				this.bitboards.get(Color.WHITE).get(Piece.PAWN).data &= ~((destinationMask << 8) ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskWhitePawn(
 						(byte)(move.destination + 8));
 			}
-			if((this.blackPawns & sourceMask) != 0 &&
+			if((this.bitboards.get(Color.BLACK).get(Piece.PAWN).data & sourceMask) != 0 &&
 					sourceMask >>> 16 == destinationMask) {
 				if(this.enPassantTarget != 0) {
 					this.positionHash ^=
@@ -393,14 +338,14 @@ public class Board {
 				}
 				this.enPassantTarget = 0;
 			}
-			if((this.blackBishops & sourceMask) != 0) {
-				this.blackBishops &= ~(sourceMask ^ 0);
-				this.blackBishops |= destinationMask;
+			if((this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data & sourceMask) != 0) {
+				this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackBishop(
 						move.source, move.destination);
-			} else if((this.blackKings & sourceMask) != 0) {
-				this.blackKings &= ~(sourceMask ^ 0);
-				this.blackKings |= destinationMask;
+			} else if((this.bitboards.get(Color.BLACK).get(Piece.KING).data & sourceMask) != 0) {
+				this.bitboards.get(Color.BLACK).get(Piece.KING).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.BLACK).get(Piece.KING).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
 						this.whiteCastleRightKingside,
 						this.whiteCastleRightQueenside,
@@ -410,8 +355,8 @@ public class Board {
 				this.blackCastleRightQueenside = false;
 				if(move.source - 2 == move.destination) {
 					// Castle queenside
-					this.blackRooks &= this.maskA8Negative;
-					this.blackRooks |= this.maskD8;
+					this.bitboards.get(Color.BLACK).get(Piece.ROOK).data &= this.maskA8Negative;
+					this.bitboards.get(Color.BLACK).get(Piece.ROOK).data |= this.maskD8;
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskBlackRook(
@@ -419,8 +364,8 @@ public class Board {
 				}
 				else if(move.source + 2 == move.destination) {
 					// Castle kingside
-					this.blackRooks &= this.maskH8Negative;
-					this.blackRooks |= this.maskF8;
+					this.bitboards.get(Color.BLACK).get(Piece.ROOK).data &= this.maskH8Negative;
+					this.bitboards.get(Color.BLACK).get(Piece.ROOK).data |= this.maskF8;
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskBlackRook(
@@ -434,40 +379,40 @@ public class Board {
 						this.whiteCastleRightQueenside,
 						this.blackCastleRightKingside,
 						this.blackCastleRightQueenside);
-			} else if((this.blackKnights & sourceMask) != 0) {
-				this.blackKnights &= ~(sourceMask ^ 0);
-				this.blackKnights |= destinationMask;
+			} else if((this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & sourceMask) != 0) {
+				this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackKnight(
 						move.source, move.destination);
-			} else if((this.blackPawns & sourceMask) != 0) {
-				this.blackPawns &= ~(sourceMask ^ 0);
+			} else if((this.bitboards.get(Color.BLACK).get(Piece.PAWN).data & sourceMask) != 0) {
+				this.bitboards.get(Color.BLACK).get(Piece.PAWN).data &= ~(sourceMask ^ 0);
 				this.positionHash ^= this.positionHasher.getMaskBlackPawn(
 						move.source);
 				if(move.destination > 7) {
-					this.blackPawns |= destinationMask;
+					this.bitboards.get(Color.BLACK).get(Piece.PAWN).data |= destinationMask;
 					this.positionHash ^= this.positionHasher.getMaskBlackPawn(
 							move.destination);
 				}
 				else if(move.promoteTo == Piece.BISHOP) {
-					this.blackBishops |= destinationMask;
+					this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackBishop(
 									move.destination);
 				}
 				else if(move.promoteTo == Piece.KNIGHT) {
-					this.blackKnights |= destinationMask;
+					this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackKnight(
 									move.destination);
 				}
 				else if(move.promoteTo == Piece.QUEEN) {
-					this.blackQueens |= destinationMask;
+					this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackQueen(
 									move.destination);
 				}
 				else if(move.promoteTo == Piece.ROOK) {
-					this.blackRooks |= destinationMask;
+					this.bitboards.get(Color.BLACK).get(Piece.ROOK).data |= destinationMask;
 					this.positionHash ^=
 							this.positionHasher.getMaskBlackRook(
 									move.destination);
@@ -476,14 +421,14 @@ public class Board {
 					throw new IllegalMoveException(
 							"Don't know what to promote to.");
 				}
-			} else if((this.blackQueens & sourceMask) != 0) {
-				this.blackQueens &= ~(sourceMask ^ 0);
-				this.blackQueens |= destinationMask;
+			} else if((this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data & sourceMask) != 0) {
+				this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackQueen(
 						move.source, move.destination);
-			} else if((this.blackRooks & sourceMask) != 0) {
-				this.blackRooks &= ~(sourceMask ^ 0);
-				this.blackRooks |= destinationMask;
+			} else if((this.bitboards.get(Color.BLACK).get(Piece.ROOK).data & sourceMask) != 0) {
+				this.bitboards.get(Color.BLACK).get(Piece.ROOK).data &= ~(sourceMask ^ 0);
+				this.bitboards.get(Color.BLACK).get(Piece.ROOK).data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMaskBlackRook(
 						move.source, move.destination);
 				this.positionHash ^= this.positionHasher.getMaskCastleRights(
@@ -506,13 +451,7 @@ public class Board {
 		}
 		this.turn = Color.getOpposite(this.turn);
 		this.positionHash ^= this.positionHasher.getMaskTurn();
-		this.whitePieces = this.whiteBishops | this.whiteKings |
-				this.whiteKnights | this.whitePawns | this.whiteQueens |
-				this.whiteRooks;
-		this.blackPieces = this.blackBishops | this.blackKings |
-				this.blackKnights | this.blackPawns | this.blackQueens |
-				this.blackRooks;
-		this.allPieces = this.whitePieces | this.blackPieces;
+		updateSummaryBitboards();
 	}
 	
 	public void move(String algebraic) throws IllegalMoveException {
@@ -521,23 +460,23 @@ public class Board {
 	}
 	
 	private void setPositionEmpty() {
-		this.whiteBishops = 0;
-		this.whiteKings = 0;
-		this.whiteKnights = 0;
-		this.whitePawns = 0;
-		this.whiteQueens = 0;
-		this.whiteRooks = 0;
+		this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data = 0;
+		this.bitboards.get(Color.WHITE).get(Piece.KING).data = 0;
+		this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data = 0;
+		this.bitboards.get(Color.WHITE).get(Piece.PAWN).data = 0;
+		this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data = 0;
+		this.bitboards.get(Color.WHITE).get(Piece.ROOK).data = 0;
 		
-		this.blackBishops = 0;
-		this.blackKings = 0;
-		this.blackKnights = 0;
-		this.blackPawns = 0;
-		this.blackQueens = 0;
-		this.blackRooks = 0;
+		this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data = 0;
+		this.bitboards.get(Color.BLACK).get(Piece.KING).data = 0;
+		this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data = 0;
+		this.bitboards.get(Color.BLACK).get(Piece.PAWN).data = 0;
+		this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data = 0;
+		this.bitboards.get(Color.BLACK).get(Piece.ROOK).data = 0;
 		
-		this.whitePieces = 0;
-		this.blackPieces = 0;
-		this.allPieces = 0;
+		this.whitePieces = new Bitboard();
+		this.blackPieces = new Bitboard();
+		this.allPieces = new Bitboard();
 		
 		this.setPositionHash();
 	}
@@ -556,42 +495,42 @@ public class Board {
 				char piece = placementParts[i].charAt(j);
 				
 				if(piece == 'b') {
-					this.blackBishops |= mask;
+					this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data |= mask;
 				}
 				else if(piece == 'k') {
-					this.blackKings |= mask;
+					this.bitboards.get(Color.BLACK).get(Piece.KING).data |= mask;
 					this.blackKingIndex = NotationHelper.coordToIndex(mask);
 				}
 				else if(piece == 'n') {
-					this.blackKnights |= mask;
+					this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data |= mask;
 				}
 				else if(piece == 'p') {
-					this.blackPawns |= mask;
+					this.bitboards.get(Color.BLACK).get(Piece.PAWN).data |= mask;
 				}
 				else if(piece == 'q') {
-					this.blackQueens |= mask;
+					this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data |= mask;
 				}
 				else if(piece == 'r') {
-					this.blackRooks |= mask;
+					this.bitboards.get(Color.BLACK).get(Piece.ROOK).data |= mask;
 				}
 				else if(piece == 'B') {
-					this.whiteBishops |= mask;
+					this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data |= mask;
 				}
 				else if(piece == 'K') {
-					this.whiteKings |= mask;
+					this.bitboards.get(Color.WHITE).get(Piece.KING).data |= mask;
 					this.whiteKingIndex = NotationHelper.coordToIndex(mask);
 				}
 				else if(piece == 'N') {
-					this.whiteKnights |= mask;
+					this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data |= mask;
 				}
 				else if(piece == 'P') {
-					this.whitePawns |= mask;
+					this.bitboards.get(Color.WHITE).get(Piece.PAWN).data |= mask;
 				}
 				else if(piece == 'Q') {
-					this.whiteQueens |= mask;
+					this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data |= mask;
 				}
 				else if(piece == 'R') {
-					this.whiteRooks |= mask;
+					this.bitboards.get(Color.WHITE).get(Piece.ROOK).data |= mask;
 				}
 				else {
 					// A numeric amount of blank squares.
@@ -605,13 +544,7 @@ public class Board {
 				}
 			}
 		}
-		this.whitePieces = this.whiteBishops | this.whiteKings |
-				this.whiteKnights | this.whitePawns | this.whiteQueens |
-				this.whiteRooks;
-		this.blackPieces = this.blackBishops | this.blackKings |
-				this.blackKnights | this.blackPawns | this.blackQueens |
-				this.blackRooks;
-		this.allPieces = this.whitePieces | this.blackPieces;
+		updateSummaryBitboards();
 		
 		String activeColor = parts[1];
 		if(activeColor.equals("w")) {
@@ -656,40 +589,40 @@ public class Board {
 	private void setPositionHash() {
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
-			if((this.blackBishops & mask) != 0) {
+			if((this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackBishop(i);
 			}
-			if((this.blackKings & mask) != 0) {
+			if((this.bitboards.get(Color.BLACK).get(Piece.KING).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackKing(i);
 			}
-			if((this.blackKnights & mask) != 0) {
+			if((this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackKnight(i);
 			}
-			if((this.blackPawns & mask) != 0) {
+			if((this.bitboards.get(Color.BLACK).get(Piece.PAWN).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackPawn(i);
 			}
-			if((this.blackQueens & mask) != 0) {
+			if((this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackQueen(i);
 			}
-			if((this.blackRooks & mask) != 0) {
+			if((this.bitboards.get(Color.BLACK).get(Piece.ROOK).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskBlackRook(i);
 			}
-			if((this.whiteBishops & mask) != 0) {
+			if((this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhiteBishop(i);
 			}
-			if((this.whiteKings & mask) != 0) {
+			if((this.bitboards.get(Color.WHITE).get(Piece.KING).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhiteKing(i);
 			}
-			if((this.whiteKnights & mask) != 0) {
+			if((this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhiteKnight(i);
 			}
-			if((this.whitePawns & mask) != 0) {
+			if((this.bitboards.get(Color.WHITE).get(Piece.PAWN).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhitePawn(i);
 			}
-			if((this.whiteQueens & mask) != 0) {
+			if((this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhiteQueen(i);
 			}
-			if((this.whiteRooks & mask) != 0) {
+			if((this.bitboards.get(Color.WHITE).get(Piece.ROOK).data & mask) != 0) {
 				this.positionHash ^= this.positionHasher.getMaskWhiteRook(i);
 			}
 			if(this.enPassantTarget == mask) {
@@ -709,22 +642,10 @@ public class Board {
 	private static NotationHelper notationHelper = new NotationHelper();
 	private PositionHasher positionHasher = null;
 	
-	// All the state information below.
-	
-	public long whiteBishops = notationHelper.generateMask("c1", "f1");
-	public long whiteKings = notationHelper.generateMask("e1");
-	public long whiteKnights = notationHelper.generateMask("b1", "g1");
-	public long whitePawns = notationHelper.generateMask(
-			"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2");
-	public long whiteQueens = notationHelper.generateMask("d1");
-	public long whiteRooks = notationHelper.generateMask("a1", "h1");
-	public long blackBishops = notationHelper.generateMask("c8", "f8");
-	public long blackKings = notationHelper.generateMask("e8");
-	public long blackKnights = notationHelper.generateMask("b8", "g8");
-	public long blackPawns = notationHelper.generateMask(
-			"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7");
-	public long blackQueens = notationHelper.generateMask("d8");
-	public long blackRooks = notationHelper.generateMask("a8", "h8");
+	public Map<Color, Map<Piece, Bitboard>> bitboards = new HashMap<Color, Map<Piece, Bitboard>>();
+	public Bitboard whitePieces;
+	public Bitboard blackPieces;
+	public Bitboard allPieces;
 	
 	// Convenience masks for castling
 	public long maskA1Negative = ~(notationHelper.generateMask("a1") ^ 0);
@@ -738,12 +659,6 @@ public class Board {
 	
 	public int whiteKingIndex = 4;   // 1L << index is the coordinate.
 	public int blackKingIndex = 60;
-	
-	public long whitePieces = whiteBishops | whiteKings | whiteKnights |
-			whitePawns | whiteQueens | whiteRooks;
-	public long blackPieces = blackBishops | blackKings | blackKnights |
-			blackPawns | blackQueens | blackRooks;
-	public long allPieces = whitePieces | blackPieces;
 	
 	public Color turn = Color.WHITE;
 	// If the last move was a double pawn move, this is the destination

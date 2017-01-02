@@ -73,16 +73,16 @@ public class NotationHelper {
 			long sourceMask = 1L << m.source;
 			String sourceSquare = coordToSquare(sourceMask);
 			if(algebraic.equals("O-O")) {
-				if((sourceMask & board.whiteKings) != 0 ||
-						(sourceMask & board.blackKings) != 0) {
+				if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KING).data) != 0 ||
+						(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KING).data) != 0) {
 					if(m.source + 2 == m.destination) {
 						return m;
 					}
 				}
 			}
 			else if(algebraic.equals("O-O-O")) {
-				if((sourceMask & board.whiteKings) != 0 ||
-						(sourceMask & board.blackKings) != 0) {
+				if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KING).data) != 0 ||
+						(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KING).data) != 0) {
 					if(m.source - 2 == m.destination) {
 						return m;
 					}
@@ -112,8 +112,8 @@ public class NotationHelper {
 					continue;
 				}
 				if(algebraic.charAt(0) >= 'a' && algebraic.charAt(0) <= 'h') {
-					if((sourceMask & board.whitePawns) != 0 ||
-							(sourceMask & board.blackPawns) != 0) {
+					if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.PAWN).data) != 0 ||
+							(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.PAWN).data) != 0) {
 						if(algebraic.charAt(0) == sourceSquare.charAt(0)) {
 							if(m.promoteTo == Piece.NOPIECE) {
 								return m;
@@ -140,8 +140,8 @@ public class NotationHelper {
 					}
 				}
 				else if(algebraic.charAt(0) == 'K') {
-					if((sourceMask & board.whiteKings) != 0 ||
-							(sourceMask & board.blackKings) != 0) {
+					if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KING).data) != 0 ||
+							(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KING).data) != 0) {
 						return m;
 					}
 				}
@@ -178,26 +178,26 @@ public class NotationHelper {
 						}
 					}
 					if(algebraic.charAt(0) == 'B') {
-						if((sourceMask & board.whiteBishops) != 0 ||
-								(sourceMask & board.blackBishops) != 0) {
+						if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data) != 0 ||
+								(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'N') {
-						if((sourceMask & board.whiteKnights) != 0 ||
-								(sourceMask & board.blackKnights) != 0) {
+						if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data) != 0 ||
+								(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'Q') {
-						if((sourceMask & board.whiteQueens) != 0 ||
-								(sourceMask & board.blackQueens) != 0) {
+						if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data) != 0 ||
+								(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data) != 0) {
 							return m;
 						}
 					}
 					else if(algebraic.charAt(0) == 'R') {
-						if((sourceMask & board.whiteRooks) != 0 ||
-								(sourceMask & board.blackRooks) != 0) {
+						if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.ROOK).data) != 0 ||
+								(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.ROOK).data) != 0) {
 							return m;
 						}
 					}
@@ -272,32 +272,32 @@ public class NotationHelper {
 		ArrayList<Move> legalMoves = board.legalMoves();
 				
 		String bishopAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteBishops | board.blackBishops, move.source,
+				board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data | board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data, move.source,
 				move.destination);
 		String knightAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteKnights | board.blackKnights, move.source,
+				board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data | board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data, move.source,
 				move.destination);
 		String queenAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteQueens | board.blackQueens, move.source,
+				board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data | board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data, move.source,
 				move.destination);
 		String rookAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
-				board.whiteRooks | board.blackRooks, move.source,
+				board.bitboards.get(Color.WHITE).get(Piece.ROOK).data | board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, move.source,
 				move.destination);
 		
 		boolean capturing = false;
-		if((destinationMask & board.allPieces) != 0) {
+		if((destinationMask & board.allPieces.data) != 0) {
 			capturing = true;
 		}
 		else if(destinationMask == board.enPassantTarget) {
-			if((sourceMask & board.whitePawns) != 0 ||
-					(sourceMask & board.blackPawns) != 0) {
+			if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.PAWN).data) != 0 ||
+					(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.PAWN).data) != 0) {
 				capturing = true;
 			}
 		}
 				
 		String temp;
-		if((sourceMask & board.whiteBishops) != 0 ||
-				(sourceMask & board.blackBishops) != 0) {
+		if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data) != 0 ||
+				(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data) != 0) {
 			if(capturing) {
 				return "B" + bishopAmbiguity + "x" + destSquare;
 			}
@@ -305,8 +305,8 @@ public class NotationHelper {
 				return "B" + bishopAmbiguity + destSquare;
 			}
 		}
-		else if((sourceMask & board.whiteKings) != 0 ||
-				(sourceMask & board.blackKings) != 0) {
+		else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KING).data) != 0 ||
+				(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KING).data) != 0) {
 			if(move.source + 2 == move.destination) {
 				return "O-O";
 			}
@@ -320,8 +320,8 @@ public class NotationHelper {
 				return "K" + destSquare;
 			}
 		}
-		else if((sourceMask & board.whiteKnights) != 0 ||
-				(sourceMask & board.blackKnights) != 0) {
+		else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data) != 0 ||
+				(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data) != 0) {
 			if(capturing) {
 				return "N" + knightAmbiguity + "x" + destSquare;
 			}
@@ -329,8 +329,8 @@ public class NotationHelper {
 				return "N" + knightAmbiguity + destSquare;
 			}
 		}
-		else if((sourceMask & board.whitePawns) != 0 ||
-				(sourceMask & board.blackPawns) != 0) {
+		else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.PAWN).data) != 0 ||
+				(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.PAWN).data) != 0) {
 			if(capturing) {
 				temp = sourceSquare.substring(0, 1) + "x" + destSquare;
 			}
@@ -353,8 +353,8 @@ public class NotationHelper {
 				return temp + "=R";
 			}
 		}
-		else if((sourceMask & board.whiteQueens) != 0 ||
-				(sourceMask & board.blackQueens) != 0) {
+		else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data) != 0 ||
+				(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data) != 0) {
 			if(capturing) {
 				return "Q" + queenAmbiguity + "x" + destSquare;
 			}
@@ -362,8 +362,8 @@ public class NotationHelper {
 				return "Q" + queenAmbiguity + destSquare;
 			}
 		}
-		else if((sourceMask & board.whiteRooks) != 0 ||
-				(sourceMask & board.blackRooks) != 0) {
+		else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.ROOK).data) != 0 ||
+				(sourceMask & board.bitboards.get(Color.BLACK).get(Piece.ROOK).data) != 0) {
 			if(capturing) {
 				return "R" + rookAmbiguity + "x" + destSquare;
 			}

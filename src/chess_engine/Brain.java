@@ -23,16 +23,16 @@ public class Brain {
 	
 	private float endgameFraction(Board board) {
 		// Returns 0 if it's the start of the game, 1 if it's just two kings.
-		int blackBishopCount = numBitsSet(board.blackBishops);
-		int blackKnightCount = numBitsSet(board.blackKnights);
-		int blackPawnCount = numBitsSet(board.blackPawns);
-		int blackQueenCount = numBitsSet(board.blackQueens);
-		int blackRookCount = numBitsSet(board.blackRooks);
-		int whiteBishopCount = numBitsSet(board.whiteBishops);
-		int whiteKnightCount = numBitsSet(board.whiteKnights);
-		int whitePawnCount = numBitsSet(board.whitePawns);
-		int whiteQueenCount = numBitsSet(board.whiteQueens);
-		int whiteRookCount = numBitsSet(board.whiteRooks);
+		int blackBishopCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data);
+		int blackKnightCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data);
+		int blackPawnCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.PAWN).data);
+		int blackQueenCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data);
+		int blackRookCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.ROOK).data);
+		int whiteBishopCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data);
+		int whiteKnightCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data);
+		int whitePawnCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.PAWN).data);
+		int whiteQueenCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data);
+		int whiteRookCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.ROOK).data);
 		
 		float blackMaterial =
 			blackBishopCount * this.FITNESS_BISHOP +
@@ -72,16 +72,16 @@ public class Brain {
 	}
 	
 	private float fitness(Board board) {
-		int blackBishopCount = numBitsSet(board.blackBishops);
-		int blackKingCount = numBitsSet(board.blackKings);
-		int blackKnightCount = numBitsSet(board.blackKnights);
-		int blackQueenCount = numBitsSet(board.blackQueens);
-		int blackRookCount = numBitsSet(board.blackRooks);
-		int whiteBishopCount = numBitsSet(board.whiteBishops);
-		int whiteKingCount = numBitsSet(board.whiteKings);
-		int whiteKnightCount = numBitsSet(board.whiteKnights);
-		int whiteQueenCount = numBitsSet(board.whiteQueens);
-		int whiteRookCount = numBitsSet(board.whiteRooks);
+		int blackBishopCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data);
+		int blackKingCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.KING).data);
+		int blackKnightCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data);
+		int blackQueenCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data);
+		int blackRookCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.ROOK).data);
+		int whiteBishopCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data);
+		int whiteKingCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.KING).data);
+		int whiteKnightCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data);
+		int whiteQueenCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data);
+		int whiteRookCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.ROOK).data);
 				
 		float blackMaterial =
 			blackBishopCount * this.FITNESS_BISHOP +
@@ -115,11 +115,11 @@ public class Brain {
 						this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
 								
 				blackMaterial += pawnFactor *
-					numBitsSet(board.blackPawns & rankMaskBlack &
-							centralityMask);
+					numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.PAWN).data &
+							rankMaskBlack & centralityMask);
 				whiteMaterial += pawnFactor *
-					numBitsSet(board.whitePawns & rankMaskWhite &
-							centralityMask);
+					numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & 
+							rankMaskWhite & centralityMask);
 			}
 		}
 		
@@ -149,31 +149,31 @@ public class Brain {
 					continue;
 				}
 				long sourceMask = 1L << move.source;
-				if((sourceMask & board.whitePawns) != 0) {
+				if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.PAWN).data) != 0) {
 					if(this.FITNESS_PAWN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_PAWN;
 					}
 				}
-				else if((sourceMask & board.whiteKnights) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data) != 0) {
 					if(this.FITNESS_KNIGHT < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_KNIGHT;
 					}
 				}
-				else if((sourceMask & board.whiteBishops) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data) != 0) {
 					if(this.FITNESS_BISHOP < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_BISHOP;
 					}
 				}
-				else if((sourceMask & board.whiteRooks) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.ROOK).data) != 0) {
 					if(this.FITNESS_ROOK < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_ROOK;
 					}
 				}
-				else if((sourceMask & board.whiteQueens) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data) != 0) {
 					if(this.FITNESS_QUEEN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_QUEEN;
@@ -193,31 +193,31 @@ public class Brain {
 					continue;
 				}
 				long sourceMask = 1L << move.source;
-				if((sourceMask & board.blackPawns) != 0) {
+				if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.PAWN).data) != 0) {
 					if(this.FITNESS_PAWN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_PAWN;
 					}
 				}
-				else if((sourceMask & board.blackKnights) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data) != 0) {
 					if(this.FITNESS_KNIGHT < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_KNIGHT;
 					}
 				}
-				else if((sourceMask & board.blackBishops) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data) != 0) {
 					if(this.FITNESS_BISHOP < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_BISHOP;
 					}
 				}
-				else if((sourceMask & board.blackRooks) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.ROOK).data) != 0) {
 					if(this.FITNESS_ROOK < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_ROOK;
 					}
 				}
-				else if((sourceMask & board.blackQueens) != 0) {
+				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data) != 0) {
 					if(this.FITNESS_QUEEN < candidateValue) {
 						candidateMove = move;
 						candidateValue = this.FITNESS_QUEEN;
@@ -272,7 +272,8 @@ public class Brain {
 		ArrayList<Move> lmf = board.legalMovesFast(false);
 		if(lmf.size() <= 8) {
 			boolean isMate = true;
-			long kings = board.blackKings | board.whiteKings;
+			long kings = board.bitboards.get(Color.BLACK).get(Piece.KING).data |
+					board.bitboards.get(Color.WHITE).get(Piece.KING).data;
 			for(Move move : lmf) {
 				if(((1L << move.source) & kings) == 0) {
 					isMate = false;
@@ -295,7 +296,7 @@ public class Brain {
 		long superlativePositionHash = 0;
 		for(Move move : lmf) {
 			Board copy = new Board(board);
-			if(((1L << move.destination) & copy.allPieces) != 0) {
+			if(((1L << move.destination) & copy.allPieces.data) != 0) {
 				isCapture = true;
 			}
 			try {
