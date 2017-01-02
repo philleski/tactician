@@ -3,13 +3,6 @@ package chess_engine;
 import java.util.ArrayList;
 
 public class LegalMoveGenerator {
-	private static enum Castle {
-		KINGSIDE_BLACK,
-		KINGSIDE_WHITE,
-		QUEENSIDE_BLACK,
-		QUEENSIDE_WHITE
-	}
-	
 	private void appendLegalMovesForPieceDiagonal(byte start,
 			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
@@ -367,212 +360,175 @@ public class LegalMoveGenerator {
 		// mask_helper.py to compute these magic-number masks (especially the
 		// pawn/knight masks).
 		if(type == Castle.KINGSIDE_WHITE) {
-			// d2, e2, f2, g2
-			if((board.blackPawns & 0x0000000000007800L) != 0) {
+			if((board.blackPawns & this.preventWhiteCastleKingsidePawns) != 0) {
 				return false;
 			}
-			// c2, d3, f3, g2, d2, e3, g3, h2
-			if((board.blackKnights & 0x000000000078cc00L) != 0) {
+			if((board.blackKnights & this.preventWhiteCastleKingsideKnights) != 0) {
 				return false;
 			}
-			// Left from e1. Magic numbers are d1, a1.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000000008L, 0x0000000000000001L,
+			if(!this.verifyCastleHelper(board, this.maskD1, this.maskA1,
 					board.blackRooks, board.blackQueens, -1)) {
 				return false;
 			}
-			// Left diagonal from e1. Magic numbers are d2, a5.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000000800L, 0x0000000100000000L,
+			// Left diagonal from e1.
+			if(!this.verifyCastleHelper(board, this.maskD2, this.maskA5,
 					board.blackBishops, board.blackQueens, 7)) {
 				return false;
 			}
-			// Up from e1. Magic numbers are e2, e8.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000001000L, 0x1000000000000000L,
+			// Up from e1.
+			if(!this.verifyCastleHelper(board, this.maskE2, this.maskE8,
 					board.blackRooks, board.blackQueens, 8)) {
 				return false;
 			}
-			// Right diagonal from e1. Magic numbers are f2, h4.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000002000L, 0x0000000080000000L,
+			// Right diagonal from e1.
+			if(!this.verifyCastleHelper(board, this.maskF2, this.maskH4,
 					board.blackBishops, board.blackQueens, 9)) {
 				return false;
 			}
-			// Left diagonal from f1. Magic numbers are e2, a6.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000001000L, 0x0000010000000000L,
+			// Left diagonal from f1.
+			if(!this.verifyCastleHelper(board, this.maskE2, this.maskA6,
 					board.blackBishops, board.blackQueens, 7)) {
 				return false;
 			}
-			// Up from f1. Magic numbers are f2, f8.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000000020L, 0x2000000000000000L,
+			// Up from f1.
+			if(!this.verifyCastleHelper(board, this.maskF2, this.maskF8,
 					board.blackRooks, board.blackQueens, 8)) {
 				return false;
 			}
-			// Right diagonal from f1. Magic numbers are g2, h3.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000004000L, 0x0000000000800000L,
+			// Right diagonal from f1.
+			if(!this.verifyCastleHelper(board, this.maskG2, this.maskH3,
 					board.blackBishops, board.blackQueens, 9)) {
 				return false;
 			}
 			return true;
 		}
 		else if(type == Castle.QUEENSIDE_WHITE) {
-			// c2, d2, e2, f2
-			if((board.blackPawns & 0x0000000000003c00L) != 0) {
+			if((board.blackPawns & this.preventWhiteCastleQueensidePawns) != 0) {
 				return false;
 			}
-			// b2, c3, e3, f2, c2, d3, f3, g2
-			if((board.blackKnights & 0x00000000003c6600L) != 0) {
+			if((board.blackKnights & this.preventWhiteCastleQueensideKnights) != 0) {
 				return false;
 			}
-			// Right from e1. Magic numbers are f1, h1.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000000020L, 0x0000000000000080L,
+			// Right from e1.
+			if(!this.verifyCastleHelper(board, this.maskF1, this.maskH1,
 					board.blackRooks, board.blackQueens, 1)) {
 				return false;
 			}
-			// Left diagonal from e1. Magic numbers are d2, a5.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000000800L, 0x0000000100000000L,
+			// Left diagonal from e1.
+			if(!this.verifyCastleHelper(board, this.maskD2, this.maskA5,
 					board.blackBishops, board.blackQueens, 7)) {
 				return false;
 			}
-			// Up from e1. Magic numbers are e2, e8.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000001000L, 0x1000000000000000L,
+			// Up from e1.
+			if(!this.verifyCastleHelper(board, this.maskE2, this.maskE8,
 					board.blackRooks, board.blackQueens, 8)) {
 				return false;
 			}
-			// Right diagonal from e1. Magic numbers are f2, h4.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000002000L, 0x0000000080000000L,
+			// Right diagonal from e1.
+			if(!this.verifyCastleHelper(board, this.maskF2, this.maskH4,
 					board.blackBishops, board.blackQueens, 9)) {
 				return false;
 			}
-			// Left diagonal from d1. Magic numbers are c2, a4.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000000400L, 0x0000000001000000L,
+			// Left diagonal from d1.
+			if(!this.verifyCastleHelper(board, this.maskC2, this.maskA4,
 					board.blackBishops, board.blackQueens, 7)) {
 				return false;
 			}
-			// Up from d1. Magic numbers are d2, d8.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000000800L, 0x0800000000000000L,
+			// Up from d1.
+			if(!this.verifyCastleHelper(board, this.maskD2, this.maskD8,
 					board.blackRooks, board.blackQueens, 8)) {
 				return false;
 			}
-			// Right diagonal from d1. Magic numbers are e2, h5.
-			if(!this.verifyCastleHelper(board,
-					0x0000000000001000L, 0x0000008000000000L,
+			// Right diagonal from d1.
+			if(!this.verifyCastleHelper(board, this.maskE2, this.maskH5,
 					board.blackBishops, board.blackQueens, 9)) {
 				return false;
 			}
 			return true;
 		}
 		else if(type == Castle.KINGSIDE_BLACK) {
-			// d7, e7, f7, g7
-			if((board.whitePawns & 0x0078000000000000L) != 0) {
+			if((board.whitePawns & this.preventBlackCastleKingsidePawns) != 0) {
 				return false;
 			}
-			// c7, d6, f6, g7, d7, e6, g6, h7
-			if((board.whiteKnights & 0x00cc780000000000L) != 0) {
+			if((board.whiteKnights & this.preventBlackCastleKingsideKnights) != 0) {
 				return false;
 			}
-			// Left from e8. Magic numbers are d8, a8.
-			if(!this.verifyCastleHelper(board,
-					0x0800000000000000L, 0x0100000000000000L,
+			// Left from e8.
+			if(!this.verifyCastleHelper(board, maskD8, maskA8,
 					board.whiteRooks, board.whiteQueens, -1)) {
 				return false;
 			}
 			// Left diagonal from e8. Magic numbers are d7, a4.
-			if(!this.verifyCastleHelper(board,
-					0x0008000000000000L, 0x0000000001000000L,
+			if(!this.verifyCastleHelper(board, maskD7, maskA4,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from e8. Magic numbers are e7, e1.
-			if(!this.verifyCastleHelper(board,
-					0x0010000000000000L, 0x0000000000000010L,
+			if(!this.verifyCastleHelper(board, maskE7, maskE1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from e8. Magic numbers are f7, h5.
-			if(!this.verifyCastleHelper(board,
-					0x0020000000000000L, 0x0000008000000000L,
+			if(!this.verifyCastleHelper(board, maskF7, maskH5,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
 			// Left diagonal from f8. Magic numbers are e7, a3.
-			if(!this.verifyCastleHelper(board,
-					0x0010000000000000L, 0x0000000000010000L,
+			if(!this.verifyCastleHelper(board, maskE7, maskA3,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
 			// Down from f8. Magic numbers are f7, f1.
-			if(!this.verifyCastleHelper(board,
-					0x0020000000000000L, 0x0000000000000020L,
+			if(!this.verifyCastleHelper(board, maskF7, maskF1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
 			// Right diagonal from f8. Magic numbers are g7, h6.
-			if(!this.verifyCastleHelper(board,
-					0x0040000000000000L, 0x0000800000000000L,
+			if(!this.verifyCastleHelper(board, maskG7, maskH6,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
 			return true;
 		}
 		else if(type == Castle.QUEENSIDE_BLACK) {
-			// c7, d7, e7, f7
-			if((board.whitePawns & 0x003c000000000000L) != 0) {
+			if((board.whitePawns & this.preventBlackCastleQueensidePawns) != 0) {
 				return false;
 			}
-			// b7, c6, e6, f7, c7, d6, f6, g7
-			if((board.whiteKnights & 0x00663c0000000000L) != 0) {
+			if((board.whiteKnights & this.preventBlackCastleQueensideKnights) != 0) {
 				return false;
 			}
-			// Right from e8. Magic numbers are f8, h8.
-			if(!this.verifyCastleHelper(board,
-					0x2000000000000000L, 0x8000000000000000L,
+			// Right from e8.
+			if(!this.verifyCastleHelper(board, maskF8, maskH8,
 					board.whiteRooks, board.whiteQueens, 1)) {
 				return false;
 			}
-			// Left diagonal from e8. Magic numbers are d7, a4.
-			if(!this.verifyCastleHelper(board,
-					0x0008000000000000L, 0x0000000001000000L,
+			// Left diagonal from e8.
+			if(!this.verifyCastleHelper(board, maskD7, maskA4,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
-			// Down from e8. Magic numbers are e7, e1.
-			if(!this.verifyCastleHelper(board,
-					0x0010000000000000L, 0x0000000000000010L,
+			// Down from e8.
+			if(!this.verifyCastleHelper(board, maskE7, maskE1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
-			// Right diagonal from e8. Magic numbers are f7, h5.
-			if(!this.verifyCastleHelper(board,
-					0x0020000000000000L, 0x0000008000000000L,
+			// Right diagonal from e8.
+			if(!this.verifyCastleHelper(board, maskF7, maskH5,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
-			// Left diagonal from d8. Magic numbers are c7, a5.
-			if(!this.verifyCastleHelper(board,
-					0x0004000000000000L, 0x0000000100000000L,
+			// Left diagonal from d8.
+			if(!this.verifyCastleHelper(board, maskC7, maskA5,
 					board.whiteBishops, board.whiteQueens, -9)) {
 				return false;
 			}
-			// Down from d8. Magic numbers are d7, d1.
-			if(!this.verifyCastleHelper(board,
-					0x0008000000000000L, 0x0000000000000008L,
+			// Down from d8.
+			if(!this.verifyCastleHelper(board, maskD7, maskD1,
 					board.whiteRooks, board.whiteQueens, -8)) {
 				return false;
 			}
-			// Right diagonal from d8. Magic numbers are e7, h4.
-			if(!this.verifyCastleHelper(board,
-					0x0010000000000000L, 0x0000000080000000L,
+			// Right diagonal from d8.
+			if(!this.verifyCastleHelper(board, maskE7, maskH4,
 					board.whiteBishops, board.whiteQueens, -7)) {
 				return false;
 			}
@@ -1014,6 +970,65 @@ public class LegalMoveGenerator {
 		else {
 			return board.whitePieces;
 		}
+	}
+	
+	private static NotationHelper notationHelper = new NotationHelper();
+	
+	private long maskA1 = notationHelper.generateMask("a1");
+	private long maskA3 = notationHelper.generateMask("a3");
+	private long maskA4 = notationHelper.generateMask("a4");
+	private long maskA5 = notationHelper.generateMask("a5");
+	private long maskA6 = notationHelper.generateMask("a6");
+	private long maskA8 = notationHelper.generateMask("a8");
+	private long maskC2 = notationHelper.generateMask("c2");
+	private long maskC7 = notationHelper.generateMask("c7");
+	private long maskD1 = notationHelper.generateMask("d1");
+	private long maskD2 = notationHelper.generateMask("d2");
+	private long maskD7 = notationHelper.generateMask("d7");
+	private long maskD8 = notationHelper.generateMask("d8");
+	private long maskE1 = notationHelper.generateMask("e1");
+	private long maskE2 = notationHelper.generateMask("e2");
+	private long maskE7 = notationHelper.generateMask("e7");
+	private long maskE8 = notationHelper.generateMask("e8");
+	private long maskF1 = notationHelper.generateMask("f1");
+	private long maskF2 = notationHelper.generateMask("f2");
+	private long maskF7 = notationHelper.generateMask("f7");
+	private long maskF8 = notationHelper.generateMask("f8");
+	private long maskG2 = notationHelper.generateMask("g2");
+	private long maskG7 = notationHelper.generateMask("g7");
+	private long maskH1 = notationHelper.generateMask("h1");
+	private long maskH3 = notationHelper.generateMask("h3");
+	private long maskH4 = notationHelper.generateMask("h4");
+	private long maskH5 = notationHelper.generateMask("h5");
+	private long maskH6 = notationHelper.generateMask("h6");
+	private long maskH8 = notationHelper.generateMask("h8");
+	
+	private long preventWhiteCastleKingsidePawns =
+			notationHelper.generateMask("d2", "e2", "f2", "g2");
+	private long preventWhiteCastleKingsideKnights =
+			notationHelper.generateMask("c2", "d3", "f3", "g2", "d3", "e3",
+					"g3", "h2");
+	private long preventWhiteCastleQueensidePawns =
+			notationHelper.generateMask("b2", "c2", "d2", "e2", "f2");
+	private long preventWhiteCastleQueensideKnights =
+			notationHelper.generateMask("b2", "c3", "e3", "f2", "c2", "d3",
+					"f3", "g2");
+	private long preventBlackCastleKingsidePawns =
+			notationHelper.generateMask("d7", "e7", "f7", "g7");
+	private long preventBlackCastleKingsideKnights =
+			notationHelper.generateMask("c7", "d6", "f6", "g7", "d7", "e6",
+					"g6", "h7");
+	private long preventBlackCastleQueensidePawns =
+			notationHelper.generateMask("b7", "c7", "d7", "e7", "f7");
+	private long preventBlackCastleQueensideKnights =
+			notationHelper.generateMask("b7", "c6", "e6", "f7", "c7", "d6",
+					"f6", "g7");
+	
+	private static enum Castle {
+		KINGSIDE_BLACK,
+		KINGSIDE_WHITE,
+		QUEENSIDE_BLACK,
+		QUEENSIDE_WHITE
 	}
 }
 

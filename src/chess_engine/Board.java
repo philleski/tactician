@@ -24,6 +24,17 @@ public class Board {
 			"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7");
 	public long blackQueens = notationHelper.generateMask("d8");
 	public long blackRooks = notationHelper.generateMask("a8", "h8");
+	
+	// Convenience masks for castling
+	public long maskA1Negative = ~(notationHelper.generateMask("a1") ^ 0);
+	public long maskA8Negative = ~(notationHelper.generateMask("a8") ^ 0);
+	public long maskH1Negative = ~(notationHelper.generateMask("h1") ^ 0);
+	public long maskH8Negative = ~(notationHelper.generateMask("h8") ^ 0);
+	public long maskD1 = notationHelper.generateMask("d1");
+	public long maskD8 = notationHelper.generateMask("d8");
+	public long maskF1 = notationHelper.generateMask("f1");
+	public long maskF8 = notationHelper.generateMask("f8");
+	
 	public int whiteKingIndex = 4;   // 1L << index is the coordinate.
 	public int blackKingIndex = 60;
 	
@@ -201,7 +212,6 @@ public class Board {
 		return legalMoveGenerator.legalMoves(this);
 	}
 
-	// TODO - restructure move so that we don't have to call coordToIndex each time.
 	public void move(Move move)
 			throws IllegalMoveException {
 		long sourceMask = 1L << move.source;
@@ -314,8 +324,8 @@ public class Board {
 				this.whiteCastleRightQueenside = false;
 				if(move.source - 2 == move.destination) {
 					// Castle queenside
-					this.whiteRooks &= ~(0x0000000000000001L ^ 0);
-					this.whiteRooks |= 0x0000000000000008L;
+					this.whiteRooks &= this.maskA1Negative;
+					this.whiteRooks |= this.maskD1;
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskWhiteRook(
@@ -323,8 +333,8 @@ public class Board {
 				}
 				else if(move.source + 2 == move.destination) {
 					// Castle kingside
-					this.whiteRooks &= ~(0x0000000000000080L ^ 0);
-					this.whiteRooks |= 0x0000000000000020L;
+					this.whiteRooks &= this.maskH1Negative;
+					this.whiteRooks |= this.maskF1;
 					this.whiteCastleRightKingside = false;
 					this.whiteCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskWhiteRook(
@@ -453,8 +463,8 @@ public class Board {
 				this.blackCastleRightQueenside = false;
 				if(move.source - 2 == move.destination) {
 					// Castle queenside
-					this.blackRooks &= ~(0x0100000000000000L ^ 0);
-					this.blackRooks |= 0x0800000000000000L;
+					this.blackRooks &= this.maskA8Negative;
+					this.blackRooks |= this.maskD8;
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskBlackRook(
@@ -462,8 +472,8 @@ public class Board {
 				}
 				else if(move.source + 2 == move.destination) {
 					// Castle kingside
-					this.blackRooks &= ~(0x8000000000000000L ^ 0);
-					this.blackRooks |= 0x2000000000000000L;
+					this.blackRooks &= this.maskH8Negative;
+					this.blackRooks |= this.maskF8;
 					this.blackCastleRightKingside = false;
 					this.blackCastleRightQueenside = false;
 					this.positionHash ^= this.positionHasher.getMaskBlackRook(
