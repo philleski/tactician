@@ -535,7 +535,6 @@ public class LegalMoveGenerator {
 		}
 	}
 	
-
 	public boolean isInCheck(Board board) {
 		// Not the full list of legal moves (for example not pawns moving
 		// forward or castling), but a superset of the ones that could capture

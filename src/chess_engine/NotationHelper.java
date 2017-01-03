@@ -210,12 +210,12 @@ public class NotationHelper {
 	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves,
 			long pieceFamily, byte source, byte dest) {
 		ArrayList<String> piecesToDest = new ArrayList<String>();
-		String sourceSquare = coordToSquare(source);
-		long sourceMask = 1L << source;
+		String sourceSquare = indexToSquare(source);
 		for(Move m : legalMoves) {
 			if(dest != m.destination) {
 				continue;
 			}
+			long sourceMask = 1L << m.source;
 			if((sourceMask & pieceFamily) != 0) {
 				piecesToDest.add(coordToSquare(sourceMask));
 			}
@@ -263,9 +263,9 @@ public class NotationHelper {
 	}
 		
 	public String moveToAlgebraic(Board board, Move move) {
-		String sourceSquare = coordToSquare(move.source);
-		String destSquare = coordToSquare(move.destination);
-				
+		String sourceSquare = indexToSquare(move.source);
+		String destSquare = indexToSquare(move.destination);
+		
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
 				
@@ -283,7 +283,7 @@ public class NotationHelper {
 		String rookAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
 				board.bitboards.get(Color.WHITE).get(Piece.ROOK).data | board.bitboards.get(Color.BLACK).get(Piece.ROOK).data, move.source,
 				move.destination);
-		
+				
 		boolean capturing = false;
 		if((destinationMask & board.allPieces.data) != 0) {
 			capturing = true;
