@@ -24,6 +24,7 @@ public class Move {
 				source));
 		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
 				destination));
+		this.promoteTo = Piece.NOPIECE;
 	}
 	
 	public Move(String source, String destination, Piece promoteTo) {

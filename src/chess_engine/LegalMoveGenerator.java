@@ -779,7 +779,7 @@ public class LegalMoveGenerator {
 		// Castling
 		if(!capturesOnly) {
 			if(board.turn == Color.WHITE) {
-				if(board.whiteCastleRightKingside) {
+				if(board.castleRightKingside.get(Color.WHITE)) {
 					if((board.allPieces.data & this.maskWhiteCastleKingsideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE_WHITE)) {
 							// e1-g1
@@ -787,7 +787,7 @@ public class LegalMoveGenerator {
 						}
 					}
 				}
-				if(board.whiteCastleRightQueenside) {
+				if(board.castleRightQueenside.get(Color.WHITE)) {
 					if((board.allPieces.data & this.maskWhiteCastleQueensideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE_WHITE)) {
 							// e1-c1
@@ -797,7 +797,7 @@ public class LegalMoveGenerator {
 				}
 			}
 			else {
-				if(board.blackCastleRightKingside) {
+				if(board.castleRightKingside.get(Color.BLACK)) {
 					if((board.allPieces.data & this.maskBlackCastleKingsideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE_BLACK)) {
 							// e8-g8
@@ -805,7 +805,7 @@ public class LegalMoveGenerator {
 						}
 					}
 				}
-				if(board.blackCastleRightQueenside) {
+				if(board.castleRightQueenside.get(Color.BLACK)) {
 					if((board.allPieces.data & this.maskBlackCastleQueensideSpace) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE_BLACK)) {
 							// e8-c8

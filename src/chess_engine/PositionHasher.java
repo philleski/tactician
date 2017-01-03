@@ -1,5 +1,6 @@
 package chess_engine;
 
+import java.util.Map;
 import java.util.Random;
 
 // https://en.wikipedia.org/wiki/Zobrist_hashing
@@ -64,6 +65,39 @@ public class PositionHasher {
 				return getMaskBlackQueen(index);
 			} else if(piece == Piece.ROOK) {
 				return getMaskBlackRook(index);
+			}
+		}
+		return 0;
+	}
+	
+	public long getMask(Color color, Piece piece, byte index, byte index2) {
+		if(color == Color.WHITE) {
+			if(piece == Piece.BISHOP) {
+				return getMaskWhiteBishop(index, index2);
+			} else if(piece == Piece.KING) {
+				return getMaskWhiteKing(index, index2);
+			} else if(piece == Piece.KNIGHT) {
+				return getMaskWhiteKnight(index, index2);
+			} else if(piece == Piece.PAWN) {
+				return getMaskWhitePawn(index, index2);
+			} else if(piece == Piece.QUEEN) {
+				return getMaskWhiteQueen(index, index2);
+			} else if(piece == Piece.ROOK) {
+				return getMaskWhiteRook(index, index2);
+			}
+		} else {
+			if(piece == Piece.BISHOP) {
+				return getMaskBlackBishop(index, index2);
+			} else if(piece == Piece.KING) {
+				return getMaskBlackKing(index, index2);
+			} else if(piece == Piece.KNIGHT) {
+				return getMaskBlackKnight(index, index2);
+			} else if(piece == Piece.PAWN) {
+				return getMaskBlackPawn(index, index2);
+			} else if(piece == Piece.QUEEN) {
+				return getMaskBlackQueen(index, index2);
+			} else if(piece == Piece.ROOK) {
+				return getMaskBlackRook(index, index2);
 			}
 		}
 		return 0;
@@ -169,20 +203,19 @@ public class PositionHasher {
 		return this.whitePawnMask[index % 8];
 	}
 	
-	public long getMaskCastleRights(boolean whiteKingside,
-			boolean whiteQueenside, boolean blackKingside,
-			boolean blackQueenside) {
+	public long getMaskCastleRights(Map<Color, Boolean> castleRightKingside,
+			Map<Color, Boolean> castleRightQueenside) {
 		byte index = 0;
-		if(whiteKingside) {
+		if(castleRightKingside.get(Color.WHITE)) {
 			index += 56;
 		}
-		if(whiteQueenside) {
+		if(castleRightQueenside.get(Color.WHITE)) {
 			index += 4;
 		}
-		if(blackKingside) {
+		if(castleRightKingside.get(Color.BLACK)) {
 			index += 2;
 		}
-		if(blackQueenside) {
+		if(castleRightQueenside.get(Color.BLACK)) {
 			index++;
 		}
 		return this.blackPawnMask[index];
