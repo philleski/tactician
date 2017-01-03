@@ -1,6 +1,8 @@
 package chess_engine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import chess_engine.Board;
 import chess_engine.IllegalMoveException;
@@ -10,6 +12,20 @@ public class Brain {
 	
 	public Brain() {
 		this.transpositionTable = new TranspositionTable(TABLE_SIZE);
+		
+		this.FITNESS_PIECE.put(Piece.BISHOP, 333f);
+		this.FITNESS_PIECE.put(Piece.KING, 1000000f);
+		this.FITNESS_PIECE.put(Piece.KNIGHT, 320f);
+		this.FITNESS_PIECE.put(Piece.PAWN, 100f);
+		this.FITNESS_PIECE.put(Piece.QUEEN, 880f);
+		this.FITNESS_PIECE.put(Piece.ROOK, 510f);
+		
+		this.FITNESS_START_NOKING =
+			2 * FITNESS_PIECE.get(Piece.ROOK) +
+			2 * FITNESS_PIECE.get(Piece.KNIGHT) +
+			2 * FITNESS_PIECE.get(Piece.BISHOP) +
+			FITNESS_PIECE.get(Piece.QUEEN) +
+			8 * FITNESS_PIECE.get(Piece.PAWN);
 	}
 	
 	private static int numBitsSet(long x) {
@@ -23,31 +39,22 @@ public class Brain {
 	
 	private float endgameFraction(Board board) {
 		// Returns 0 if it's the start of the game, 1 if it's just two kings.
-		int blackBishopCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data);
-		int blackKnightCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data);
-		int blackPawnCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.PAWN).data);
-		int blackQueenCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data);
-		int blackRookCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.ROOK).data);
-		int whiteBishopCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data);
-		int whiteKnightCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data);
-		int whitePawnCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.PAWN).data);
-		int whiteQueenCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data);
-		int whiteRookCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.ROOK).data);
 		
-		float blackMaterial =
-			blackBishopCount * this.FITNESS_BISHOP +
-			blackKnightCount * this.FITNESS_KNIGHT +
-			blackPawnCount * this.FITNESS_PAWN +
-			blackQueenCount * this.FITNESS_QUEEN +
-			blackRookCount * this.FITNESS_ROOK;
-		float whiteMaterial =
-			whiteBishopCount * this.FITNESS_BISHOP +
-			whiteKnightCount * this.FITNESS_KNIGHT +
-			whitePawnCount * this.FITNESS_PAWN +
-			whiteQueenCount * this.FITNESS_QUEEN +
-			whiteRookCount * this.FITNESS_ROOK;
+		float blackMaterial = 0;
+		float whiteMaterial = 0;
+		for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
+			Piece piece = entry.getKey();
+			if(piece == Piece.KING) {
+				continue;
+			}
+			int blackPieceCount = numBitsSet(board.bitboards.get(Color.BLACK).get(piece).data);
+			int whitePieceCount = numBitsSet(board.bitboards.get(Color.WHITE).get(piece).data);
+			blackMaterial += blackPieceCount * this.FITNESS_PIECE.get(piece);
+			whiteMaterial += whitePieceCount * this.FITNESS_PIECE.get(piece);
+		}
+		
 		return 1 - (blackMaterial + whiteMaterial) /
-				(2 * this.FITNESS_START_NOKING);
+			(2 * this.FITNESS_START_NOKING);
 	}
 	
 	private float fitnessKingSafety(Board board, Color color, float endgameFraction) {
@@ -72,29 +79,18 @@ public class Brain {
 	}
 	
 	private float fitness(Board board) {
-		int blackBishopCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data);
-		int blackKingCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.KING).data);
-		int blackKnightCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data);
-		int blackQueenCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data);
-		int blackRookCount = numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.ROOK).data);
-		int whiteBishopCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data);
-		int whiteKingCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.KING).data);
-		int whiteKnightCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data);
-		int whiteQueenCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data);
-		int whiteRookCount = numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.ROOK).data);
-				
-		float blackMaterial =
-			blackBishopCount * this.FITNESS_BISHOP +
-			blackKingCount * this.FITNESS_KING +
-			blackKnightCount * this.FITNESS_KNIGHT +
-			blackQueenCount * this.FITNESS_QUEEN +
-			blackRookCount * this.FITNESS_ROOK;
-		float whiteMaterial =
-			whiteBishopCount * this.FITNESS_BISHOP +
-			whiteKingCount * this.FITNESS_KING +
-			whiteKnightCount * this.FITNESS_KNIGHT +
-			whiteQueenCount * this.FITNESS_QUEEN +
-			whiteRookCount * this.FITNESS_ROOK;
+		float blackMaterial = 0;
+		float whiteMaterial = 0;
+		for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
+			Piece piece = entry.getKey();
+			if(piece == Piece.PAWN) {
+				continue;
+			}
+			int blackPieceCount = numBitsSet(board.bitboards.get(Color.BLACK).get(piece).data);
+			int whitePieceCount = numBitsSet(board.bitboards.get(Color.WHITE).get(piece).data);
+			blackMaterial += blackPieceCount * this.FITNESS_PIECE.get(piece);
+			whiteMaterial += whitePieceCount * this.FITNESS_PIECE.get(piece);
+		}
 		
 		float endgameFraction = this.endgameFraction(board);
 		
@@ -116,10 +112,10 @@ public class Brain {
 								
 				blackMaterial += pawnFactor *
 					numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.PAWN).data &
-							rankMaskBlack & centralityMask);
+						rankMaskBlack & centralityMask);
 				whiteMaterial += pawnFactor *
 					numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & 
-							rankMaskWhite & centralityMask);
+						rankMaskWhite & centralityMask);
 			}
 		}
 		
@@ -127,12 +123,12 @@ public class Brain {
 		if(board.turn == Color.WHITE) {
 			fitness = whiteMaterial - blackMaterial;
 			fitness += this.fitnessKingSafety(board, Color.WHITE, endgameFraction) -
-					this.fitnessKingSafety(board, Color.BLACK, endgameFraction);
+				this.fitnessKingSafety(board, Color.BLACK, endgameFraction);
 		}
 		else {
 			fitness = blackMaterial - whiteMaterial;
 			fitness += this.fitnessKingSafety(board, Color.BLACK, endgameFraction) -
-					this.fitnessKingSafety(board, Color.WHITE, endgameFraction);
+				this.fitnessKingSafety(board, Color.WHITE, endgameFraction);
 		}
 						
 		return fitness;
@@ -143,90 +139,18 @@ public class Brain {
 		float bestFitness = this.fitness(board);
 		Move candidateMove = null;
 		float candidateValue = this.FITNESS_LARGE;
-		if(board.turn == Color.WHITE) {
-			for(Move move : lmf) {
-				if(move.destination != target) {
-					continue;
-				}
-				long sourceMask = 1L << move.source;
-				if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.PAWN).data) != 0) {
-					if(this.FITNESS_PAWN < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_PAWN;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data) != 0) {
-					if(this.FITNESS_KNIGHT < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_KNIGHT;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data) != 0) {
-					if(this.FITNESS_BISHOP < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_BISHOP;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.ROOK).data) != 0) {
-					if(this.FITNESS_ROOK < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_ROOK;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data) != 0) {
-					if(this.FITNESS_QUEEN < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_QUEEN;
-					}
-				}
-				else {
-					if(this.FITNESS_KING < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_KING;
-					}
-				}
+		for(Move move : lmf) {
+			if(move.destination != target) {
+				continue;
 			}
-		}
-		else {
-			for(Move move : lmf) {
-				if(move.destination != target) {
-					continue;
-				}
-				long sourceMask = 1L << move.source;
-				if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.PAWN).data) != 0) {
-					if(this.FITNESS_PAWN < candidateValue) {
+			long sourceMask = 1L << move.source;
+			for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
+				Piece piece = entry.getKey();
+				if((sourceMask & board.bitboards.get(board.turn).get(piece).data) != 0) {
+					if(this.FITNESS_PIECE.get(piece) < candidateValue) {
 						candidateMove = move;
-						candidateValue = this.FITNESS_PAWN;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data) != 0) {
-					if(this.FITNESS_KNIGHT < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_KNIGHT;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data) != 0) {
-					if(this.FITNESS_BISHOP < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_BISHOP;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.ROOK).data) != 0) {
-					if(this.FITNESS_ROOK < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_ROOK;
-					}
-				}
-				else if((sourceMask & board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data) != 0) {
-					if(this.FITNESS_QUEEN < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_QUEEN;
-					}
-				}
-				else {
-					if(this.FITNESS_KING < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_KING;
+						candidateValue = this.FITNESS_PIECE.get(piece);
+						break;
 					}
 				}
 			}
@@ -444,15 +368,8 @@ public class Brain {
 	
 	// These are all in centipawns.
 	private float FITNESS_LARGE = 1000000000;   // FIXME - change to short int and get rid of this
-	private float FITNESS_BISHOP = 333;
-	private float FITNESS_KING = 1000000;
-	private float FITNESS_KNIGHT = 320;
-	private float FITNESS_PAWN = 100;
-	private float FITNESS_QUEEN = 880;
-	private float FITNESS_ROOK = 510;
-	private float FITNESS_START_NOKING = 2 * FITNESS_ROOK +
-		2 * FITNESS_KNIGHT + 2 * FITNESS_BISHOP + FITNESS_QUEEN +
-		8 * FITNESS_PAWN;
+	private Map<Piece, Float> FITNESS_PIECE = new HashMap<Piece, Float>();
+	private float FITNESS_START_NOKING = 0;
 	
 	// It goes as [rank][centrality]. rank goes from 0 to 7 and is from the
 	// perspective of that player. centrality goes from 0 (files a, h) to 3
