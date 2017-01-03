@@ -280,9 +280,8 @@ public class Board {
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
 				this.castleRightKingside, this.castleRightQueenside);
 		} else if(movedPiece == Piece.PAWN) {
-			if(move.promoteTo == Piece.NOPIECE) {
-				this.bitboards.get(this.turn).get(Piece.PAWN).data |= destinationMask;
-			} else {
+			if(move.promoteTo != Piece.NOPIECE) {
+				this.bitboards.get(this.turn).get(Piece.PAWN).data &= ~(destinationMask ^ 0);
 				this.bitboards.get(this.turn).get(move.promoteTo).data |= destinationMask;
 				// We switched the position hash for all pieces above under the
 				// assumption that the destination piece would be the same as
