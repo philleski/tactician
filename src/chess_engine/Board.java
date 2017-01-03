@@ -315,24 +315,13 @@ public class Board {
 	}
 	
 	private void setPositionEmpty() {
-		this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data = 0;
-		this.bitboards.get(Color.WHITE).get(Piece.KING).data = 0;
-		this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data = 0;
-		this.bitboards.get(Color.WHITE).get(Piece.PAWN).data = 0;
-		this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data = 0;
-		this.bitboards.get(Color.WHITE).get(Piece.ROOK).data = 0;
-		
-		this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data = 0;
-		this.bitboards.get(Color.BLACK).get(Piece.KING).data = 0;
-		this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data = 0;
-		this.bitboards.get(Color.BLACK).get(Piece.PAWN).data = 0;
-		this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data = 0;
-		this.bitboards.get(Color.BLACK).get(Piece.ROOK).data = 0;
-		
-		this.whitePieces = new Bitboard();
-		this.blackPieces = new Bitboard();
-		this.allPieces = new Bitboard();
-		
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+				Bitboard bitboard = entry2.getValue();
+				bitboard.data = 0;
+			}
+		}
+		this.updateSummaryBitboards();
 		this.setPositionHash();
 	}
 	
