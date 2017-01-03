@@ -80,11 +80,12 @@ public class Board {
 					Piece piece = entry2.getKey();
 					Bitboard bitboard = entry2.getValue();
 					if((bitboard.data & mask) != 0) {
+						representation = piece.name().charAt(0);
 						if(piece == Piece.KNIGHT) {
 							representation = 'N';
 						}
 						if(color == Color.WHITE) {
-							representation = (char) (representation - 'A' + 'a');
+							representation = (char)(representation - 'A' + 'a');
 						}
 					}
 				}
