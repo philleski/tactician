@@ -454,45 +454,18 @@ public class Board {
 	private void setPositionHash() {
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
-			if((this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskBlackBishop(i);
-			}
-			if((this.bitboards.get(Color.BLACK).get(Piece.KING).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskBlackKing(i);
-			}
-			if((this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskBlackKnight(i);
-			}
-			if((this.bitboards.get(Color.BLACK).get(Piece.PAWN).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskBlackPawn(i);
-			}
-			if((this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskBlackQueen(i);
-			}
-			if((this.bitboards.get(Color.BLACK).get(Piece.ROOK).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskBlackRook(i);
-			}
-			if((this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskWhiteBishop(i);
-			}
-			if((this.bitboards.get(Color.WHITE).get(Piece.KING).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskWhiteKing(i);
-			}
-			if((this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskWhiteKnight(i);
-			}
-			if((this.bitboards.get(Color.WHITE).get(Piece.PAWN).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskWhitePawn(i);
-			}
-			if((this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskWhiteQueen(i);
-			}
-			if((this.bitboards.get(Color.WHITE).get(Piece.ROOK).data & mask) != 0) {
-				this.positionHash ^= this.positionHasher.getMaskWhiteRook(i);
+			for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+				Color color = entry1.getKey();
+				for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+					Piece piece = entry2.getKey();
+					Bitboard bitboard = entry2.getValue();
+					if((bitboard.data & mask) != 0) {
+						this.positionHash ^= this.positionHasher.getMask(color, piece, i);
+					}
+				}
 			}
 			if(this.enPassantTarget == mask) {
-				this.positionHash ^=
-						this.positionHasher.getMaskEnPassantTarget(i);
+				this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(i);
 			}
 		}
 		if(this.turn == Color.BLACK) {
