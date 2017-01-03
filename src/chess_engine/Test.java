@@ -151,4 +151,12 @@ public class Test {
 		Move move = brain.getMove(board);
 		assertEquals(move.toString(), "d8h4");
 	}
+	
+	// FIXME - in this game the engine stalled
+	@org.junit.Test
+	public void testStall() {
+		Board board = new Board();
+		board.setPositionFenstring("r6r/p3kp1p/2n1pnpb/2q5/Q2P1P2/2P4N/PP3RPP/RNB3K1");
+		System.out.println(board.toString());
+	}
 }
