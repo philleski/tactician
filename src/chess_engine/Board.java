@@ -257,8 +257,6 @@ public class Board {
 					maskQueensideRookStartNegative;
 				this.bitboards.get(this.turn).get(Piece.ROOK).data |=
 					maskQueensideRookEnd;
-				this.castleRightKingside.put(this.turn, false);
-				this.castleRightQueenside.put(this.turn, false);
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					Piece.ROOK, rookQueensideSource, rookQueensideDestination);
 			} else if(move.source + 2 == move.destination) {
@@ -267,8 +265,6 @@ public class Board {
 					maskKingsideRookStartNegative;
 				this.bitboards.get(this.turn).get(Piece.ROOK).data |=
 					maskKingsideRookEnd;
-				this.castleRightKingside.put(this.turn, false);
-				this.castleRightQueenside.put(this.turn, false);
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					Piece.ROOK, rookKingsideSource, rookKingsideDestination);
 			}
