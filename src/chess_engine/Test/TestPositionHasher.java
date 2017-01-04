@@ -1,9 +1,15 @@
-package chess_engine;
+package chess_engine.Test;
 
 import static org.junit.Assert.*;
 
-public class Test {
-	@org.junit.Test
+import org.junit.Test;
+
+import chess_engine.Board;
+import chess_engine.IllegalMoveException;
+import chess_engine.Move;
+
+public class TestPositionHasher {
+	@Test
 	public void testPositionHashCopy() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("e2", "e4"));
@@ -12,7 +18,7 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	@org.junit.Test
+	@Test
 	public void testPositionHashCapture() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("e2", "e4"));
@@ -29,7 +35,7 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	@org.junit.Test
+	@Test
 	public void testPositionHashKnight() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("a2", "a3"));
@@ -42,7 +48,7 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	@org.junit.Test
+	@Test
 	public void testPositionHashBishop() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("e2", "e4"));
@@ -59,7 +65,7 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	@org.junit.Test
+	@Test
 	public void testPositionHashRook() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("a2", "a4"));
@@ -76,7 +82,7 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	@org.junit.Test
+	@Test
 	public void testPositionHashQueen() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("e2", "e4"));
@@ -93,7 +99,7 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	@org.junit.Test
+	@Test
 	public void testPositionHashKing() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("e2", "e4"));
@@ -112,7 +118,7 @@ public class Test {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
-	@org.junit.Test
+	@Test
 	public void testPositionHashCastle() throws IllegalMoveException {
 		Board board1 = new Board();
 		board1.move(new Move("e2", "e4"));
@@ -139,16 +145,5 @@ public class Test {
 		board2.move(new Move("c6", "b8"));
 		board2.move(new Move("e1", "f1"));
 		assertEquals(board1.positionHash, board2.positionHash);
-	}
-	
-	@org.junit.Test
-	public void testBrainMateInOne() throws IllegalMoveException {
-		Board board = new Board();
-		board.move(new Move("f2", "f3"));
-		board.move(new Move("e7", "e5"));
-		board.move(new Move("g2", "g4"));
-		Brain brain = new Brain();
-		Move move = brain.getMove(board);
-		assertEquals(move.toString(), "d8h4");
 	}
 }

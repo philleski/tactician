@@ -37,7 +37,7 @@ public class Brain {
 		return count;
 	}
 	
-	private float endgameFraction(Board board) {
+	public float endgameFraction(Board board) {
 		// Returns 0 if it's the start of the game, 1 if it's just two kings.
 		
 		float blackMaterial = 0;
@@ -57,7 +57,7 @@ public class Brain {
 			(2 * this.FITNESS_START_NOKING);
 	}
 	
-	private float fitnessKingSafety(Board board, Color color, float endgameFraction) {
+	public float fitnessKingSafety(Board board, Color color, float endgameFraction) {
 		// The king should be in the corner at the beginning of the game
 		// because it's safer there, but in the center at the end of the game
 		// because it's a fighting piece and the opponent can't really
@@ -72,7 +72,7 @@ public class Brain {
 		}
 		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.7f - endgameFraction);
 		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.7f - endgameFraction);
-				
+		
 		return rankFitness + fileFitness;
 	}
 	
@@ -347,14 +347,12 @@ public class Brain {
 	public Move getMove(Board board) {
 		int depth = 0;
 		float endgameFraction = this.endgameFraction(board);
-		System.out.println("EF: " + endgameFraction);
 		if(endgameFraction < 0.8) {
 			depth = 4;
 		}
 		else {
 			depth = 5;
 		}
-		System.out.println("Depth: " + depth);
 		Move move = null;
 		for(int d = 1; d <= depth; d++) {
 			move = this.getMoveToDepth(board, d);
