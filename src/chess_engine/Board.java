@@ -25,8 +25,8 @@ public class Board {
 		this.bitboards.put(Color.BLACK, blackBitboards);
 		updateSummaryBitboards();
 		
-		this.whiteKingIndex = 4;   // 1L << index is the coordinate.
-		this.blackKingIndex = 60;
+		this.kingIndex.put(Color.WHITE, 4);
+		this.kingIndex.put(Color.BLACK, 60);
 		
 		this.turn = Color.WHITE;
 		// If the last move was a double pawn move, this is the destination
@@ -60,8 +60,8 @@ public class Board {
 		this.castleRightQueenside.put(Color.WHITE, other.castleRightQueenside.get(Color.WHITE));
 		this.castleRightKingside.put(Color.BLACK, other.castleRightKingside.get(Color.BLACK));
 		this.castleRightQueenside.put(Color.BLACK, other.castleRightQueenside.get(Color.BLACK));
-		this.whiteKingIndex = other.whiteKingIndex;
-		this.blackKingIndex = other.blackKingIndex;
+		this.kingIndex.put(Color.WHITE, other.kingIndex.get(Color.WHITE));
+		this.kingIndex.put(Color.BLACK, other.kingIndex.get(Color.BLACK));
 		// Keep the same object so that we don't have to reinitialize.
 		this.positionHasher = other.positionHasher;
 		this.positionHash = other.positionHash;
@@ -268,11 +268,7 @@ public class Board {
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					Piece.ROOK, rookKingsideSource, rookKingsideDestination);
 			}
-			if(this.turn == Color.WHITE) {
-				this.whiteKingIndex = move.destination;
-			} else {
-				this.blackKingIndex = move.destination;
-			}
+			this.kingIndex.put(this.turn, (int)move.destination);
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
 				this.castleRightKingside, this.castleRightQueenside);
 		} else if(movedPiece == Piece.PAWN) {
@@ -332,51 +328,22 @@ public class Board {
 			long mask = 1L << 8 * (7 - i);   // a8, a7, ..., a1
 			int placementPartLength = placementParts[i].length();
 			for(int j = 0; j < placementPartLength; j++) {
-				char piece = placementParts[i].charAt(j);
-				
-				if(piece == 'b') {
-					this.bitboards.get(Color.BLACK).get(Piece.BISHOP).data |= mask;
+				char initial = placementParts[i].charAt(j);
+				Color color = Color.WHITE;
+				if(Character.isLowerCase(initial)) {
+					color = Color.BLACK;
 				}
-				else if(piece == 'k') {
-					this.bitboards.get(Color.BLACK).get(Piece.KING).data |= mask;
-					this.blackKingIndex = NotationHelper.coordToIndex(mask);
+				Piece piece = Piece.initialToPiece(initial);
+				if(piece == Piece.KING) {
+					this.kingIndex.put(color,
+						(int)NotationHelper.coordToIndex(mask));
 				}
-				else if(piece == 'n') {
-					this.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data |= mask;
-				}
-				else if(piece == 'p') {
-					this.bitboards.get(Color.BLACK).get(Piece.PAWN).data |= mask;
-				}
-				else if(piece == 'q') {
-					this.bitboards.get(Color.BLACK).get(Piece.QUEEN).data |= mask;
-				}
-				else if(piece == 'r') {
-					this.bitboards.get(Color.BLACK).get(Piece.ROOK).data |= mask;
-				}
-				else if(piece == 'B') {
-					this.bitboards.get(Color.WHITE).get(Piece.BISHOP).data |= mask;
-				}
-				else if(piece == 'K') {
-					this.bitboards.get(Color.WHITE).get(Piece.KING).data |= mask;
-					this.whiteKingIndex = NotationHelper.coordToIndex(mask);
-				}
-				else if(piece == 'N') {
-					this.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data |= mask;
-				}
-				else if(piece == 'P') {
-					this.bitboards.get(Color.WHITE).get(Piece.PAWN).data |= mask;
-				}
-				else if(piece == 'Q') {
-					this.bitboards.get(Color.WHITE).get(Piece.QUEEN).data |= mask;
-				}
-				else if(piece == 'R') {
-					this.bitboards.get(Color.WHITE).get(Piece.ROOK).data |= mask;
-				}
-				else {
+				if(piece == Piece.NOPIECE) {
 					// A numeric amount of blank squares.
-					mask <<= (piece - '1');
+					mask <<= (initial - '1');
+				} else {
+					this.bitboards.get(color).get(piece).data |= mask;
 				}
-				
 				if(j < placementPartLength - 1) {
 					// If we happen to be on h8 it may cause an out-of-bounds
 					// error otherwise.
@@ -469,8 +436,7 @@ public class Board {
 	public long maskF1 = notationHelper.generateMask("f1");
 	public long maskF8 = notationHelper.generateMask("f8");
 	
-	public int whiteKingIndex = 4;   // 1L << index is the coordinate.
-	public int blackKingIndex = 60;
+	public Map<Color, Integer> kingIndex = new HashMap<Color, Integer>();
 	
 	public Color turn = Color.WHITE;
 	// If the last move was a double pawn move, this is the destination

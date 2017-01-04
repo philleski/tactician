@@ -63,13 +63,11 @@ public class Brain {
 		// because it's a fighting piece and the opponent can't really
 		// checkmate it anyway.
 		int distanceFromHomeRank = 0;
-		int kingIndex = 0;
+		int kingIndex = board.kingIndex.get(color);
 		if(color == Color.WHITE) {
-			kingIndex = board.whiteKingIndex;
 			distanceFromHomeRank = (int)(kingIndex / 8);
 		}
 		else {
-			kingIndex = board.blackKingIndex;
 			distanceFromHomeRank = 7 - (int)(kingIndex / 8);
 		}
 		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.7f - endgameFraction);
