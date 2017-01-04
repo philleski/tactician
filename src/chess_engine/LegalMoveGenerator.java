@@ -36,320 +36,97 @@ public class LegalMoveGenerator {
 			Bitboard.flip(this.maskCastleKingsideKnights.get(Color.WHITE)));
 	}
 	
-	private void appendLegalMovesForPieceDiagonal(byte start,
-			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
+	private static boolean inBounds(int position, int stepSize) {
+		if(position + stepSize < 0) {
+			return false;
+		}
+		if(position + stepSize >= 64) {
+			return false;
+		}
+		
+		// If the step size applies to knights, the end file can be different
+		// from the start file by up to two.
+		int fileDiff = (position % 8) - ((position + stepSize) % 8);
+		if(fileDiff < -2) {
+			return false;
+		}
+		if(fileDiff > 2) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private void appendLegalMovesForPieceLongRange(byte start,
+			long myPieces, long oppPieces, int[] stepSizes,
+			ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
-		// NW
-		byte nw = start;
-		while(nw % 8 != 0 && nw + 7 < 64) {
-			nw += 7;
-			if(((1L << nw) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, nw));
-				break;
+		for(int i = 0; i < stepSizes.length; i++) {
+			int position = start;
+			while(inBounds(position, stepSizes[i])) {
+				position += stepSizes[i];
+				if(((1L << position) & oppPieces) != 0) {
+					legalMovesCapture.add(new Move(start, (byte)position));
+					break;
+				}
+				if(((1L << position) & myPieces) != 0) {
+					break;
+				}
+				legalMovesNoncapture.add(new Move(start, (byte)position));
 			}
-			if(((1L << nw) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, nw));
-		}
-		// NE
-		byte ne = start;
-		while(ne % 8 != 7 && ne + 9 < 64) {
-			ne += 9;
-			if(((1L << ne) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, ne));
-				break;
-			}
-			if(((1L << ne) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, ne));
-		}
-		// SW
-		byte sw = start;
-		while(sw % 8 != 0 && sw - 9 >= 0) {
-			sw -= 9;
-			if(((1L << sw) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, sw));
-				break;
-			}
-			if(((1L << sw) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, sw));
-		}
-		// SE
-		byte se = start;
-		while(se % 8 != 7 && se - 7 >= 0) {
-			se -= 7;
-			if(((1L << se) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, se));
-				break;
-			}
-			if(((1L << se) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, se));
 		}
 	}
 	
-	private void appendLegalMovesForPieceStraight(byte start,
+	private void appendLegalMovesForPieceShortRange(byte start,
+			long myPieces, long oppPieces, int[] stepSizes,
+			ArrayList<Move> legalMovesCapture,
+			ArrayList<Move> legalMovesNoncapture) {
+		for(int i = 0; i < stepSizes.length; i++) {
+			if(!inBounds(start, stepSizes[i])) {
+				continue;
+			}
+			int position = start + stepSizes[i];
+			if(((1L << position) & oppPieces) != 0) {
+				legalMovesCapture.add(new Move(start, (byte)position));
+				continue;
+			}
+			if(((1L << position) & myPieces) != 0) {
+				continue;
+			}
+			legalMovesNoncapture.add(new Move(start, (byte)position));
+		}
+	}
+	
+	private void appendLegalMovesForPieceLongRangeDiagonal(byte start,
 			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
-		// N
-		byte n = start;
-		while(n + 8 < 64) {
-			n += 8;
-			if(((1L << n) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, n));
-				break;
-			}
-			if(((1L << n) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, n));
-		}
-		// W
-		byte w = start;
-		while(w % 8 != 0) {
-			w -= 1;
-			if(((1L << w) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, w));
-				break;
-			}
-			if(((1L << w) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, w));
-		}
-		// E
-		byte e = start;
-		while(e % 8 != 7) {
-			e += 1;
-			if(((1L << e) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, e));
-				break;
-			}
-			if(((1L << e) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, e));
-		}
-		// S
-		byte s = start;
-		while(s - 8 >= 0) {
-			s -= 8;
-			if(((1L << s) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, s));
-				break;
-			}
-			if(((1L << s) & myPieces) != 0) {
-				break;
-			}
-			legalMovesNoncapture.add(new Move(start, s));
-		}
+		int[] stepSizes = {-9, -7, 7, 9};
+		this.appendLegalMovesForPieceLongRange(start, myPieces, oppPieces,
+			stepSizes, legalMovesCapture, legalMovesNoncapture);
+	}
+	
+	private void appendLegalMovesForPieceLongRangeStraight(byte start,
+			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
+			ArrayList<Move> legalMovesNoncapture) {
+		int[] stepSizes = {-8, -1, 1, 8};
+		this.appendLegalMovesForPieceLongRange(start, myPieces, oppPieces,
+			stepSizes, legalMovesCapture, legalMovesNoncapture);
 	}
 	
 	private void appendLegalMovesForKnight(byte start, long myPieces,
 			long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
-		// NNW
-		if(start % 8 != 0 && start < 48) {
-			byte next = (byte)(start + 15);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// NNE
-		if(start % 8 != 7 && start < 48) {
-			byte next = (byte)(start + 17);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// NWW
-		if(start % 8 > 1 && start < 56) {
-			byte next = (byte)(start + 6);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// NEE
-		if(start % 8 < 6 && start < 56) {
-			byte next = (byte)(start + 10);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// SWW
-		if(start % 8 > 1 && start >= 8) {
-			byte next = (byte)(start - 10);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// SEE
-		if(start % 8 < 6 && start >= 8) {
-			byte next = (byte)(start - 6);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// SSW
-		if(start % 8 != 0 && start >= 16) {
-			byte next = (byte)(start - 17);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// SSE
-		if(start % 8 != 7 && start >= 16) {
-			byte next = (byte)(start - 15);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
+		int[] stepSizes = {-17, -15, -10, -6, 6, 10, 15, 17};
+		this.appendLegalMovesForPieceShortRange(start, myPieces, oppPieces,
+			stepSizes, legalMovesCapture, legalMovesNoncapture);
 	}
 	
 	private void appendLegalMovesForKing(byte start, long myPieces,
 			long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
-		// NW
-		if(start % 8 != 0 && start < 56) {
-			byte next = (byte)(start + 7);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// N
-		if(start < 56) {
-			byte next = (byte)(start + 8);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// NE
-		if(start % 8 != 7 && start < 56) {
-			byte next = (byte)(start + 9);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// W
-		if(start % 8 != 0) {
-			byte next = (byte)(start - 1);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// E
-		if(start % 8 != 7) {
-			byte next = (byte)(start + 1);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// SW
-		if(start % 8 != 0 && start >= 8) {
-			byte next = (byte)(start - 9);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// S
-		if(start >= 8) {
-			byte next = (byte)(start - 8);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
-		// SE
-		if(start % 8 != 7 && start >= 8) {
-			byte next = (byte)(start - 7);
-			if(((1L << next) & myPieces) == 0) {
-				if(((1L << next) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, next));
-				}
-				else {
-					legalMovesNoncapture.add(new Move(start, next));
-				}
-			}
-		}
+		int[] stepSizes = {-9, -8, -7, -1, 1, 7, 8, 9};
+		this.appendLegalMovesForPieceShortRange(start, myPieces, oppPieces,
+			stepSizes, legalMovesCapture, legalMovesNoncapture);
 	}
 	
 	private boolean verifyCastleHelper(Board board, long maskStart, long maskEnd,
@@ -606,17 +383,17 @@ public class LegalMoveGenerator {
 				}
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.BISHOP).data & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
+				this.appendLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.ROOK).data & mask) != 0) {
-				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
+				this.appendLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.QUEEN).data & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
+				this.appendLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
-				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
+				this.appendLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.KNIGHT).data & mask) != 0) {
@@ -783,17 +560,17 @@ public class LegalMoveGenerator {
 				}
 			}
 			else if((board.bitboards.get(board.turn).get(Piece.BISHOP).data & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
+				this.appendLegalMovesForPieceLongRangeDiagonal(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
 			else if((board.bitboards.get(board.turn).get(Piece.ROOK).data & mask) != 0) {
-				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
+				this.appendLegalMovesForPieceLongRangeStraight(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
 			else if((board.bitboards.get(board.turn).get(Piece.QUEEN).data & mask) != 0) {
-				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
+				this.appendLegalMovesForPieceLongRangeDiagonal(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
-				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
+				this.appendLegalMovesForPieceLongRangeStraight(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
 			else if((board.bitboards.get(board.turn).get(Piece.KNIGHT).data & mask) != 0) {
