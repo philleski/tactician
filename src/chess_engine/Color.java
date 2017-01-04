@@ -4,7 +4,7 @@ public enum Color {
 	BLACK,
 	WHITE;
 
-	public static Color getOpposite(Color c) {
+	public static Color flip(Color c) {
 		if(c == BLACK) {
 			return WHITE;
 		}

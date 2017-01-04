@@ -17,17 +17,21 @@ public class Bitboard {
 		return Long.toHexString(this.data);
 	}
 	
-	public Bitboard flip() {
+	public static long flip(long mask) {
 		long output = 0;
 		for(int i = 0; i < 4; i++) {
-			long row = this.data & (0x00000000000000ffL << (8 * i));
+			long row = mask & (0x00000000000000ffL << (8 * i));
 			output += row << (8 * (7 - 2 * i));
 		}
 		for(int i = 4; i < 8; i++) {
-			long row = this.data & (0x00000000000000ffL << (8 * i));
+			long row = mask & (0x00000000000000ffL << (8 * i));
 			output += row >>> (8 * (2 * i - 7));
 		}
-		return new Bitboard(output);
+		return output;
+	}
+	
+	public Bitboard flip() {
+		return new Bitboard(Bitboard.flip(this.data));
 	}
 		
 	public static NotationHelper notationHelper = new NotationHelper();

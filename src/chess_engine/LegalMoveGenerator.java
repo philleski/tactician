@@ -1,8 +1,41 @@
 package chess_engine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LegalMoveGenerator {
+	public LegalMoveGenerator() {
+		this.maskCastleKingsideSpace.put(Color.WHITE,
+			notationHelper.generateMask("f1", "g1"));
+		this.maskCastleQueensideSpace.put(Color.WHITE,
+			notationHelper.generateMask("b1", "c1", "d1"));
+		this.maskCastleKingsideSpace.put(Color.BLACK,
+			Bitboard.flip(this.maskCastleKingsideSpace.get(Color.WHITE)));
+		this.maskCastleQueensideSpace.put(Color.BLACK,
+			Bitboard.flip(this.maskCastleKingsideSpace.get(Color.WHITE)));
+		
+		this.maskCastleKingsidePawns.put(Color.WHITE,
+			notationHelper.generateMask("d2", "e2", "f2", "g2"));
+		this.maskCastleQueensidePawns.put(Color.WHITE,
+			notationHelper.generateMask("b2", "c2", "d2", "e2", "f2"));
+		this.maskCastleKingsidePawns.put(Color.BLACK,
+			Bitboard.flip(this.maskCastleKingsidePawns.get(Color.WHITE)));
+		this.maskCastleQueensidePawns.put(Color.BLACK,
+			Bitboard.flip(this.maskCastleKingsidePawns.get(Color.WHITE)));
+			
+		this.maskCastleKingsideKnights.put(Color.WHITE,
+			notationHelper.generateMask("c2", "d3", "f3", "g2", "d3", "e3",
+				"g3", "h2"));
+		this.maskCastleQueensideKnights.put(Color.WHITE,
+			notationHelper.generateMask("b2", "c3", "e3", "f2", "c2", "d3",
+				"f3", "g2"));
+		this.maskCastleKingsideKnights.put(Color.BLACK,
+			Bitboard.flip(this.maskCastleKingsideKnights.get(Color.WHITE)));
+		this.maskCastleQueensideKnights.put(Color.BLACK,
+			Bitboard.flip(this.maskCastleKingsideKnights.get(Color.WHITE)));
+	}
+	
 	private void appendLegalMovesForPieceDiagonal(byte start,
 			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
@@ -359,10 +392,10 @@ public class LegalMoveGenerator {
 		// next move, so the AI wouldn't do it anyway.)
 		if(board.turn == Color.WHITE) {
 			if(castle == Castle.KINGSIDE) {
-				if((board.bitboards.get(Color.BLACK).get(Piece.PAWN).data & this.preventWhiteCastleKingsidePawns) != 0) {
+				if((board.bitboards.get(Color.BLACK).get(Piece.PAWN).data & this.maskCastleKingsidePawns.get(board.turn)) != 0) {
 					return false;
 				}
-				if((board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & this.preventWhiteCastleKingsideKnights) != 0) {
+				if((board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & this.maskCastleKingsideKnights.get(board.turn)) != 0) {
 					return false;
 				}
 				if(!this.verifyCastleHelper(board, this.maskD1, this.maskA1,
@@ -401,10 +434,10 @@ public class LegalMoveGenerator {
 				}
 				return true;
 			} else {
-				if((board.bitboards.get(Color.BLACK).get(Piece.PAWN).data & this.preventWhiteCastleQueensidePawns) != 0) {
+				if((board.bitboards.get(Color.BLACK).get(Piece.PAWN).data & this.maskCastleQueensidePawns.get(board.turn)) != 0) {
 					return false;
 				}
-				if((board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & this.preventWhiteCastleQueensideKnights) != 0) {
+				if((board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data & this.maskCastleQueensideKnights.get(board.turn)) != 0) {
 					return false;
 				}
 				// Right from e1.
@@ -446,10 +479,10 @@ public class LegalMoveGenerator {
 			}
 		} else {
 			if(castle == Castle.KINGSIDE) {
-				if((board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & this.preventBlackCastleKingsidePawns) != 0) {
+				if((board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & this.maskCastleKingsidePawns.get(board.turn)) != 0) {
 					return false;
 				}
-				if((board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & this.preventBlackCastleKingsideKnights) != 0) {
+				if((board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & this.maskCastleKingsideKnights.get(board.turn)) != 0) {
 					return false;
 				}
 				// Left from e8.
@@ -489,10 +522,10 @@ public class LegalMoveGenerator {
 				}
 				return true;
 			} else {
-				if((board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & this.preventBlackCastleQueensidePawns) != 0) {
+				if((board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & this.maskCastleQueensidePawns.get(board.turn)) != 0) {
 					return false;
 				}
-				if((board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & this.preventBlackCastleQueensideKnights) != 0) {
+				if((board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data & this.maskCastleQueensideKnights.get(board.turn)) != 0) {
 					return false;
 				}
 				// Right from e8.
@@ -543,15 +576,22 @@ public class LegalMoveGenerator {
 		// the player's king anyway.
 		ArrayList<Move> oppLegalMovesCapture = new ArrayList<Move>();
 		ArrayList<Move> oppLegalMovesNoncapture = new ArrayList<Move>();
-		long myKings = this.getMyKings(board);
-		long myPieces = this.getMyPieces(board);
-		long oppPieces = this.getOppPieces(board);
+		long myKings = board.bitboards.get(board.turn).get(Piece.KING).data;
+		long myPieces, oppPieces;
+		if(board.turn == Color.WHITE) {
+			myPieces = board.whitePieces.data;
+			oppPieces = board.blackPieces.data;
+		} else {
+			myPieces = board.blackPieces.data;
+			oppPieces = board.whitePieces.data;
+		}
+		Color turnFlipped = Color.flip(board.turn);
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
 			if((oppPieces & (1L << i)) == 0) {
 				continue;
 			}
-			if((this.getOppPawns(board) & mask) != 0) {
+			if((board.bitboards.get(turnFlipped).get(Piece.PAWN).data & mask) != 0) {
 				if(board.turn == Color.WHITE) {
 					// Look at the black player's pawns.
 					if(i % 8 != 0) {
@@ -571,25 +611,25 @@ public class LegalMoveGenerator {
 					}
 				}
 			}
-			else if((this.getOppBishops(board) & mask) != 0) {
+			else if((board.bitboards.get(turnFlipped).get(Piece.BISHOP).data & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
-			else if((this.getOppRooks(board) & mask) != 0) {
+			else if((board.bitboards.get(turnFlipped).get(Piece.ROOK).data & mask) != 0) {
 				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
-			else if((this.getOppQueens(board) & mask) != 0) {
+			else if((board.bitboards.get(turnFlipped).get(Piece.QUEEN).data & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 				this.appendLegalMovesForPieceStraight(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
-			else if((this.getOppKnights(board) & mask) != 0) {
+			else if((board.bitboards.get(turnFlipped).get(Piece.KNIGHT).data & mask) != 0) {
 				this.appendLegalMovesForKnight(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
-			else if((this.getOppKings(board) & mask) != 0) {
+			else if((board.bitboards.get(turnFlipped).get(Piece.KING).data & mask) != 0) {
 				this.appendLegalMovesForKing(i, oppPieces, myPieces,
 						oppLegalMovesCapture, oppLegalMovesNoncapture);
 			}
@@ -610,8 +650,14 @@ public class LegalMoveGenerator {
 		ArrayList<Move> legalMovesCapture = new ArrayList<Move>();
 		ArrayList<Move> legalMovesNoncapture = new ArrayList<Move>();
 		
-		long myPieces = this.getMyPieces(board);
-		long oppPieces = this.getOppPieces(board);
+		long myPieces, oppPieces;
+		if(board.turn == Color.WHITE) {
+			myPieces = board.whitePieces.data;
+			oppPieces = board.blackPieces.data;
+		} else {
+			myPieces = board.blackPieces.data;
+			oppPieces = board.whitePieces.data;
+		}
 		
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
@@ -619,7 +665,7 @@ public class LegalMoveGenerator {
 			if((myPieces & mask) == 0) {
 				continue;
 			}
-			if((this.getMyPawns(board) & mask) != 0) {
+			if((board.bitboards.get(board.turn).get(Piece.PAWN).data & mask) != 0) {
 				if(board.turn == Color.WHITE) {
 					// One space forward
 					if(((mask << 8) & board.allPieces.data) == 0) {
@@ -749,25 +795,25 @@ public class LegalMoveGenerator {
 					}
 				}
 			}
-			else if((this.getMyBishops(board) & mask) != 0) {
+			else if((board.bitboards.get(board.turn).get(Piece.BISHOP).data & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
-			else if((this.getMyRooks(board) & mask) != 0) {
+			else if((board.bitboards.get(board.turn).get(Piece.ROOK).data & mask) != 0) {
 				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
-			else if((this.getMyQueens(board) & mask) != 0) {
+			else if((board.bitboards.get(board.turn).get(Piece.QUEEN).data & mask) != 0) {
 				this.appendLegalMovesForPieceDiagonal(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 				this.appendLegalMovesForPieceStraight(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
-			else if((this.getMyKnights(board) & mask) != 0) {
+			else if((board.bitboards.get(board.turn).get(Piece.KNIGHT).data & mask) != 0) {
 				this.appendLegalMovesForKnight(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
-			else if((this.getMyKings(board) & mask) != 0) {
+			else if((board.bitboards.get(board.turn).get(Piece.KING).data & mask) != 0) {
 				this.appendLegalMovesForKing(i, myPieces, oppPieces,
 						legalMovesCapture, legalMovesNoncapture);
 			}
@@ -777,7 +823,7 @@ public class LegalMoveGenerator {
 		if(!capturesOnly) {
 			if(board.turn == Color.WHITE) {
 				if(board.castleRightKingside.get(Color.WHITE)) {
-					if((board.allPieces.data & this.maskWhiteCastleKingsideSpace) == 0) {
+					if((board.allPieces.data & this.maskCastleKingsideSpace.get(board.turn)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE)) {
 							// e1-g1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)6));
@@ -785,7 +831,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.castleRightQueenside.get(Color.WHITE)) {
-					if((board.allPieces.data & this.maskWhiteCastleQueensideSpace) == 0) {
+					if((board.allPieces.data & this.maskCastleQueensideSpace.get(board.turn)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE)) {
 							// e1-c1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)2));
@@ -795,7 +841,7 @@ public class LegalMoveGenerator {
 			}
 			else {
 				if(board.castleRightKingside.get(Color.BLACK)) {
-					if((board.allPieces.data & this.maskBlackCastleKingsideSpace) == 0) {
+					if((board.allPieces.data & this.maskCastleKingsideSpace.get(board.turn)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE)) {
 							// e8-g8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)62));
@@ -803,7 +849,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.castleRightQueenside.get(Color.BLACK)) {
-					if((board.allPieces.data & this.maskBlackCastleQueensideSpace) == 0) {
+					if((board.allPieces.data & this.maskCastleQueensideSpace.get(board.turn)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE)) {
 							// e8-c8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)58));
@@ -835,138 +881,12 @@ public class LegalMoveGenerator {
 				continue;
 			}
 			// Go back to the original player to see if they're in check.
-			copy.turn = Color.getOpposite(copy.turn);
+			copy.turn = Color.flip(copy.turn);
 			if(!copy.isInCheck()) {
 				result.add(m);
 			}
 		}
 		return result;
-	}
-	
-	private long getMyBishops(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data;
-		}
-		else {
-			return board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data;
-		}
-	}
-	
-	private long getMyKings(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.WHITE).get(Piece.KING).data;
-		}
-		else {
-			return board.bitboards.get(Color.BLACK).get(Piece.KING).data;
-		}
-	}
-	
-	private long getMyKnights(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data;
-		}
-		else {
-			return board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data;
-		}
-	}
-	
-	private long getMyPawns(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.WHITE).get(Piece.PAWN).data;
-		}
-		else {
-			return board.bitboards.get(Color.BLACK).get(Piece.PAWN).data;
-		}
-	}
-	
-	private long getMyQueens(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data;
-		}
-		else {
-			return board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data;
-		}
-	}
-	
-	private long getMyRooks(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.WHITE).get(Piece.ROOK).data;
-		}
-		else {
-			return board.bitboards.get(Color.BLACK).get(Piece.ROOK).data;
-		}
-	}
-	
-	private long getMyPieces(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.whitePieces.data;
-		}
-		else {
-			return board.blackPieces.data;
-		}
-	}
-	
-	private long getOppBishops(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.BLACK).get(Piece.BISHOP).data;
-		}
-		else {
-			return board.bitboards.get(Color.WHITE).get(Piece.BISHOP).data;
-		}
-	}
-	
-	private long getOppKings(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.BLACK).get(Piece.KING).data;
-		}
-		else {
-			return board.bitboards.get(Color.WHITE).get(Piece.KING).data;
-		}
-	}
-	
-	private long getOppKnights(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.BLACK).get(Piece.KNIGHT).data;
-		}
-		else {
-			return board.bitboards.get(Color.WHITE).get(Piece.KNIGHT).data;
-		}
-	}
-	
-	private long getOppPawns(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.BLACK).get(Piece.PAWN).data;
-		}
-		else {
-			return board.bitboards.get(Color.WHITE).get(Piece.PAWN).data;
-		}
-	}
-	
-	private long getOppQueens(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.BLACK).get(Piece.QUEEN).data;
-		}
-		else {
-			return board.bitboards.get(Color.WHITE).get(Piece.QUEEN).data;
-		}
-	}
-	
-	private long getOppRooks(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.bitboards.get(Color.BLACK).get(Piece.ROOK).data;
-		}
-		else {
-			return board.bitboards.get(Color.WHITE).get(Piece.ROOK).data;
-		}
-	}
-	
-	private long getOppPieces(Board board) {
-		if(board.turn == Color.WHITE) {
-			return board.blackPieces.data;
-		}
-		else {
-			return board.whitePieces.data;
-		}
 	}
 	
 	private static NotationHelper notationHelper = new NotationHelper();
@@ -1000,34 +920,11 @@ public class LegalMoveGenerator {
 	private long maskH6 = notationHelper.generateMask("h6");
 	private long maskH8 = notationHelper.generateMask("h8");
 	
-	private long maskWhiteCastleKingsideSpace =
-			notationHelper.generateMask("f1", "g1");
-	private long maskWhiteCastleQueensideSpace =
-			notationHelper.generateMask("b1", "c1", "d1");
-	private long maskBlackCastleKingsideSpace =
-			notationHelper.generateMask("f8", "g8");
-	private long maskBlackCastleQueensideSpace =
-			notationHelper.generateMask("b8", "c8", "d8");
-	
-	private long preventWhiteCastleKingsidePawns =
-			notationHelper.generateMask("d2", "e2", "f2", "g2");
-	private long preventWhiteCastleKingsideKnights =
-			notationHelper.generateMask("c2", "d3", "f3", "g2", "d3", "e3",
-					"g3", "h2");
-	private long preventWhiteCastleQueensidePawns =
-			notationHelper.generateMask("b2", "c2", "d2", "e2", "f2");
-	private long preventWhiteCastleQueensideKnights =
-			notationHelper.generateMask("b2", "c3", "e3", "f2", "c2", "d3",
-					"f3", "g2");
-	private long preventBlackCastleKingsidePawns =
-			notationHelper.generateMask("d7", "e7", "f7", "g7");
-	private long preventBlackCastleKingsideKnights =
-			notationHelper.generateMask("c7", "d6", "f6", "g7", "d7", "e6",
-					"g6", "h7");
-	private long preventBlackCastleQueensidePawns =
-			notationHelper.generateMask("b7", "c7", "d7", "e7", "f7");
-	private long preventBlackCastleQueensideKnights =
-			notationHelper.generateMask("b7", "c6", "e6", "f7", "c7", "d6",
-					"f6", "g7");
+	private Map<Color, Long> maskCastleKingsideSpace = new HashMap<Color, Long>();
+	private Map<Color, Long> maskCastleQueensideSpace = new HashMap<Color, Long>();
+	private Map<Color, Long> maskCastleKingsidePawns = new HashMap<Color, Long>();
+	private Map<Color, Long> maskCastleKingsideKnights = new HashMap<Color, Long>();
+	private Map<Color, Long> maskCastleQueensidePawns = new HashMap<Color, Long>();
+	private Map<Color, Long> maskCastleQueensideKnights = new HashMap<Color, Long>();
 }
 

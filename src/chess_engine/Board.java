@@ -296,7 +296,7 @@ public class Board {
 				this.castleRightKingside, this.castleRightQueenside);
 		} 
 		
-		this.turn = Color.getOpposite(this.turn);
+		this.turn = Color.flip(this.turn);
 		this.positionHash ^= this.positionHasher.getMaskTurn();
 		updateSummaryBitboards();
 	}
