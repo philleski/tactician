@@ -39,22 +39,18 @@ public class Brain {
 	
 	public float endgameFraction(Board board) {
 		// Returns 0 if it's the start of the game, 1 if it's just two kings.
-		
-		float blackMaterial = 0;
-		float whiteMaterial = 0;
+		float material = 0;
 		for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
 			Piece piece = entry.getKey();
 			if(piece == Piece.KING) {
 				continue;
 			}
-			int blackPieceCount = numBitsSet(board.bitboards.get(Color.BLACK).get(piece).data);
-			int whitePieceCount = numBitsSet(board.bitboards.get(Color.WHITE).get(piece).data);
-			blackMaterial += blackPieceCount * this.FITNESS_PIECE.get(piece);
-			whiteMaterial += whitePieceCount * this.FITNESS_PIECE.get(piece);
+			int pieceCount = numBitsSet(board.bitboards.get(Color.WHITE).get(piece).data |
+					board.bitboards.get(Color.BLACK).get(piece).data);
+			material += pieceCount * this.FITNESS_PIECE.get(piece);
 		}
 		
-		return 1 - (blackMaterial + whiteMaterial) /
-			(2 * this.FITNESS_START_NOKING);
+		return 1 - material / (2 * this.FITNESS_START_NOKING);
 	}
 	
 	public float fitnessKingSafety(Board board, Color color, float endgameFraction) {
@@ -77,29 +73,34 @@ public class Brain {
 	}
 	
 	private float fitness(Board board) {
-		float blackMaterial = 0;
-		float whiteMaterial = 0;
+		float fitness = 0;
+		Color turnFlipped = Color.flip(board.turn);
 		for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
 			Piece piece = entry.getKey();
 			if(piece == Piece.PAWN) {
 				continue;
 			}
-			int blackPieceCount = numBitsSet(board.bitboards.get(Color.BLACK).get(piece).data);
-			int whitePieceCount = numBitsSet(board.bitboards.get(Color.WHITE).get(piece).data);
-			blackMaterial += blackPieceCount * this.FITNESS_PIECE.get(piece);
-			whiteMaterial += whitePieceCount * this.FITNESS_PIECE.get(piece);
+			int myPieceCount = numBitsSet(board.bitboards.get(board.turn).get(piece).data);
+			int oppPieceCount = numBitsSet(board.bitboards.get(turnFlipped).get(piece).data);
+			fitness += (myPieceCount - oppPieceCount) * this.FITNESS_PIECE.get(piece);
 		}
 		
 		float endgameFraction = this.endgameFraction(board);
 		
+		Bitboard pawnBitboardRelativeToMe =
+			board.bitboards.get(board.turn).get(Piece.PAWN);
+		Bitboard pawnBitboardRelativeToOpp =
+			board.bitboards.get(turnFlipped).get(Piece.PAWN);
+		if(board.turn == Color.WHITE) {
+			pawnBitboardRelativeToOpp = pawnBitboardRelativeToOpp.flip();
+		} else {
+			pawnBitboardRelativeToMe = pawnBitboardRelativeToMe.flip();
+		}
+		
 		// Since pawns can't be on the edge ranks.
 		for(int rank = 1; rank < 7; rank++) {
+			long rankMask = 0x00000000000000ffL << (rank * 8);
 			for(int centrality = 0; centrality < 4; centrality++) {
-				// Magic number: a1-h1
-				long rankMaskWhite = 0x00000000000000ffL << (rank * 8);
-				// Magic number: a8-h8
-				long rankMaskBlack = 0xff00000000000000L >>> (rank * 8);
-				// Magic number: a1-a8
 				long centralityMask = (0x0101010101010101L << centrality) |
 						(0x0101010101010101L << (8 - centrality));
 				
@@ -107,27 +108,18 @@ public class Brain {
 						this.FITNESS_PAWN_TABLE_OPENING[rank][centrality];
 				pawnFactor += endgameFraction *
 						this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
-								
-				blackMaterial += pawnFactor *
-					numBitsSet(board.bitboards.get(Color.BLACK).get(Piece.PAWN).data &
-						rankMaskBlack & centralityMask);
-				whiteMaterial += pawnFactor *
-					numBitsSet(board.bitboards.get(Color.WHITE).get(Piece.PAWN).data & 
-						rankMaskWhite & centralityMask);
+				
+				int myPawnsOnRank = numBitsSet(pawnBitboardRelativeToMe.data &
+					rankMask & centralityMask);
+				int oppPawnsOnRank = numBitsSet(pawnBitboardRelativeToOpp.data &
+					rankMask & centralityMask);
+				
+				fitness += pawnFactor * (myPawnsOnRank - oppPawnsOnRank);
 			}
 		}
 		
-		float fitness = 0;
-		if(board.turn == Color.WHITE) {
-			fitness = whiteMaterial - blackMaterial;
-			fitness += this.fitnessKingSafety(board, Color.WHITE, endgameFraction) -
-				this.fitnessKingSafety(board, Color.BLACK, endgameFraction);
-		}
-		else {
-			fitness = blackMaterial - whiteMaterial;
-			fitness += this.fitnessKingSafety(board, Color.BLACK, endgameFraction) -
-				this.fitnessKingSafety(board, Color.WHITE, endgameFraction);
-		}
+		fitness += this.fitnessKingSafety(board, board.turn, endgameFraction) -
+				this.fitnessKingSafety(board, turnFlipped, endgameFraction);
 						
 		return fitness;
 	}
@@ -194,10 +186,9 @@ public class Brain {
 		ArrayList<Move> lmf = board.legalMovesFast(false);
 		if(lmf.size() <= 8) {
 			boolean isMate = true;
-			long kings = board.bitboards.get(Color.BLACK).get(Piece.KING).data |
-					board.bitboards.get(Color.WHITE).get(Piece.KING).data;
 			for(Move move : lmf) {
-				if(((1L << move.source) & kings) == 0) {
+				if(((1L << move.source) &
+						board.bitboards.get(board.turn).get(Piece.KING).data) == 0) {
 					isMate = false;
 					break;
 				}
