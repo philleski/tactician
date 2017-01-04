@@ -116,20 +116,15 @@ public class Board {
 	}
 	
 	public void updateSummaryBitboards() {
-		this.whitePieces = new Bitboard();
-		this.blackPieces = new Bitboard();
+		this.playerBitboards.put(Color.WHITE, new Bitboard());
+		this.playerBitboards.put(Color.BLACK, new Bitboard());
 		this.allPieces = new Bitboard();
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
 			Color color = entry1.getKey();
 			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
 				Bitboard bitboard = entry2.getValue();
-				if(color == Color.WHITE) {
-					this.whitePieces.data |= bitboard.data;
-					this.allPieces.data |= bitboard.data;
-				} else {
-					this.blackPieces.data |= bitboard.data;
-					this.allPieces.data |= bitboard.data;
-				}
+				this.playerBitboards.get(color).data |= bitboard.data;
+				this.allPieces.data |= bitboard.data;
 			}
 		}
 	}
@@ -422,8 +417,7 @@ public class Board {
 	private PositionHasher positionHasher = null;
 	
 	public Map<Color, Map<Piece, Bitboard>> bitboards = new HashMap<Color, Map<Piece, Bitboard>>();
-	public Bitboard whitePieces;
-	public Bitboard blackPieces;
+	public Map<Color, Bitboard> playerBitboards = new HashMap<Color, Bitboard>();
 	public Bitboard allPieces;
 	
 	// Convenience masks for castling

@@ -577,15 +577,9 @@ public class LegalMoveGenerator {
 		ArrayList<Move> oppLegalMovesCapture = new ArrayList<Move>();
 		ArrayList<Move> oppLegalMovesNoncapture = new ArrayList<Move>();
 		long myKings = board.bitboards.get(board.turn).get(Piece.KING).data;
-		long myPieces, oppPieces;
-		if(board.turn == Color.WHITE) {
-			myPieces = board.whitePieces.data;
-			oppPieces = board.blackPieces.data;
-		} else {
-			myPieces = board.blackPieces.data;
-			oppPieces = board.whitePieces.data;
-		}
 		Color turnFlipped = Color.flip(board.turn);
+		long myPieces = board.playerBitboards.get(board.turn).data;
+		long oppPieces = board.playerBitboards.get(turnFlipped).data;
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
 			if((oppPieces & (1L << i)) == 0) {
@@ -649,16 +643,9 @@ public class LegalMoveGenerator {
 		// destination)
 		ArrayList<Move> legalMovesCapture = new ArrayList<Move>();
 		ArrayList<Move> legalMovesNoncapture = new ArrayList<Move>();
-		
-		long myPieces, oppPieces;
-		if(board.turn == Color.WHITE) {
-			myPieces = board.whitePieces.data;
-			oppPieces = board.blackPieces.data;
-		} else {
-			myPieces = board.blackPieces.data;
-			oppPieces = board.whitePieces.data;
-		}
-		
+		Color turnFlipped = Color.flip(board.turn);
+		long myPieces = board.playerBitboards.get(board.turn).data;
+		long oppPieces = board.playerBitboards.get(turnFlipped).data;
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
 			// Pawns
