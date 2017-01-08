@@ -49,19 +49,18 @@ public class PositionHasher {
 		return this.getMask(Color.WHITE, Piece.PAWN, (byte)(index % 8));
 	}
 	
-	public long getMaskCastleRights(Map<Color, Boolean> castleRightKingside,
-			Map<Color, Boolean> castleRightQueenside) {
+	public long getMaskCastleRights(Map<Color, Map<Castle, Boolean>> castleRights) {
 		byte index = 0;
-		if(castleRightKingside.get(Color.WHITE)) {
+		if(castleRights.get(Color.WHITE).get(Castle.KINGSIDE)) {
 			index += 56;
 		}
-		if(castleRightQueenside.get(Color.WHITE)) {
+		if(castleRights.get(Color.WHITE).get(Castle.QUEENSIDE)) {
 			index += 4;
 		}
-		if(castleRightKingside.get(Color.BLACK)) {
+		if(castleRights.get(Color.BLACK).get(Castle.KINGSIDE)) {
 			index += 2;
 		}
-		if(castleRightQueenside.get(Color.BLACK)) {
+		if(castleRights.get(Color.BLACK).get(Castle.QUEENSIDE)) {
 			index++;
 		}
 		return this.getMask(Color.WHITE, Piece.PAWN, index);

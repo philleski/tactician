@@ -32,10 +32,12 @@ public class Board {
 		// If the last move was a double pawn move, this is the destination
 		// coordinate.
 		this.enPassantTarget = 0;
-		this.castleRightKingside.put(Color.WHITE, true);
-		this.castleRightQueenside.put(Color.WHITE, true);
-		this.castleRightKingside.put(Color.BLACK, true);
-		this.castleRightQueenside.put(Color.BLACK, true);
+		for(Color color : Color.values()) {
+			this.castleRights.put(color, new HashMap<Castle, Boolean>());
+			for(Castle castle : Castle.values()) {
+				this.castleRights.get(color).put(castle, true);
+			}
+		}
 		
 		this.setPositionHash();
 	}
@@ -56,10 +58,13 @@ public class Board {
 		
 		this.turn = other.turn;
 		this.enPassantTarget = other.enPassantTarget;
-		this.castleRightKingside.put(Color.WHITE, other.castleRightKingside.get(Color.WHITE));
-		this.castleRightQueenside.put(Color.WHITE, other.castleRightQueenside.get(Color.WHITE));
-		this.castleRightKingside.put(Color.BLACK, other.castleRightKingside.get(Color.BLACK));
-		this.castleRightQueenside.put(Color.BLACK, other.castleRightQueenside.get(Color.BLACK));
+		for(Color color : Color.values()) {
+			this.castleRights.put(color, new HashMap<Castle, Boolean>());
+			for(Castle castle : Castle.values()) {
+				this.castleRights.get(color).put(castle,
+						other.castleRights.get(color).get(castle));
+			}
+		}
 		this.kingIndex.put(Color.WHITE, other.kingIndex.get(Color.WHITE));
 		this.kingIndex.put(Color.BLACK, other.kingIndex.get(Color.BLACK));
 		// Keep the same object so that we don't have to reinitialize.
@@ -243,9 +248,9 @@ public class Board {
 		}
 		if(movedPiece == Piece.KING) {
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
-				this.castleRightKingside, this.castleRightQueenside);
-			this.castleRightKingside.put(this.turn, false);
-			this.castleRightQueenside.put(this.turn, false);
+				this.castleRights);
+			this.castleRights.get(this.turn).put(Castle.KINGSIDE, false);
+			this.castleRights.get(this.turn).put(Castle.QUEENSIDE, false);
 			if(move.source - 2 == move.destination) {
 				// Castle queenside
 				this.bitboards.get(this.turn).get(Piece.ROOK).data &=
@@ -265,7 +270,7 @@ public class Board {
 			}
 			this.kingIndex.put(this.turn, (int)move.destination);
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
-				this.castleRightKingside, this.castleRightQueenside);
+				this.castleRights);
 		} else if(movedPiece == Piece.PAWN) {
 			if(move.promoteTo != Piece.NOPIECE) {
 				this.bitboards.get(this.turn).get(Piece.PAWN).data &= ~(destinationMask ^ 0);
@@ -281,14 +286,14 @@ public class Board {
 			}
 		} else if(movedPiece == Piece.ROOK) {
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
-				this.castleRightKingside, this.castleRightQueenside);
+				this.castleRights);
 			if(move.source == rookQueensideSource) {
-				this.castleRightQueenside.put(this.turn, false);
+				this.castleRights.get(this.turn).put(Castle.QUEENSIDE, false);
 			} else if(move.source == rookKingsideSource) {
-				this.castleRightKingside.put(this.turn, false);
+				this.castleRights.get(this.turn).put(Castle.KINGSIDE, false);
 			}
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
-				this.castleRightKingside, this.castleRightQueenside);
+				this.castleRights);
 		} 
 		
 		this.turn = Color.flip(this.turn);
@@ -357,21 +362,23 @@ public class Board {
 		}
 		
 		String castling = parts[2];
-		this.castleRightKingside.put(Color.WHITE, false);
-		this.castleRightQueenside.put(Color.WHITE, false);
-		this.castleRightKingside.put(Color.BLACK, false);
-		this.castleRightQueenside.put(Color.BLACK, false);
+		for(Color color : Color.values()) {
+			this.castleRights.put(color, new HashMap<Castle, Boolean>());
+			for(Castle castle : Castle.values()) {
+				this.castleRights.get(color).put(castle, false);
+			}
+		}
 		if(castling.contains("K")) {
-			this.castleRightKingside.put(Color.WHITE, true);
+			this.castleRights.get(Color.WHITE).put(Castle.KINGSIDE, true);
 		}
 		if(castling.contains("Q")) {
-			this.castleRightQueenside.put(Color.WHITE, true);
+			this.castleRights.get(Color.WHITE).put(Castle.QUEENSIDE, true);
 		}
 		if(castling.contains("k")) {
-			this.castleRightKingside.put(Color.BLACK, true);
+			this.castleRights.get(Color.BLACK).put(Castle.KINGSIDE, true);
 		}
 		if(castling.contains("q")) {
-			this.castleRightQueenside.put(Color.BLACK, true);
+			this.castleRights.get(Color.BLACK).put(Castle.QUEENSIDE, true);
 		}
 		
 		String enPassantTarget = parts[3];
@@ -409,7 +416,7 @@ public class Board {
 			this.positionHash ^= this.positionHasher.getMaskTurn();
 		}
 		this.positionHash ^= this.positionHasher.getMaskCastleRights(
-			this.castleRightKingside, this.castleRightQueenside);
+			this.castleRights);
 	}
 
 	private static LegalMoveGenerator legalMoveGenerator = new LegalMoveGenerator();
@@ -436,8 +443,8 @@ public class Board {
 	// If the last move was a double pawn move, this is the destination
 	// coordinate.
 	public long enPassantTarget = 0;
-	public Map<Color, Boolean> castleRightKingside = new HashMap<Color, Boolean>();
-	public Map<Color, Boolean> castleRightQueenside = new HashMap<Color, Boolean>();
+	public Map<Color, Map<Castle, Boolean>> castleRights =
+			new HashMap<Color, Map<Castle, Boolean>>();
 	
 	// This is used for the transposition tables.
 	public long positionHash = 0;
