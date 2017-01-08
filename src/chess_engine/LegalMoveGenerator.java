@@ -318,137 +318,105 @@ public class LegalMoveGenerator {
 		long oppPieces = board.playerBitboards.get(turnFlipped).data;
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
-			// Pawns
 			if((myPieces & mask) == 0) {
 				continue;
 			}
 			if((board.bitboards.get(board.turn).get(Piece.PAWN).data & mask) != 0) {
+				boolean isOnFileLeft = (i % 8 == 0);
+				boolean isOnFileRight = (i % 8 == 7);
+				boolean isOnHomeRank;
+				boolean isPromotable;
+				byte indexAdvancedOneRow;
+				byte indexAdvancedOneRowLeft;
+				byte indexAdvancedOneRowRight;
+				byte indexAdvancedTwoRows;
+				long maskAdvancedOneRow;
+				long maskAdvancedOneRowLeft;
+				long maskAdvancedOneRowRight;
+				long maskAdvancedTwoRows;
 				if(board.turn == Color.WHITE) {
-					// One space forward
-					if(((mask << 8) & board.allPieces.data) == 0) {
-						if(mask >>> 48 == 0) {
-							legalMovesNoncapture.add(new Move(i, (byte)(i + 8)));
-						}
-						else {
-							legalMovesNoncapture.add(new Move(i, (byte)(i + 8),
-									Piece.QUEEN));
-							legalMovesNoncapture.add(new Move(i, (byte)(i + 8),
-									Piece.KNIGHT));
-							legalMovesNoncapture.add(new Move(i, (byte)(i + 8),
-									Piece.ROOK));
-							legalMovesNoncapture.add(new Move(i, (byte)(i + 8),
-									Piece.BISHOP));
-						}
-					}
-					// Two spaces forward
-					if(i < 16 && ((mask << 8) & board.allPieces.data) == 0 &&
-						((mask << 16) & board.allPieces.data) == 0) {
-						legalMovesNoncapture.add(new Move(i, (byte)(i + 16)));
-					}
-					// Capture left
-					if(i % 8 != 0 && ((mask << 7) & oppPieces) != 0) {
-						if(mask >>> 48 == 0) {
-							legalMovesCapture.add(new Move(i, (byte)(i + 7)));
-						}
-						else {
-							legalMovesCapture.add(new Move(i, (byte)(i + 7),
-									Piece.QUEEN));
-							legalMovesCapture.add(new Move(i, (byte)(i + 7),
-									Piece.KNIGHT));
-							legalMovesCapture.add(new Move(i, (byte)(i + 7),
-									Piece.ROOK));
-							legalMovesCapture.add(new Move(i, (byte)(i + 7),
-									Piece.BISHOP));
-						}
-					}
-					// Capture right
-					if(i % 8 != 7 && ((mask << 9) & oppPieces) != 0) {
-						if(mask >>> 48 == 0) {
-							legalMovesCapture.add(new Move(i, (byte)(i + 9)));
-						}
-						else {
-							legalMovesCapture.add(new Move(i, (byte)(i + 9),
-									Piece.QUEEN));
-							legalMovesCapture.add(new Move(i, (byte)(i + 9),
-									Piece.KNIGHT));
-							legalMovesCapture.add(new Move(i, (byte)(i + 9),
-									Piece.ROOK));
-							legalMovesCapture.add(new Move(i, (byte)(i + 9),
-									Piece.BISHOP));
-						}
-					}
-					// En passant
-					if(board.enPassantTarget != 0) {
-						if(i % 8 != 0 && mask << 7 == board.enPassantTarget) {
-							legalMovesCapture.add(new Move(i, (byte)(i + 7)));
-						}
-						if(i % 8 != 7 && mask << 9 == board.enPassantTarget) {
-							legalMovesCapture.add(new Move(i, (byte)(i + 9)));
-						}
+					isOnHomeRank = (mask >>> 16 == 0);
+					isPromotable = (mask >>> 48 != 0);
+					indexAdvancedOneRow = (byte)(i + 8);
+					indexAdvancedOneRowLeft = (byte)(i + 7);
+					indexAdvancedOneRowRight = (byte)(i + 9);
+					indexAdvancedTwoRows = (byte)(i + 16);
+					maskAdvancedOneRow = mask << 8;
+					maskAdvancedOneRowLeft = mask << 7;
+					maskAdvancedOneRowRight = mask << 9;
+					maskAdvancedTwoRows = mask << 16;
+				} else {
+					isOnHomeRank = (mask >>> 48 != 0);
+					isPromotable = (mask >>> 16 == 0);
+					indexAdvancedOneRow = (byte)(i - 8);
+					indexAdvancedOneRowLeft = (byte)(i - 9);
+					indexAdvancedOneRowRight = (byte)(i - 7);
+					indexAdvancedTwoRows = (byte)(i - 16);
+					maskAdvancedOneRow = mask >>> 8;
+					maskAdvancedOneRowLeft = mask >>> 9;
+					maskAdvancedOneRowRight = mask >>> 7;
+					maskAdvancedTwoRows = mask >>> 16;
+				}
+				// One space forward
+				if((maskAdvancedOneRow & board.allPieces.data) == 0) {
+					if(!isPromotable) {
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRow));
+					} else {
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRow, Piece.QUEEN));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRow, Piece.KNIGHT));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRow, Piece.ROOK));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRow, Piece.BISHOP));
 					}
 				}
-				else {
-					// One space forward
-					if(((mask >>> 8) & board.allPieces.data) == 0) {
-						if(mask >>> 16 != 0) {
-							legalMovesNoncapture.add(new Move(i, (byte)(i - 8)));
-						}
-						else {
-							legalMovesNoncapture.add(new Move(i, (byte)(i - 8),
-									Piece.QUEEN));
-							legalMovesNoncapture.add(new Move(i, (byte)(i - 8),
-									Piece.KNIGHT));
-							legalMovesNoncapture.add(new Move(i, (byte)(i - 8),
-									Piece.ROOK));
-							legalMovesNoncapture.add(new Move(i, (byte)(i - 8),
-									Piece.BISHOP));
-						}
+				// Two spaces forward
+				if(isOnHomeRank && (maskAdvancedOneRow & board.allPieces.data) == 0 &&
+						(maskAdvancedTwoRows & board.allPieces.data) == 0) {
+					legalMovesNoncapture.add(new Move(i, indexAdvancedTwoRows));
+				}
+				// Capture left
+				if(!isOnFileLeft && (maskAdvancedOneRowLeft & oppPieces) != 0) {
+					if(!isPromotable) {
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowLeft));
+					} else {
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowLeft, Piece.QUEEN));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowLeft, Piece.KNIGHT));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowLeft, Piece.ROOK));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowLeft, Piece.BISHOP));
 					}
-					// Two spaces forward
-					if(i >= 48 && ((mask >>> 8) & board.allPieces.data) == 0 &&
-						((mask >>> 16) & board.allPieces.data) == 0) {
-						legalMovesNoncapture.add(new Move(i, (byte)(i - 16)));
+				}
+				// Capture right
+				if(!isOnFileRight && (maskAdvancedOneRowRight & oppPieces) != 0) {
+					if(!isPromotable) {
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowRight));
+					} else {
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowRight, Piece.QUEEN));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowRight, Piece.KNIGHT));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowRight, Piece.ROOK));
+						legalMovesNoncapture.add(
+								new Move(i, indexAdvancedOneRowRight, Piece.BISHOP));
 					}
-					// Capture left
-					if(i % 8 != 0 && ((mask >>> 9) & oppPieces) != 0) {
-						if(mask >>> 16 != 0) {
-							legalMovesCapture.add(new Move(i, (byte)(i - 9)));
-						}
-						else {
-							legalMovesCapture.add(new Move(i, (byte)(i - 9),
-									Piece.QUEEN));
-							legalMovesCapture.add(new Move(i, (byte)(i - 9),
-									Piece.KNIGHT));
-							legalMovesCapture.add(new Move(i, (byte)(i - 9),
-									Piece.ROOK));
-							legalMovesCapture.add(new Move(i, (byte)(i - 9),
-									Piece.BISHOP));
-						}
+				}
+				// En passant
+				if(board.enPassantTarget != 0) {
+					if(!isOnFileLeft && maskAdvancedOneRowLeft == board.enPassantTarget) {
+						legalMovesCapture.add(new Move(i, indexAdvancedOneRowLeft));
 					}
-					// Capture right
-					if(i % 8 != 7 && ((mask >>> 7) & oppPieces) != 0) {
-						if(mask >>> 16 != 0) {
-							legalMovesCapture.add(new Move(i, (byte)(i - 7)));
-						}
-						else {
-							legalMovesCapture.add(new Move(i, (byte)(i - 7),
-									Piece.QUEEN));
-							legalMovesCapture.add(new Move(i, (byte)(i - 7),
-									Piece.KNIGHT));
-							legalMovesCapture.add(new Move(i, (byte)(i - 7),
-									Piece.ROOK));
-							legalMovesCapture.add(new Move(i, (byte)(i - 7),
-									Piece.BISHOP));
-						}
-					}
-					// En passant
-					if(board.enPassantTarget != 0) {
-						if(i % 8 != 0 && mask >>> 9 == board.enPassantTarget) {
-							legalMovesCapture.add(new Move(i, (byte)(i - 9)));
-						}
-						if(i % 8 != 7 && mask >>> 7 == board.enPassantTarget) {
-							legalMovesCapture.add(new Move(i, (byte)(i - 7)));
-						}
+					if(!isOnFileRight && maskAdvancedOneRowRight == board.enPassantTarget) {
+						legalMovesCapture.add(new Move(i, indexAdvancedOneRowRight));
 					}
 				}
 			}
