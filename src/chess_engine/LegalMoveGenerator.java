@@ -6,41 +6,41 @@ import java.util.Map;
 
 public class LegalMoveGenerator {
 	public LegalMoveGenerator() {
-		this.maskCastleSpace.put(Castle.KINGSIDE, new HashMap<Color, Long>());
-		this.maskCastleSpace.put(Castle.QUEENSIDE, new HashMap<Color, Long>());
-		this.maskCastlePawns.put(Castle.KINGSIDE, new HashMap<Color, Long>());
-		this.maskCastlePawns.put(Castle.QUEENSIDE, new HashMap<Color, Long>());
-		this.maskCastleKnights.put(Castle.KINGSIDE, new HashMap<Color, Long>());
-		this.maskCastleKnights.put(Castle.QUEENSIDE, new HashMap<Color, Long>());
+		this.maskCastleSpace.put(Color.WHITE, new HashMap<Castle, Long>());
+		this.maskCastlePawns.put(Color.WHITE, new HashMap<Castle, Long>());
+		this.maskCastleKnights.put(Color.WHITE, new HashMap<Castle, Long>());
+		this.maskCastleSpace.put(Color.BLACK, new HashMap<Castle, Long>());
+		this.maskCastlePawns.put(Color.BLACK, new HashMap<Castle, Long>());
+		this.maskCastleKnights.put(Color.BLACK, new HashMap<Castle, Long>());
 		
-		this.maskCastleSpace.get(Castle.KINGSIDE).put(Color.WHITE,
+		this.maskCastleSpace.get(Color.WHITE).put(Castle.KINGSIDE,
 			notationHelper.generateMask("f1", "g1"));
-		this.maskCastleSpace.get(Castle.QUEENSIDE).put(Color.WHITE,
+		this.maskCastleSpace.get(Color.WHITE).put(Castle.QUEENSIDE,
 			notationHelper.generateMask("b1", "c1", "d1"));
-		this.maskCastleSpace.get(Castle.KINGSIDE).put(Color.BLACK,
-			Bitboard.flip(this.maskCastleSpace.get(Castle.KINGSIDE).get(Color.WHITE)));
-		this.maskCastleSpace.get(Castle.QUEENSIDE).put(Color.BLACK,
-			Bitboard.flip(this.maskCastleSpace.get(Castle.QUEENSIDE).get(Color.WHITE)));
+		this.maskCastleSpace.get(Color.BLACK).put(Castle.KINGSIDE,
+			Bitboard.flip(this.maskCastleSpace.get(Color.WHITE).get(Castle.KINGSIDE)));
+		this.maskCastleSpace.get(Color.BLACK).put(Castle.QUEENSIDE,
+			Bitboard.flip(this.maskCastleSpace.get(Color.WHITE).get(Castle.QUEENSIDE)));
 		
-		this.maskCastlePawns.get(Castle.KINGSIDE).put(Color.WHITE,
+		this.maskCastlePawns.get(Color.WHITE).put(Castle.KINGSIDE,
 			notationHelper.generateMask("d2", "e2", "f2", "g2"));
-		this.maskCastlePawns.get(Castle.QUEENSIDE).put(Color.WHITE,
+		this.maskCastlePawns.get(Color.WHITE).put(Castle.QUEENSIDE,
 			notationHelper.generateMask("b2", "c2", "d2", "e2", "f2"));
-		this.maskCastlePawns.get(Castle.KINGSIDE).put(Color.BLACK,
-			Bitboard.flip(this.maskCastlePawns.get(Castle.KINGSIDE).get(Color.WHITE)));
-		this.maskCastlePawns.get(Castle.QUEENSIDE).put(Color.BLACK,
-			Bitboard.flip(this.maskCastlePawns.get(Castle.QUEENSIDE).get(Color.WHITE)));
+		this.maskCastlePawns.get(Color.BLACK).put(Castle.KINGSIDE,
+			Bitboard.flip(this.maskCastlePawns.get(Color.WHITE).get(Castle.KINGSIDE)));
+		this.maskCastlePawns.get(Color.BLACK).put(Castle.QUEENSIDE,
+			Bitboard.flip(this.maskCastlePawns.get(Color.WHITE).get(Castle.QUEENSIDE)));
 			
-		this.maskCastleKnights.get(Castle.KINGSIDE).put(Color.WHITE,
+		this.maskCastleKnights.get(Color.WHITE).put(Castle.KINGSIDE,
 			notationHelper.generateMask("c2", "d3", "f3", "g2", "d3", "e3",
 				"g3", "h2"));
-		this.maskCastleKnights.get(Castle.QUEENSIDE).put(Color.WHITE,
+		this.maskCastleKnights.get(Color.WHITE).put(Castle.QUEENSIDE,
 			notationHelper.generateMask("b2", "c3", "e3", "f2", "c2", "d3",
 				"f3", "g2"));
-		this.maskCastleKnights.get(Castle.KINGSIDE).put(Color.BLACK,
-			Bitboard.flip(this.maskCastleKnights.get(Castle.KINGSIDE).get(Color.WHITE)));
-		this.maskCastleKnights.get(Castle.QUEENSIDE).put(Color.BLACK,
-			Bitboard.flip(this.maskCastleKnights.get(Castle.QUEENSIDE).get(Color.WHITE)));
+		this.maskCastleKnights.get(Color.BLACK).put(Castle.KINGSIDE,
+			Bitboard.flip(this.maskCastleKnights.get(Color.WHITE).get(Castle.KINGSIDE)));
+		this.maskCastleKnights.get(Color.BLACK).put(Castle.QUEENSIDE,
+			Bitboard.flip(this.maskCastleKnights.get(Color.WHITE).get(Castle.QUEENSIDE)));
 		
 		this.addCastleRayStraight(Color.WHITE, Castle.KINGSIDE, "d1", "a1", -1);
 		this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "d2", "a5", 7);
@@ -202,11 +202,11 @@ public class LegalMoveGenerator {
 		long oppPiecesStraight = board.bitboards.get(turnFlipped).get(Piece.ROOK).data &
 				board.bitboards.get(turnFlipped).get(Piece.QUEEN).data;
 		if((board.bitboards.get(turnFlipped).get(Piece.PAWN).data &
-				this.maskCastlePawns.get(castle).get(board.turn)) != 0) {
+				this.maskCastlePawns.get(board.turn).get(castle)) != 0) {
 			return false;
 		}
 		if((board.bitboards.get(turnFlipped).get(Piece.KNIGHT).data &
-				this.maskCastleKnights.get(castle).get(board.turn)) != 0) {
+				this.maskCastleKnights.get(board.turn).get(castle)) != 0) {
 			return false;
 		}
 		for(CastleRay castleRay : this.castleRaysDiagonal.get(board.turn).get(castle)) {
@@ -470,7 +470,7 @@ public class LegalMoveGenerator {
 		if(!capturesOnly) {
 			if(board.turn == Color.WHITE) {
 				if(board.castleRightKingside.get(Color.WHITE)) {
-					if((board.allPieces.data & this.maskCastleSpace.get(Castle.KINGSIDE).get(board.turn)) == 0) {
+					if((board.allPieces.data & this.maskCastleSpace.get(board.turn).get(Castle.KINGSIDE)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE)) {
 							// e1-g1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)6));
@@ -478,7 +478,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.castleRightQueenside.get(Color.WHITE)) {
-					if((board.allPieces.data & this.maskCastleSpace.get(Castle.QUEENSIDE).get(board.turn)) == 0) {
+					if((board.allPieces.data & this.maskCastleSpace.get(board.turn).get(Castle.QUEENSIDE)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE)) {
 							// e1-c1
 							legalMovesNoncapture.add(new Move((byte)4, (byte)2));
@@ -488,7 +488,7 @@ public class LegalMoveGenerator {
 			}
 			else {
 				if(board.castleRightKingside.get(Color.BLACK)) {
-					if((board.allPieces.data & this.maskCastleSpace.get(Castle.KINGSIDE).get(board.turn)) == 0) {
+					if((board.allPieces.data & this.maskCastleSpace.get(board.turn).get(Castle.KINGSIDE)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.KINGSIDE)) {
 							// e8-g8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)62));
@@ -496,7 +496,7 @@ public class LegalMoveGenerator {
 					}
 				}
 				if(board.castleRightQueenside.get(Color.BLACK)) {
-					if((board.allPieces.data & this.maskCastleSpace.get(Castle.QUEENSIDE).get(board.turn)) == 0) {
+					if((board.allPieces.data & this.maskCastleSpace.get(board.turn).get(Castle.QUEENSIDE)) == 0) {
 						if(this.verifyCastleCheckRule(board, Castle.QUEENSIDE)) {
 							// e8-c8
 							legalMovesNoncapture.add(new Move((byte)60, (byte)58));
@@ -538,12 +538,12 @@ public class LegalMoveGenerator {
 	
 	private static NotationHelper notationHelper = new NotationHelper();
 	
-	private Map<Castle, Map<Color, Long>> maskCastleSpace =
-			new HashMap<Castle, Map<Color, Long>>();
-	private Map<Castle, Map<Color, Long>> maskCastlePawns =
-			new HashMap<Castle, Map<Color, Long>>();
-	private Map<Castle, Map<Color, Long>> maskCastleKnights =
-			new HashMap<Castle, Map<Color, Long>>();
+	private Map<Color, Map<Castle, Long>> maskCastleSpace =
+			new HashMap<Color, Map<Castle, Long>>();
+	private Map<Color, Map<Castle, Long>> maskCastlePawns =
+			new HashMap<Color, Map<Castle, Long>>();
+	private Map<Color, Map<Castle, Long>> maskCastleKnights =
+			new HashMap<Color, Map<Castle, Long>>();
 	
 	private Map<Color, Map<Castle, ArrayList<CastleRay>>> castleRaysDiagonal =
 			new HashMap<Color, Map<Castle, ArrayList<CastleRay>>>();
