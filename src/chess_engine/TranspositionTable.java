@@ -1,12 +1,10 @@
 package chess_engine;
 
 public class TranspositionTable {
-	// TODO - Refactor these into their own files.
-	// https://chessprogramming.wikispaces.com/Node+Types#PV
 	public enum TranspositionType {
-		NODE_EXACT,
-		NODE_ALPHA,
-		NODE_BETA
+		NODE_PV,
+		NODE_CUT,
+		NODE_ALL
 	}
 	
 	public class TranspositionEntry {
@@ -14,17 +12,27 @@ public class TranspositionTable {
 		}
 		
 		public TranspositionEntry(int depth, long positionHash,
-				float fitness, TranspositionType type) {
+				float fitness, Move bestMove, TranspositionType type) {
 			this.depth = depth;
 			this.positionHash = positionHash;
 			this.fitness = fitness;
+			this.bestMove = bestMove;
 			this.type = type;
+		}
+		
+		public String toString() {
+			String result = "Depth=" + this.depth + ", ";
+			result += "Fitness=" + this.fitness + ", ";
+			result += "BestMove=" + this.bestMove + ", ";
+			result += "Type=" + this.type;
+			return result;
 		}
 		
 		public int depth = 0;
 		public long positionHash = 0;
 		public float fitness = 0;
 		public TranspositionType type = null;
+		public Move bestMove = null;
 	}
 	
 	// Note: The size is in number of entries, not in bytes.
@@ -41,10 +49,12 @@ public class TranspositionTable {
 		return ((int)positionHash & 0x7fffffff) % this.size;
 	}
 	
-	public void put(int depth, long positionHash, float fitness, TranspositionType type) {
+	public void put(int depth, long positionHash, float fitness, Move bestMove,
+			TranspositionType type) {
 		// Assume we won't store more than MAX_INT entries.
 		this.data[this.index(positionHash)] =
-				new TranspositionEntry(depth, positionHash, fitness, type);
+				new TranspositionEntry(depth, positionHash, fitness, bestMove,
+						type);
 	}
 	
 	public TranspositionEntry get(long positionHash) {

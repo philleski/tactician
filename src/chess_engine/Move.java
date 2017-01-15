@@ -35,6 +35,19 @@ public class Move {
 		this.promoteTo = promoteTo;
 	}
 	
+	public boolean equals(Move other) {
+		if(this.source != other.source) {
+			return false;
+		}
+		if(this.destination != other.destination) {
+			return false;
+		}
+		if(this.promoteTo != other.promoteTo) {
+			return false;
+		}
+		return true;
+	}
+	
 	public String toString() {
 		String sourceStr = NotationHelper.indexToSquare(this.source);
 		String destinationStr = NotationHelper.indexToSquare(this.destination);

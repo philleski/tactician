@@ -72,7 +72,7 @@ public class Brain {
 		return rankFitness + fileFitness;
 	}
 	
-	private float fitness(Board board) {
+	public float fitness(Board board) {
 		float fitness = 0;
 		Color turnFlipped = Color.flip(board.turn);
 		for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
@@ -124,194 +124,110 @@ public class Brain {
 		return fitness;
 	}
 	
-	private float probeCapture(Board board, byte target) {
+	private float quiescentSearch(Board board, float alpha, float beta, long target) {
+		// http://chessprogramming.wikispaces.com/Quiescence+Search
+		float fitness = this.fitness(board);
+		if(fitness >= beta) {
+			return beta;
+		}
+		if(fitness > alpha) {
+			alpha = fitness;
+		}
 		ArrayList<Move> lmf = board.legalMovesFast(true);
-		float bestFitness = this.fitness(board);
-		Move candidateMove = null;
-		float candidateValue = this.FITNESS_LARGE;
 		for(Move move : lmf) {
-			if(move.destination != target) {
+			long moveTarget = 1L << move.destination;
+			if(target != -1 && moveTarget != target) {
+				// Only probe captures happening on the same square.
 				continue;
 			}
-			long sourceMask = 1L << move.source;
-			for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
-				Piece piece = entry.getKey();
-				if((sourceMask & board.bitboards.get(board.turn).get(piece).data) != 0) {
-					if(this.FITNESS_PIECE.get(piece) < candidateValue) {
-						candidateMove = move;
-						candidateValue = this.FITNESS_PIECE.get(piece);
-						break;
-					}
-				}
-			}
-		}
-		if(candidateMove != null) {
 			Board copy = new Board(board);
-			try {
-				copy.move(candidateMove);
-			}
-			catch(IllegalMoveException e) {
-			}
-			float candidateFitness = -this.probeCapture(copy, target);
-			if(candidateFitness > bestFitness) {
-				bestFitness = candidateFitness;
-			}
-		}
-		return bestFitness;
-	}
-
-	private float alphabeta(Board board, int depth, float alpha, float beta) {
-		// http://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
-		if(depth == 0) {
-			TranspositionTable.TranspositionEntry entry =
-					this.transpositionTable.get(board.positionHash);
-			if(entry != null && entry.depth == 0) {
-				return entry.fitness;
-			}
-			float fitness = this.fitness(board);
-			this.transpositionTable.put(depth, board.positionHash,
-					fitness,
-					TranspositionTable.TranspositionType.NODE_EXACT);
-			return fitness;
-		}
-		float superlativeFitness = 0;
-		if(depth % 2 == 0) {
-			superlativeFitness = -FITNESS_LARGE;
-		}
-		else {
-			superlativeFitness = FITNESS_LARGE;
-		}
-				
-		// Check for stalemate or checkmate.
-		ArrayList<Move> lmf = board.legalMovesFast(false);
-		if(lmf.size() <= 8) {
-			boolean isMate = true;
-			for(Move move : lmf) {
-				if(((1L << move.source) &
-						board.bitboards.get(board.turn).get(Piece.KING).data) == 0) {
-					isMate = false;
-					break;
-				}
-			}
-			if(isMate) {
-				if(board.isInCheck()) {
-					// Checkmate
-					return -FITNESS_LARGE;
-				}
-				else {
-					// Stalemate
-					return 0;
-				}
-			}
-		}
-		
-		boolean isCapture = false;
-		long superlativePositionHash = 0;
-		for(Move move : lmf) {
-			Board copy = new Board(board);
-			if(((1L << move.destination) & copy.allPieces.data) != 0) {
-				isCapture = true;
-			}
 			try {
 				copy.move(move);
 			}
 			catch(IllegalMoveException e) {
 			}
-			float fitness = 0;
-			TranspositionTable.TranspositionEntry entry =
-					this.transpositionTable.get(copy.positionHash);
-			boolean found = false;
-			if(entry != null && entry.depth == depth) {
-				if(entry.type == TranspositionTable.TranspositionType.NODE_EXACT) {
-					fitness = entry.fitness;
-					found = true;
-				}
-				else {
-					if(depth % 2 == 0) {
-						if(entry.type == TranspositionTable.TranspositionType.NODE_ALPHA) {
-							if(entry.fitness > alpha) {
-								alpha = entry.fitness;
-								if(superlativeFitness < alpha) {
-									superlativeFitness = entry.fitness;
-									superlativePositionHash = copy.positionHash;
-								}
-								found = true;
-							}
-						}
-					}
-					else {
-						if(entry.type == TranspositionTable.TranspositionType.NODE_BETA) {
-							if(entry.fitness < beta) {
-								beta = entry.fitness;
-								if(superlativeFitness > beta) {
-									superlativeFitness = entry.fitness;
-									superlativePositionHash = copy.positionHash;
-								}
-								found = true;
-							}
-						}
-					}
-				}
+			fitness = -this.quiescentSearch(copy, -beta, -alpha, moveTarget);
+			if(fitness >= beta) {
+				return beta;
 			}
-			if(!found) {
-				if(depth == 1 && isCapture) {
-					// This is to deal with the scenario where say the queen
-					// captures a heavily guarded pawn right when the depth
-					// expires.
-					fitness = this.probeCapture(copy, move.destination);
-				}
-				else {
-					fitness = this.alphabeta(copy, depth - 1, alpha, beta);
-				}
-			}
-			if(depth % 2 == 0 && fitness > superlativeFitness) {
-				superlativeFitness = fitness;
-				superlativePositionHash = copy.positionHash;
-				if(superlativeFitness > alpha) {
-					alpha = superlativeFitness;
-				}
-				if(beta <= alpha) {
-					break;
-				}
-			}
-			else if(depth % 2 == 1 && fitness < superlativeFitness) {
-				superlativeFitness = fitness;
-				superlativePositionHash = copy.positionHash;
-				if(superlativeFitness < beta) {
-					beta = superlativeFitness;
-				}
-				if(beta <= alpha) {
-					break;
-				}
+			if(fitness > alpha) {
+				alpha = fitness;
 			}
 		}
-		if(superlativeFitness < alpha) {
-			this.transpositionTable.put(depth, superlativePositionHash,
-					superlativeFitness,
-					TranspositionTable.TranspositionType.NODE_ALPHA);
-		}
-		else if(superlativeFitness > beta) {
-			this.transpositionTable.put(depth, superlativePositionHash,
-					superlativeFitness,
-					TranspositionTable.TranspositionType.NODE_BETA);
-		}
-		else {
-			this.transpositionTable.put(depth, superlativePositionHash,
-					superlativeFitness,
-					TranspositionTable.TranspositionType.NODE_EXACT);
-		}
-		return superlativeFitness;
+		return alpha;
 	}
 	
-	private Move getMoveToDepth(Board board, int depth) {
+	public float alphabeta(Board board, int depth, float alpha, float beta) {
+		// http://chessprogramming.wikispaces.com/Alpha-Beta
+		if(depth == 0) {
+			return this.quiescentSearch(board, alpha, beta, -1);
+		}
+		TranspositionTable.TranspositionEntry entry =
+				this.transpositionTable.get(board.positionHash);
+		Move lastBestMove = null;
+		if(entry != null) {
+			if(entry.depth == depth) {
+				if(entry.type == TranspositionTable.TranspositionType.NODE_PV) {
+					return entry.fitness;
+				} else if(entry.type == TranspositionTable.TranspositionType.NODE_CUT) {
+					beta = entry.fitness;
+				} else if(entry.type == TranspositionTable.TranspositionType.NODE_ALL) {
+					alpha = entry.fitness;
+				}
+				if(alpha >= beta) {
+					return entry.fitness;
+				}
+			}
+			lastBestMove = entry.bestMove;
+		}
+		ArrayList<Move> lmf = board.legalMovesFast(false);
+		if(lastBestMove != null) {
+			ArrayList<Move> lmf2 = new ArrayList<Move>();
+			boolean found = false;
+			for(Move move : lmf) {
+				if(move.equals(lastBestMove)) {
+					found = true;
+				} else {
+					lmf2.add(move);
+				}
+			}
+			if(found) {
+				lmf2.add(0, lastBestMove);
+				lmf = lmf2;
+			}
+		}
+		TranspositionTable.TranspositionType nodeType =
+				TranspositionTable.TranspositionType.NODE_ALL;
 		Move bestMove = null;
-		float superlativeFitness = 0;
-		if(depth % 2 == 0) {
-			superlativeFitness = -FITNESS_LARGE;
+		for(Move move : lmf) {
+			Board copy = new Board(board);
+			try {
+				copy.move(move);
+			}
+			catch(IllegalMoveException e) {
+			}
+			float fitness = -this.alphabeta(copy, depth - 1, -beta, -alpha);
+			if(fitness >= beta) {
+				this.transpositionTable.put(depth, board.positionHash,
+						beta, bestMove,
+						TranspositionTable.TranspositionType.NODE_CUT);
+				return beta;
+			}
+			if(fitness > alpha) {
+				nodeType = TranspositionTable.TranspositionType.NODE_PV;
+				bestMove = move;
+				alpha = fitness;
+			}
 		}
-		else {
-			superlativeFitness = FITNESS_LARGE;
-		}
+		this.transpositionTable.put(depth, board.positionHash, alpha, bestMove,
+				nodeType);
+		return alpha;
+	}
+	
+	public Move getMoveToDepth(Board board, int depth) {
+		Move bestMove = null;
+		float alpha = -FITNESS_LARGE;
+		float beta = FITNESS_LARGE;
 		for(Move move : board.legalMoves()) {
 			Board copy = new Board(board);
 			try {
@@ -319,17 +235,10 @@ public class Brain {
 			}
 			catch(IllegalMoveException e) {
 			}
-			float fitness = this.alphabeta(copy, depth - 1, -FITNESS_LARGE,
-					FITNESS_LARGE);
-			fitness += Math.random() * 0.01;
-			
-			if(depth % 2 == 0 && fitness > superlativeFitness) {
-				superlativeFitness = fitness;
+			float fitness = -this.alphabeta(copy, depth - 1, -beta, -alpha);
+			if(fitness > alpha) {
 				bestMove = move;
-			}
-			else if(depth % 2 == 1 && fitness < superlativeFitness) {
-				superlativeFitness = fitness;
-				bestMove = move;
+				alpha = fitness;
 			}
 		}
 		return bestMove;
@@ -337,13 +246,7 @@ public class Brain {
 	
 	public Move getMove(Board board) {
 		int depth = 0;
-		float endgameFraction = this.endgameFraction(board);
-		if(endgameFraction < 0.8) {
-			depth = 4;
-		}
-		else {
-			depth = 5;
-		}
+		depth = 4;
 		Move move = null;
 		for(int d = 1; d <= depth; d++) {
 			move = this.getMoveToDepth(board, d);

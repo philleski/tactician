@@ -112,4 +112,16 @@ public class TestBrain {
 		Move move = brain.getMove(board);
 		assertEquals(move.toString(), "b5c7");
 	}
+	
+	@Test
+	public void testFitness() throws IllegalMoveException {
+		Board board = new Board();
+		board.move(new Move("e2", "e4"));
+		board.move(new Move("d7", "d5"));
+		board.move(new Move("e4", "d5"));
+		Brain brain = new Brain();
+		assertTrue(brain.fitness(board) < 0);
+		board.move(new Move("h7", "h6"));
+		assertTrue(brain.fitness(board) > 0);
+	}
 }
