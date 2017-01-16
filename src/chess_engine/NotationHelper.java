@@ -33,7 +33,7 @@ public class NotationHelper {
 		return (byte)(63 - leadingZeros);
 	}
 	
-	public static String indexToSquare(byte index) {
+	public static String indexToSquare(int index) {
 		String file;
 		String rank;
 		file = "" + ((char)(index % 8 + 97));
@@ -208,7 +208,7 @@ public class NotationHelper {
 	}
 	
 	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves,
-			long pieceFamily, byte source, byte dest) {
+			long pieceFamily, int source, int dest) {
 		ArrayList<String> piecesToDest = new ArrayList<String>();
 		String sourceSquare = indexToSquare(source);
 		for(Move m : legalMoves) {

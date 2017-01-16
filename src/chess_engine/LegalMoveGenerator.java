@@ -83,6 +83,108 @@ public class LegalMoveGenerator {
 				new Move((byte)60, (byte)62));
 		this.castleMoves.get(Color.BLACK).put(Castle.QUEENSIDE,
 				new Move((byte)60, (byte)58));
+		
+		this.initAttackSquaresPawn(Color.WHITE);
+		this.initAttackSquaresPawn(Color.BLACK);
+		this.initAttackSquaresShortRange(this.attackSquaresKing,
+				new int[]{-9, -8, -7, -1, 1, 7, 8, 9});
+		this.initAttackSquaresShortRange(this.attackSquaresKnight,
+				new int[]{-17, -15, -10, -6, 6, 10, 15, 17});
+		this.initAttackSquaresLongRange(this.attackSquaresA1H8,
+				new int[]{-9, 9});
+		this.initAttackSquaresLongRange(this.attackSquaresA8H1,
+				new int[]{-7, 7});
+		this.initAttackSquaresLongRange(this.attackSquaresHorizontal,
+				new int[]{-1, 1});
+		this.initAttackSquaresLongRange(this.attackSquaresVertical,
+				new int[]{-8, 8});
+		for(int i = 0; i < 64; i++) {
+			this.attackSquaresBishop[i] = this.attackSquaresA1H8[i] |
+					this.attackSquaresA8H1[i];
+			this.attackSquaresRook[i] = this.attackSquaresHorizontal[i] |
+					this.attackSquaresVertical[i];
+			this.attackSquaresQueen[i] = this.attackSquaresBishop[i] |
+					this.attackSquaresRook[i];
+			this.attackSquaresPawnBlack[i] = this.attackSquaresPawnCaptureBlack[i] |
+					this.attackSquaresPawnMoveBlack[i];
+			this.attackSquaresPawnWhite[i] = this.attackSquaresPawnCaptureWhite[i] |
+					this.attackSquaresPawnMoveWhite[i];
+		}
+	}
+	
+	private void initAttackSquaresPawn(Color color) {
+		int start = 0;
+		int end = 64;
+		if(color == Color.WHITE) {
+			start = 8;
+		} else {
+			end = 56;
+		}
+		for(int i = start; i < end; i++) {
+			ArrayList<Integer> stepSizesMove = new ArrayList<Integer>();
+			ArrayList<Integer> stepSizesCapture = new ArrayList<Integer>();
+			if(color == Color.WHITE) {
+				stepSizesMove.add(8);
+				stepSizesCapture.add(7);
+				stepSizesCapture.add(9);
+				if(start < 16) {
+					stepSizesMove.add(16);
+				}
+			} else {
+				stepSizesMove.add(-8);
+				stepSizesCapture.add(-7);
+				stepSizesCapture.add(-9);
+				if(start >= 48) {
+					stepSizesMove.add(-16);
+				}
+			}
+			for(int stepSize : stepSizesMove) {
+				if(LegalMoveGenerator.inBounds(i, stepSize)) {
+					if(color == Color.WHITE) {
+						this.attackSquaresPawnMoveWhite[i] |=
+								1L << (i + stepSize);
+					} else {
+						this.attackSquaresPawnMoveBlack[i] |=
+								1L << (i + stepSize);
+					}
+				}
+			}
+			for(int stepSize : stepSizesCapture) {
+				if(LegalMoveGenerator.inBounds(i, stepSize)) {
+					if(color == Color.WHITE) {
+						this.attackSquaresPawnCaptureWhite[i] |=
+								1L << (i + stepSize);
+					} else {
+						this.attackSquaresPawnCaptureBlack[i] |=
+								1L << (i + stepSize);
+					}
+				}
+			}
+		}
+	}
+	
+	private void initAttackSquaresShortRange(long[] attackSquares,
+			int[] stepSizes) {
+		for(int i = 0; i < 64; i++) {
+			for(int stepSize : stepSizes) {
+				if(LegalMoveGenerator.inBounds(i, stepSize)) {
+					attackSquares[i] |= 1L << (i + stepSize);
+				}
+			}
+		}
+	}
+	
+	private void initAttackSquaresLongRange(long[] attackSquares,
+			int[] stepSizes) {
+		for(int i = 0; i < 64; i++) {
+			for(int stepSize : stepSizes) {
+				int position = i;
+				while(inBounds(position, stepSize)) {
+					position += stepSize;
+					attackSquares[i] |= 1L << position;
+				}
+			}
+		}
 	}
 	
 	public void addCastleRayDiagonal(Color color, Castle castle,
@@ -130,138 +232,220 @@ public class LegalMoveGenerator {
 		return true;
 	}
 	
-	private void appendLegalMovesForPieceLongRange(byte start,
-			long myPieces, long oppPieces, int[] stepSizes,
-			ArrayList<Move> legalMovesCapture,
-			ArrayList<Move> legalMovesNoncapture) {
-		for(int i = 0; i < stepSizes.length; i++) {
-			int position = start;
-			while(inBounds(position, stepSizes[i])) {
-				position += stepSizes[i];
-				if(((1L << position) & oppPieces) != 0) {
-					legalMovesCapture.add(new Move(start, (byte)position));
-					break;
+	// FIXME - refactor into attack squares
+	private void appendLegalMovesForPawn(Board board,
+			ArrayList<Move> legalMoves, boolean capturesOnly) {
+		long movers = board.bitboards.get(board.turn).get(Piece.PAWN).data;
+		long oppPieces = board.playerBitboards.get(Color.flip(board.turn)).data;
+		while(movers != 0) {
+			int moverIndex = Long.numberOfTrailingZeros(movers);
+			long mover = 1L << moverIndex;
+			movers ^= mover;
+			
+			boolean isOnFileLeft = (moverIndex % 8 == 0);
+			boolean isOnFileRight = (moverIndex % 8 == 7);
+			boolean isOnHomeRank;
+			boolean isPromotable;
+			int indexAdvancedOneRow;
+			int indexAdvancedOneRowLeft;
+			int indexAdvancedOneRowRight;
+			int indexAdvancedTwoRows;
+			long maskAdvancedOneRow;
+			long maskAdvancedOneRowLeft;
+			long maskAdvancedOneRowRight;
+			long maskAdvancedTwoRows;
+			if(board.turn == Color.WHITE) {
+				isOnHomeRank = (mover >>> 16 == 0);
+				isPromotable = (mover >>> 48 != 0);
+				indexAdvancedOneRow = moverIndex + 8;
+				indexAdvancedOneRowLeft = moverIndex + 7;
+				indexAdvancedOneRowRight = moverIndex + 9;
+				indexAdvancedTwoRows = moverIndex + 16;
+				maskAdvancedOneRow = mover << 8;
+				maskAdvancedOneRowLeft = mover << 7;
+				maskAdvancedOneRowRight = mover << 9;
+				maskAdvancedTwoRows = mover << 16;
+			} else {
+				isOnHomeRank = (mover >>> 48 != 0);
+				isPromotable = (mover >>> 16 == 0);
+				indexAdvancedOneRow = moverIndex - 8;
+				indexAdvancedOneRowLeft = moverIndex - 9;
+				indexAdvancedOneRowRight = moverIndex - 7;
+				indexAdvancedTwoRows = moverIndex - 16;
+				maskAdvancedOneRow = mover >>> 8;
+				maskAdvancedOneRowLeft = mover >>> 9;
+				maskAdvancedOneRowRight = mover >>> 7;
+				maskAdvancedTwoRows = mover >>> 16;
+			}
+			if(!capturesOnly) {
+				// One space forward
+				if((maskAdvancedOneRow & board.allPieces.data) == 0) {
+					if(!isPromotable) {
+						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow));
+					} else {
+						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.QUEEN));
+						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.KNIGHT));
+						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.ROOK));
+						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.BISHOP));
+					}
 				}
-				if(((1L << position) & myPieces) != 0) {
-					break;
+				// Two spaces forward
+				if(isOnHomeRank && (maskAdvancedOneRow & board.allPieces.data) == 0 &&
+						(maskAdvancedTwoRows & board.allPieces.data) == 0) {
+					legalMoves.add(new Move(moverIndex, indexAdvancedTwoRows));
 				}
-				legalMovesNoncapture.add(new Move(start, (byte)position));
+			}
+			// Capture left
+			if(!isOnFileLeft && (maskAdvancedOneRowLeft & oppPieces) != 0) {
+				if(!isPromotable) {
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft));
+				} else {
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.QUEEN));
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.KNIGHT));
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.ROOK));
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.BISHOP));
+				}
+			}
+			// Capture right
+			if(!isOnFileRight && (maskAdvancedOneRowRight & oppPieces) != 0) {
+				if(!isPromotable) {
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight));
+				} else {
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.QUEEN));
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.KNIGHT));
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.ROOK));
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.BISHOP));
+				}
+			}
+			// En passant
+			if(board.enPassantTarget != 0) {
+				if(!isOnFileLeft && maskAdvancedOneRowLeft == board.enPassantTarget) {
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft));
+				}
+				if(!isOnFileRight && maskAdvancedOneRowRight == board.enPassantTarget) {
+					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight));
+				}
 			}
 		}
 	}
 	
-	private boolean searchLegalMovesForPieceLongRange(byte start,
-			long myPieces, long oppPieces, long oppTarget, int[] stepSizes) {
-		for(int i = 0; i < stepSizes.length; i++) {
-			int position = start;
-			while(inBounds(position, stepSizes[i])) {
-				position += stepSizes[i];
-				if(((1L << position) & oppTarget) != 0) {
-					return true;
+	private void appendLegalMovesForLongRangePiece(Board board,
+			Piece piece, long[] attackSquaresTable, ArrayList<Move> legalMoves,
+			boolean capturesOnly) {
+		long movers = board.bitboards.get(board.turn).get(piece).data;
+		long myPieces = board.playerBitboards.get(board.turn).data;
+		while(movers != 0) {
+			int moverIndex = Long.numberOfTrailingZeros(movers);
+			long mover = 1L << moverIndex;
+			movers ^= mover;
+			long attackSquares = attackSquaresTable[moverIndex];
+			long incidentSquares = attackSquares & board.allPieces.data;
+			long incidentSquaresBefore = incidentSquares & (mover - 1L);
+			long incidentSquaresAfter = moverIndex == 63 ? 0L :
+				incidentSquares & ~(mover + mover - 1L);
+			int leadingZerosBefore = Long.numberOfLeadingZeros(
+				incidentSquaresBefore);
+			long incidentMaskBefore = leadingZerosBefore == 64 ? ~0L :
+				~((1L << (63 - leadingZerosBefore)) - 1L);
+			int trailingZerosAfter = Long.numberOfTrailingZeros(
+				incidentSquaresAfter);
+			long incidentMaskAfter =
+				(trailingZerosAfter == 0 || trailingZerosAfter >= 63) ? ~0L :
+				(1L << (trailingZerosAfter + 1)) - 1L;
+			attackSquares &= incidentMaskBefore;
+			attackSquares &= incidentMaskAfter;
+			while(attackSquares != 0) {
+				int attackSquareIndex = Long.numberOfTrailingZeros(attackSquares);
+				long attackSquare = 1L << attackSquareIndex;
+				attackSquares ^= attackSquare;
+				if((attackSquare & myPieces) != 0) {
+					continue;
 				}
-				if(((1L << position) & oppPieces) != 0) {
-					break;
+				if(capturesOnly && (attackSquare & board.allPieces.data) == 0) {
+					continue;
 				}
-				if(((1L << position) & myPieces) != 0) {
-					break;
-				}
+				legalMoves.add(new Move(moverIndex, attackSquareIndex));
 			}
 		}
-		return false;
 	}
 	
-	private void appendLegalMovesForPieceShortRange(byte start,
-			long myPieces, long oppPieces, int[] stepSizes,
-			ArrayList<Move> legalMovesCapture,
-			ArrayList<Move> legalMovesNoncapture) {
-		for(int i = 0; i < stepSizes.length; i++) {
-			if(!inBounds(start, stepSizes[i])) {
-				continue;
+	private void appendLegalMovesForBishop(Board board,
+			ArrayList<Move> legalMoves, boolean capturesOnly) {
+		this.appendLegalMovesForLongRangePiece(board, Piece.BISHOP,
+				this.attackSquaresA1H8, legalMoves, capturesOnly);
+		this.appendLegalMovesForLongRangePiece(board, Piece.BISHOP,
+				this.attackSquaresA8H1, legalMoves, capturesOnly);
+	}
+	
+	private void appendLegalMovesForQueen(Board board,
+			ArrayList<Move> legalMoves, boolean capturesOnly) {
+		this.appendLegalMovesForLongRangePiece(board, Piece.QUEEN,
+				this.attackSquaresA1H8, legalMoves, capturesOnly);
+		this.appendLegalMovesForLongRangePiece(board, Piece.QUEEN,
+				this.attackSquaresA8H1, legalMoves, capturesOnly);
+		this.appendLegalMovesForLongRangePiece(board, Piece.QUEEN,
+				this.attackSquaresHorizontal, legalMoves, capturesOnly);
+		this.appendLegalMovesForLongRangePiece(board, Piece.QUEEN,
+				this.attackSquaresVertical, legalMoves, capturesOnly);
+	}
+	
+	private void appendLegalMovesForRook(Board board,
+			ArrayList<Move> legalMoves, boolean capturesOnly) {
+		this.appendLegalMovesForLongRangePiece(board, Piece.ROOK,
+				this.attackSquaresHorizontal, legalMoves, capturesOnly);
+		this.appendLegalMovesForLongRangePiece(board, Piece.ROOK,
+				this.attackSquaresVertical, legalMoves, capturesOnly);
+	}
+	
+	private void appendLegalMovesForShortRangePiece(Board board,
+			Piece piece, long[] attackSquaresTable,
+			ArrayList<Move> legalMoves, boolean capturesOnly) {
+		long movers = board.bitboards.get(board.turn).get(piece).data;
+		while(movers != 0) {
+			int moverIndex = Long.numberOfTrailingZeros(movers);
+			long mover = 1L << moverIndex;
+			movers ^= mover;
+			long attackSquares = attackSquaresTable[moverIndex];
+			attackSquares &= ~board.playerBitboards.get(board.turn).data;
+			while(attackSquares != 0) {
+				int attackSquareIndex = Long.numberOfTrailingZeros(attackSquares);
+				long attackSquare = 1L << attackSquareIndex;
+				attackSquares ^= attackSquare;
+				if(capturesOnly && (attackSquare & board.allPieces.data) == 0) {
+					continue;
+				}
+				legalMoves.add(new Move(moverIndex, attackSquareIndex));
 			}
-			int position = start + stepSizes[i];
-			if(((1L << position) & oppPieces) != 0) {
-				legalMovesCapture.add(new Move(start, (byte)position));
-				continue;
-			}
-			if(((1L << position) & myPieces) != 0) {
-				continue;
-			}
-			legalMovesNoncapture.add(new Move(start, (byte)position));
 		}
 	}
 	
-	private boolean searchLegalMovesForPieceShortRange(byte start,
-			long myPieces, long oppTarget, int[] stepSizes) {
-		for(int i = 0; i < stepSizes.length; i++) {
-			if(!inBounds(start, stepSizes[i])) {
+	private void appendLegalMovesForKing(Board board,
+			ArrayList<Move> legalMoves, boolean capturesOnly) {
+		this.appendLegalMovesForShortRangePiece(board, Piece.KING,
+				this.attackSquaresKing, legalMoves, capturesOnly);
+	}
+	
+	private void appendLegalMovesForKnight(Board board,
+			ArrayList<Move> legalMoves, boolean capturesOnly) {
+		this.appendLegalMovesForShortRangePiece(board, Piece.KNIGHT,
+				this.attackSquaresKnight, legalMoves, capturesOnly);
+	}
+	
+	private ArrayList<Move> getLegalMovesForCastling(Board board) {
+		ArrayList<Move> result = new ArrayList<Move>();
+		for(Castle castle : Castle.values()) {
+			if(!board.castleRights.get(board.turn).get(castle)) {
 				continue;
 			}
-			int position = start + stepSizes[i];
-			if(((1L << position) & oppTarget) != 0) {
-				return true;
+			if((board.allPieces.data &
+					this.maskCastleSpace.get(board.turn).get(castle)) != 0) {
+				continue;
+			}
+			if(this.verifyCastleCheckRule(board, castle)) {
+				result.add(this.castleMoves.get(board.turn).get(castle));
 			}
 		}
-		return false;
-	}
-	
-	private void appendLegalMovesForPieceLongRangeDiagonal(byte start,
-			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
-			ArrayList<Move> legalMovesNoncapture) {
-		int[] stepSizes = {-9, -7, 7, 9};
-		this.appendLegalMovesForPieceLongRange(start, myPieces, oppPieces,
-			stepSizes, legalMovesCapture, legalMovesNoncapture);
-	}
-	
-	private boolean searchLegalMovesForPieceLongRangeDiagonal(byte start,
-			long myPieces, long oppPieces, long oppTarget) {
-		int[] stepSizes = {-9, -7, 7, 9};
-		return this.searchLegalMovesForPieceLongRange(start, myPieces,
-			oppPieces, oppTarget, stepSizes);
-	}
-	
-	private void appendLegalMovesForPieceLongRangeStraight(byte start,
-			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
-			ArrayList<Move> legalMovesNoncapture) {
-		int[] stepSizes = {-8, -1, 1, 8};
-		this.appendLegalMovesForPieceLongRange(start, myPieces, oppPieces,
-			stepSizes, legalMovesCapture, legalMovesNoncapture);
-	}
-	
-	private boolean searchLegalMovesForPieceLongRangeStraight(byte start,
-			long myPieces, long oppPieces, long oppTarget) {
-		int[] stepSizes = {-8, -1, 1, 8};
-		return this.searchLegalMovesForPieceLongRange(start, myPieces,
-			oppPieces, oppTarget, stepSizes);
-	}
-	
-	private void appendLegalMovesForKnight(byte start, long myPieces,
-			long oppPieces, ArrayList<Move> legalMovesCapture,
-			ArrayList<Move> legalMovesNoncapture) {
-		int[] stepSizes = {-17, -15, -10, -6, 6, 10, 15, 17};
-		this.appendLegalMovesForPieceShortRange(start, myPieces, oppPieces,
-			stepSizes, legalMovesCapture, legalMovesNoncapture);
-	}
-	
-	private boolean searchLegalMovesForKnight(byte start, long myPieces,
-			long oppTarget) {
-		int[] stepSizes = {-17, -15, -10, -6, 6, 10, 15, 17};
-		return this.searchLegalMovesForPieceShortRange(start, myPieces,
-			oppTarget, stepSizes);
-	}
-	
-	private void appendLegalMovesForKing(byte start, long myPieces,
-			long oppPieces, ArrayList<Move> legalMovesCapture,
-			ArrayList<Move> legalMovesNoncapture) {
-		int[] stepSizes = {-9, -8, -7, -1, 1, 7, 8, 9};
-		this.appendLegalMovesForPieceShortRange(start, myPieces, oppPieces,
-			stepSizes, legalMovesCapture, legalMovesNoncapture);
-	}
-	
-	private boolean searchLegalMovesForKing(byte start, long myPieces,
-			long oppTarget) {
-		int[] stepSizes = {-9, -8, -7, -1, 1, 7, 8, 9};
-		return this.searchLegalMovesForPieceShortRange(start, myPieces,
-			oppTarget, stepSizes);
+		return result;
 	}
 	
 	private boolean verifyCastleCheckRule(Board board, Castle castle) {
@@ -306,64 +490,26 @@ public class LegalMoveGenerator {
 		// the player's king. Also to speed things up not all of them are
 		// actually legal, but the ones that aren't wouldn't be able to capture
 		// the player's king anyway.
-		Color turnFlipped = Color.flip(board.turn);
+		ArrayList<Move> legalMoves = new ArrayList<Move>();
 		long myKings = board.bitboards.get(board.turn).get(Piece.KING).data;
-		long myPieces = board.playerBitboards.get(board.turn).data;
-		long oppPieces = board.playerBitboards.get(turnFlipped).data;
-		for(byte i = 0; i < 64; i++) {
-			long mask = 1L << i;
-			if((oppPieces & (1L << i)) == 0) {
-				continue;
-			}
-			if((board.bitboards.get(turnFlipped).get(Piece.PAWN).data & mask) != 0) {
-				if(board.turn == Color.WHITE) {
-					// Look at the black player's pawns.
-					if(i % 8 != 0 && ((1L << (i - 9)) & myKings) != 0) {
-						return true;
-					}
-					if(i % 8 != 7 && ((1L << (i - 7)) & myKings) != 0) {
-						return true;
-					}
-				}
-				else {
-					// Look at the white player's pawns.
-					if(i % 8 != 0 && ((1L << (i + 7)) & myKings) != 0) {
-						return true;
-					}
-					if(i % 8 != 7 && ((1L << (i + 9)) & myKings) != 0) {
-						return true;
-					}
-				}
-			}
-			else if((board.bitboards.get(turnFlipped).get(Piece.BISHOP).data & mask) != 0) {
-				if(this.searchLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces, myKings)) {
-					return true;
-				}
-			}
-			else if((board.bitboards.get(turnFlipped).get(Piece.ROOK).data & mask) != 0) {
-				if(this.searchLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces, myKings)) {
-					return true;
-				}
-			}
-			else if((board.bitboards.get(turnFlipped).get(Piece.QUEEN).data & mask) != 0) {
-				if(this.searchLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces, myKings)) {
-					return true;
-				}
-				if(this.searchLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces, myKings)) {
-					return true;
-				}
-			}
-			else if((board.bitboards.get(turnFlipped).get(Piece.KNIGHT).data & mask) != 0) {
-				if(this.searchLegalMovesForKnight(i, oppPieces, myKings)) {
-					return true;
-				}
-			}
-			else if((board.bitboards.get(turnFlipped).get(Piece.KING).data & mask) != 0) {
-				if(this.searchLegalMovesForKing(i, oppPieces, myKings)) {
-					return true;
-				}
+		
+		// Don't return before restoring the board.
+		board.turn = Color.flip(board.turn);
+		
+		this.appendLegalMovesForPawn(board, legalMoves, true);
+		this.appendLegalMovesForBishop(board, legalMoves, true);
+		this.appendLegalMovesForKnight(board, legalMoves, true);
+		this.appendLegalMovesForKing(board, legalMoves, true);
+		this.appendLegalMovesForQueen(board, legalMoves, true);
+		this.appendLegalMovesForRook(board, legalMoves, true);
+		
+		for(Move move : legalMoves) {
+			if(((1L << move.destination) & myKings) != 0) {
+				return true;
 			}
 		}
+		
+		board.turn = Color.flip(board.turn);
 		return false;
 	}
 	
@@ -372,160 +518,35 @@ public class LegalMoveGenerator {
 		// player in check. extraCapture is for en passant, to list the extra
 		// square we're capturing (if 1 destroy the piece below the
 		// destination)
-		ArrayList<Move> legalMovesCapture = new ArrayList<Move>();
-		ArrayList<Move> legalMovesNoncapture = new ArrayList<Move>();
-		Color turnFlipped = Color.flip(board.turn);
-		long myPieces = board.playerBitboards.get(board.turn).data;
-		long oppPieces = board.playerBitboards.get(turnFlipped).data;
-		for(byte i = 0; i < 64; i++) {
-			long mask = 1L << i;
-			if((myPieces & mask) == 0) {
-				continue;
-			}
-			if((board.bitboards.get(board.turn).get(Piece.PAWN).data & mask) != 0) {
-				boolean isOnFileLeft = (i % 8 == 0);
-				boolean isOnFileRight = (i % 8 == 7);
-				boolean isOnHomeRank;
-				boolean isPromotable;
-				byte indexAdvancedOneRow;
-				byte indexAdvancedOneRowLeft;
-				byte indexAdvancedOneRowRight;
-				byte indexAdvancedTwoRows;
-				long maskAdvancedOneRow;
-				long maskAdvancedOneRowLeft;
-				long maskAdvancedOneRowRight;
-				long maskAdvancedTwoRows;
-				if(board.turn == Color.WHITE) {
-					isOnHomeRank = (mask >>> 16 == 0);
-					isPromotable = (mask >>> 48 != 0);
-					indexAdvancedOneRow = (byte)(i + 8);
-					indexAdvancedOneRowLeft = (byte)(i + 7);
-					indexAdvancedOneRowRight = (byte)(i + 9);
-					indexAdvancedTwoRows = (byte)(i + 16);
-					maskAdvancedOneRow = mask << 8;
-					maskAdvancedOneRowLeft = mask << 7;
-					maskAdvancedOneRowRight = mask << 9;
-					maskAdvancedTwoRows = mask << 16;
-				} else {
-					isOnHomeRank = (mask >>> 48 != 0);
-					isPromotable = (mask >>> 16 == 0);
-					indexAdvancedOneRow = (byte)(i - 8);
-					indexAdvancedOneRowLeft = (byte)(i - 9);
-					indexAdvancedOneRowRight = (byte)(i - 7);
-					indexAdvancedTwoRows = (byte)(i - 16);
-					maskAdvancedOneRow = mask >>> 8;
-					maskAdvancedOneRowLeft = mask >>> 9;
-					maskAdvancedOneRowRight = mask >>> 7;
-					maskAdvancedTwoRows = mask >>> 16;
-				}
-				// One space forward
-				if((maskAdvancedOneRow & board.allPieces.data) == 0) {
-					if(!isPromotable) {
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRow));
-					} else {
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRow, Piece.QUEEN));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRow, Piece.KNIGHT));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRow, Piece.ROOK));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRow, Piece.BISHOP));
-					}
-				}
-				// Two spaces forward
-				if(isOnHomeRank && (maskAdvancedOneRow & board.allPieces.data) == 0 &&
-						(maskAdvancedTwoRows & board.allPieces.data) == 0) {
-					legalMovesNoncapture.add(new Move(i, indexAdvancedTwoRows));
-				}
-				// Capture left
-				if(!isOnFileLeft && (maskAdvancedOneRowLeft & oppPieces) != 0) {
-					if(!isPromotable) {
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowLeft));
-					} else {
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowLeft, Piece.QUEEN));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowLeft, Piece.KNIGHT));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowLeft, Piece.ROOK));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowLeft, Piece.BISHOP));
-					}
-				}
-				// Capture right
-				if(!isOnFileRight && (maskAdvancedOneRowRight & oppPieces) != 0) {
-					if(!isPromotable) {
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowRight));
-					} else {
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowRight, Piece.QUEEN));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowRight, Piece.KNIGHT));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowRight, Piece.ROOK));
-						legalMovesNoncapture.add(
-								new Move(i, indexAdvancedOneRowRight, Piece.BISHOP));
-					}
-				}
-				// En passant
-				if(board.enPassantTarget != 0) {
-					if(!isOnFileLeft && maskAdvancedOneRowLeft == board.enPassantTarget) {
-						legalMovesCapture.add(new Move(i, indexAdvancedOneRowLeft));
-					}
-					if(!isOnFileRight && maskAdvancedOneRowRight == board.enPassantTarget) {
-						legalMovesCapture.add(new Move(i, indexAdvancedOneRowRight));
-					}
-				}
-			}
-			else if((board.bitboards.get(board.turn).get(Piece.BISHOP).data & mask) != 0) {
-				this.appendLegalMovesForPieceLongRangeDiagonal(i, myPieces, oppPieces,
-						legalMovesCapture, legalMovesNoncapture);
-			}
-			else if((board.bitboards.get(board.turn).get(Piece.ROOK).data & mask) != 0) {
-				this.appendLegalMovesForPieceLongRangeStraight(i, myPieces, oppPieces,
-						legalMovesCapture, legalMovesNoncapture);
-			}
-			else if((board.bitboards.get(board.turn).get(Piece.QUEEN).data & mask) != 0) {
-				this.appendLegalMovesForPieceLongRangeDiagonal(i, myPieces, oppPieces,
-						legalMovesCapture, legalMovesNoncapture);
-				this.appendLegalMovesForPieceLongRangeStraight(i, myPieces, oppPieces,
-						legalMovesCapture, legalMovesNoncapture);
-			}
-			else if((board.bitboards.get(board.turn).get(Piece.KNIGHT).data & mask) != 0) {
-				this.appendLegalMovesForKnight(i, myPieces, oppPieces,
-						legalMovesCapture, legalMovesNoncapture);
-			}
-			else if((board.bitboards.get(board.turn).get(Piece.KING).data & mask) != 0) {
-				this.appendLegalMovesForKing(i, myPieces, oppPieces,
-						legalMovesCapture, legalMovesNoncapture);
-			}
-		}
+		ArrayList<Move> legalMoves = new ArrayList<Move>();
 		
-		// Castling
+		this.appendLegalMovesForPawn(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForBishop(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForKnight(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForKing(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForQueen(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForRook(board, legalMoves, capturesOnly);
+		
 		if(!capturesOnly) {
-			for(Castle castle : Castle.values()) {
-				if(!board.castleRights.get(board.turn).get(castle)) {
-					continue;
-				}
-				if((board.allPieces.data &
-						this.maskCastleSpace.get(board.turn).get(castle)) != 0) {
-					continue;
-				}
-				if(this.verifyCastleCheckRule(board, castle)) {
-					legalMovesNoncapture.add(this.castleMoves.get(board.turn).get(castle));
+			ArrayList<Move> legalMovesResult = new ArrayList<Move>();
+			ArrayList<Move> legalMovesNoncapture = new ArrayList<Move>();
+			for(Move move : legalMoves) {
+				if(((1L << move.destination) & board.allPieces.data) != 0) {
+					legalMovesResult.add(move);
+				} else {
+					legalMovesNoncapture.add(move);
 				}
 			}
-		}
-		
-		if(capturesOnly) {
-			return legalMovesCapture;
-		}
-		else {
-			legalMovesCapture.addAll(legalMovesNoncapture);
+			legalMovesResult.addAll(legalMovesNoncapture);
+			legalMovesResult.addAll(this.getLegalMovesForCastling(board));
+			return legalMovesResult;
+		} else {
+			ArrayList<Move> legalMovesCapture = new ArrayList<Move>();
+			for(Move move : legalMoves) {
+				if(((1L << move.destination) & board.allPieces.data) != 0) {
+					legalMovesCapture.add(move);
+				}
+			}
 			return legalMovesCapture;
 		}
 	}
@@ -567,4 +588,20 @@ public class LegalMoveGenerator {
 
 	private Map<Color, Map<Castle, Move>> castleMoves =
 			new HashMap<Color, Map<Castle, Move>>();
+	
+	private long[] attackSquaresA1H8 = new long[64];
+	private long[] attackSquaresA8H1 = new long[64];
+	private long[] attackSquaresBishop = new long[64];
+	private long[] attackSquaresHorizontal = new long[64];
+	private long[] attackSquaresKing = new long[64];
+	private long[] attackSquaresKnight = new long[64];
+	private long[] attackSquaresPawnBlack = new long[64];
+	private long[] attackSquaresPawnCaptureBlack = new long[64];
+	private long[] attackSquaresPawnCaptureWhite = new long[64];
+	private long[] attackSquaresPawnMoveBlack = new long[64];
+	private long[] attackSquaresPawnMoveWhite = new long[64];
+	private long[] attackSquaresPawnWhite = new long[64];
+	private long[] attackSquaresQueen = new long[64];
+	private long[] attackSquaresRook = new long[64];
+	private long[] attackSquaresVertical = new long[64];
 }

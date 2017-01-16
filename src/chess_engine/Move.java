@@ -7,13 +7,13 @@ public class Move {
 		this.promoteTo = Piece.NOPIECE;
 	}
 	
-	public Move(byte source, byte destination) {
-		this.source = source;
-		this.destination = destination;
+	public Move(int knightIndex, int attackSquareIndex) {
+		this.source = knightIndex;
+		this.destination = attackSquareIndex;
 		this.promoteTo = Piece.NOPIECE;
 	}
 	
-	public Move(byte source, byte destination, Piece promoteTo) {
+	public Move(int source, int destination, Piece promoteTo) {
 		this.source = source;
 		this.destination = destination;
 		this.promoteTo = promoteTo;
@@ -68,7 +68,7 @@ public class Move {
 		return sourceStr + destinationStr + promoteToStr;
 	}
 		
-	public byte source;
-	public byte destination;
+	public int source;
+	public int destination;
 	public Piece promoteTo;
 }

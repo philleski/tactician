@@ -37,11 +37,11 @@ public class PositionHasher {
 	//    has a total of 16 bits. These bits map to a1-h1 and then a8-h8 in the
 	//    black pawn mask.
 	
-	public long getMask(Color color, Piece piece, byte index) {
+	public long getMask(Color color, Piece piece, int index) {
 		return this.masks.get(color).get(piece)[index];
 	}
 	
-	public long getMask(Color color, Piece piece, byte index, byte index2) {
+	public long getMask(Color color, Piece piece, int index, int index2) {
 		return this.getMask(color, piece, index) ^ this.getMask(color, piece, index2);
 	}
 	
