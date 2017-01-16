@@ -181,6 +181,27 @@ public class Brain {
 			lastBestMove = entry.bestMove;
 		}
 		ArrayList<Move> lmf = board.legalMovesFast(false);
+		// Check for stalemate or checkmate.
+		if(lmf.size() <= 8) {
+			boolean isMate = true;
+			for(Move move : lmf) {
+				if(((1L << move.source) &
+						board.bitboards.get(board.turn).get(Piece.KING).data) == 0) {
+					isMate = false;
+					break;
+				}
+			}
+			if(isMate) {
+				if(board.isInCheck()) {
+					// Checkmate
+					return -FITNESS_LARGE;
+				}
+				else {
+					// Stalemate
+					return 0;
+				}
+			}
+		}
 		if(lastBestMove != null) {
 			ArrayList<Move> lmf2 = new ArrayList<Move>();
 			boolean found = false;
@@ -244,15 +265,49 @@ public class Brain {
 		return bestMove;
 	}
 	
+	public ArrayList<Move> getPrincipalVariation(Board board, Move move) {
+		ArrayList<Move> principalVariation = new ArrayList<Move>();
+		principalVariation.add(move);
+		Board copy = new Board(board);
+		for(int d = 1; d < this.totalDepth; d++) {
+			copy = new Board(copy);
+			ArrayList<Move> legalMoves = copy.legalMoves();
+			Move pvMove = principalVariation.get(principalVariation.size() - 1);
+			boolean moveFound = false;
+			for(Move legalMove : legalMoves) {
+				if(legalMove.equals(pvMove)) {
+					moveFound = true;
+					break;
+				}
+			}
+			if(!moveFound) {
+				principalVariation.remove(principalVariation.size() - 1);
+				break;
+			}
+			try {
+				copy.move(pvMove);
+			}
+			catch(IllegalMoveException e) {
+			}
+			TranspositionTable.TranspositionEntry entry =
+					this.transpositionTable.get(copy.positionHash);
+			if(entry == null || entry.bestMove == null) {
+				break;
+			}
+			principalVariation.add(entry.bestMove);
+		}
+		return principalVariation;
+	}
+	
 	public Move getMove(Board board) {
-		int depth = 0;
-		depth = 4;
 		Move move = null;
-		for(int d = 1; d <= depth; d++) {
+		for(int d = 1; d <= this.totalDepth; d++) {
 			move = this.getMoveToDepth(board, d);
 		}
 		return move;
 	}
+	
+	public int totalDepth = 5;
 	
 	private TranspositionTable transpositionTable = null;
 	
