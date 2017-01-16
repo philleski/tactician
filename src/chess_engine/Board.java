@@ -152,8 +152,8 @@ public class Board {
 	public void move(Move move) throws IllegalMoveException {
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
-		// Remove whatever is in the destination spot.
 		
+		// Remove whatever is in the destination spot.
 		boolean found = false;
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
 			Color color = entry1.getKey();
@@ -176,7 +176,6 @@ public class Board {
 		byte rookQueensideSource;
 		byte rookQueensideDestination;
 		byte destinationRetreatedOneRow;
-		long destinationMaskAdvancedOneRow;
 		long destinationMaskRetreatedOneRow;
 		long maskKingsideRookStartNegative;
 		long maskKingsideRookEnd;
@@ -185,7 +184,6 @@ public class Board {
 		long sourceMaskAdvancedTwoRows;
 		if(this.turn == Color.WHITE) {
 			destinationRetreatedOneRow = (byte)(move.destination - 8);
-			destinationMaskAdvancedOneRow = destinationMask << 8;
 			destinationMaskRetreatedOneRow = destinationMask >>> 8;
 			maskKingsideRookStartNegative = this.maskH1Negative;
 			maskKingsideRookEnd = this.maskF1;
@@ -198,7 +196,6 @@ public class Board {
 			sourceMaskAdvancedTwoRows = sourceMask << 16;
 		} else {
 			destinationRetreatedOneRow = (byte)(move.destination + 8);
-			destinationMaskAdvancedOneRow = destinationMask >>> 8;
 			destinationMaskRetreatedOneRow = destinationMask << 8;
 			maskKingsideRookStartNegative = this.maskH8Negative;
 			maskKingsideRookEnd = this.maskF8;
@@ -226,9 +223,10 @@ public class Board {
 		}
 		
 		if(movedPiece == Piece.PAWN && destinationMask == this.enPassantTarget) {
-			this.bitboards.get(this.turn).get(Piece.PAWN).data &=
-				~(destinationMaskAdvancedOneRow ^ 0);
-			this.positionHash ^= this.positionHasher.getMask(this.turn,
+			Color turnFlipped = Color.flip(this.turn);
+			this.bitboards.get(turnFlipped).get(Piece.PAWN).data &=
+				~(destinationMaskRetreatedOneRow ^ 0);
+			this.positionHash ^= this.positionHasher.getMask(turnFlipped,
 				Piece.PAWN, destinationRetreatedOneRow);
 		}
 		if(movedPiece == Piece.PAWN && sourceMaskAdvancedTwoRows == destinationMask) {

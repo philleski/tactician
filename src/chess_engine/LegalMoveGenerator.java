@@ -31,11 +31,11 @@ public class LegalMoveGenerator {
 			Bitboard.flip(this.maskCastlePawns.get(Color.WHITE).get(Castle.QUEENSIDE)));
 			
 		this.maskCastleKnights.get(Color.WHITE).put(Castle.KINGSIDE,
-			notationHelper.generateMask("c2", "d3", "f3", "g2", "d3", "e3",
+			notationHelper.generateMask("c2", "d2", "g2", "d3", "e3", "f3",
 				"g3", "h2"));
 		this.maskCastleKnights.get(Color.WHITE).put(Castle.QUEENSIDE,
-			notationHelper.generateMask("b2", "c3", "e3", "f2", "c2", "d3",
-				"f3", "g2"));
+			notationHelper.generateMask("b2", "c2", "f2", "g2", "c3", "d3",
+				"e3", "f3"));
 		this.maskCastleKnights.get(Color.BLACK).put(Castle.KINGSIDE,
 			Bitboard.flip(this.maskCastleKnights.get(Color.WHITE).get(Castle.KINGSIDE)));
 		this.maskCastleKnights.get(Color.BLACK).put(Castle.QUEENSIDE,
