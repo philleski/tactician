@@ -9,7 +9,6 @@ import org.junit.Test;
 import chess_engine.Board;
 import chess_engine.IllegalMoveException;
 import chess_engine.Move;
-import chess_engine.NotationHelper;
 
 // Check that the move generations works correctly based on publicly generated
 // databases. Optionally print out the runtimes as well.
