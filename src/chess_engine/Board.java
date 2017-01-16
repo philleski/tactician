@@ -152,6 +152,63 @@ public class Board {
 	public void move(Move move) throws IllegalMoveException {
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
+		Color turnFlipped = Color.flip(this.turn);
+		
+		byte rookKingsideSource;
+		byte rookKingsideSourceOpp;
+		byte rookKingsideDestination;
+		byte rookQueensideSource;
+		byte rookQueensideSourceOpp;
+		byte rookQueensideDestination;
+		byte destinationRetreatedOneRow;
+		long destinationMaskRetreatedOneRow;
+		long maskKingsideRookStartNegative;
+		long maskKingsideRookEnd;
+		long maskQueensideRookStartNegative;
+		long maskQueensideRookEnd;
+		long sourceMaskAdvancedTwoRows;
+		if(this.turn == Color.WHITE) {
+			destinationRetreatedOneRow = (byte)(move.destination - 8);
+			destinationMaskRetreatedOneRow = destinationMask >>> 8;
+			maskKingsideRookStartNegative = this.maskH1Negative;
+			maskKingsideRookEnd = this.maskF1;
+			maskQueensideRookStartNegative = this.maskA1Negative;
+			maskQueensideRookEnd = this.maskD1;
+			rookKingsideSource = 7;
+			rookKingsideSourceOpp = 63;
+			rookKingsideDestination = 5;
+			rookQueensideSource = 0;
+			rookQueensideSourceOpp = 56;
+			rookQueensideDestination = 3;
+			sourceMaskAdvancedTwoRows = sourceMask << 16;
+		} else {
+			destinationRetreatedOneRow = (byte)(move.destination + 8);
+			destinationMaskRetreatedOneRow = destinationMask << 8;
+			maskKingsideRookStartNegative = this.maskH8Negative;
+			maskKingsideRookEnd = this.maskF8;
+			maskQueensideRookStartNegative = this.maskA8Negative;
+			maskQueensideRookEnd = this.maskD8;
+			rookKingsideSource = 63;
+			rookKingsideSourceOpp = 7;
+			rookKingsideDestination = 61;
+			rookQueensideSource = 56;
+			rookQueensideSourceOpp = 0;
+			rookQueensideDestination = 59;
+			sourceMaskAdvancedTwoRows = sourceMask >>> 16;
+		}
+		
+		// If the opponent's rook is captured, remove their castling rights.
+		if((destinationMask & this.bitboards.get(turnFlipped).get(Piece.ROOK).data) != 0) {
+			this.positionHash ^= this.positionHasher.getMaskCastleRights(
+				this.castleRights);
+			if(move.destination == rookQueensideSourceOpp) {
+				this.castleRights.get(turnFlipped).put(Castle.QUEENSIDE, false);
+			} else if(move.destination == rookKingsideSourceOpp) {
+				this.castleRights.get(turnFlipped).put(Castle.KINGSIDE, false);
+			}
+			this.positionHash ^= this.positionHasher.getMaskCastleRights(
+				this.castleRights);
+		}
 		
 		// Remove whatever is in the destination spot.
 		boolean found = false;
@@ -171,43 +228,6 @@ public class Board {
 			}
 		}
 		
-		byte rookKingsideSource;
-		byte rookKingsideDestination;
-		byte rookQueensideSource;
-		byte rookQueensideDestination;
-		byte destinationRetreatedOneRow;
-		long destinationMaskRetreatedOneRow;
-		long maskKingsideRookStartNegative;
-		long maskKingsideRookEnd;
-		long maskQueensideRookStartNegative;
-		long maskQueensideRookEnd;
-		long sourceMaskAdvancedTwoRows;
-		if(this.turn == Color.WHITE) {
-			destinationRetreatedOneRow = (byte)(move.destination - 8);
-			destinationMaskRetreatedOneRow = destinationMask >>> 8;
-			maskKingsideRookStartNegative = this.maskH1Negative;
-			maskKingsideRookEnd = this.maskF1;
-			maskQueensideRookStartNegative = this.maskA1Negative;
-			maskQueensideRookEnd = this.maskD1;
-			rookKingsideSource = 7;
-			rookKingsideDestination = 5;
-			rookQueensideSource = 0;
-			rookQueensideDestination = 3;
-			sourceMaskAdvancedTwoRows = sourceMask << 16;
-		} else {
-			destinationRetreatedOneRow = (byte)(move.destination + 8);
-			destinationMaskRetreatedOneRow = destinationMask << 8;
-			maskKingsideRookStartNegative = this.maskH8Negative;
-			maskKingsideRookEnd = this.maskF8;
-			maskQueensideRookStartNegative = this.maskA8Negative;
-			maskQueensideRookEnd = this.maskD8;
-			rookKingsideSource = 63;
-			rookKingsideDestination = 61;
-			rookQueensideSource = 56;
-			rookQueensideDestination = 59;
-			sourceMaskAdvancedTwoRows = sourceMask >>> 16;
-		}
-		
 		Piece movedPiece = Piece.NOPIECE;
 		for(Map.Entry<Piece, Bitboard> entry : this.bitboards.get(this.turn).entrySet()) {
 			Piece piece = entry.getKey();
@@ -223,7 +243,6 @@ public class Board {
 		}
 		
 		if(movedPiece == Piece.PAWN && destinationMask == this.enPassantTarget) {
-			Color turnFlipped = Color.flip(this.turn);
 			this.bitboards.get(turnFlipped).get(Piece.PAWN).data &=
 				~(destinationMaskRetreatedOneRow ^ 0);
 			this.positionHash ^= this.positionHasher.getMask(turnFlipped,
@@ -292,7 +311,7 @@ public class Board {
 			}
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
 				this.castleRights);
-		} 
+		}
 		
 		this.turn = Color.flip(this.turn);
 		this.positionHash ^= this.positionHasher.getMaskTurn();

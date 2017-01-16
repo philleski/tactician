@@ -307,7 +307,7 @@ public class Brain {
 		return move;
 	}
 	
-	public int totalDepth = 5;
+	public int totalDepth = 4;
 	
 	private TranspositionTable transpositionTable = null;
 	
