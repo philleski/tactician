@@ -55,14 +55,14 @@ public class CastleRay {
 	}
 	
 	public boolean opponentPiecePrecludesCastling(Color color, Castle castle,
-			long oppPieceMask, long myPieces) {
+			long oppPieceMask, long otherPieces) {
 		if((this.maskTotal & oppPieceMask) == 0) {
 			// The opposing piece is not in the ray so it can't prevent us from
 			// castling.
 			return false;
 		}
-		if((this.maskTotal & myPieces) == 0) {
-			// The opposing piece is in the ray but none of our pieces are, so
+		if((this.maskTotal & otherPieces) == 0) {
+			// The opposing piece is in the ray but no other pieces are, so
 			// it prevents us from castling.
 			return true;
 		}
@@ -72,7 +72,7 @@ public class CastleRay {
 		for(long mask : this.masks) {
 			if((mask & oppPieceMask) != 0) {
 				return true;
-			} else if((mask & myPieces) != 0) {
+			} else if((mask & otherPieces) != 0) {
 				return false;
 			}
 		}

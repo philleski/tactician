@@ -207,9 +207,9 @@ public class LegalMoveGenerator {
 		// check. (If it's into a check the opponent would take the king in the
 		// next move, so the AI wouldn't do it anyway.)
 		Color turnFlipped = Color.flip(board.turn);
-		long oppPiecesDiagonal = board.bitboards.get(turnFlipped).get(Piece.BISHOP).data &
+		long oppPiecesDiagonal = board.bitboards.get(turnFlipped).get(Piece.BISHOP).data |
 				board.bitboards.get(turnFlipped).get(Piece.QUEEN).data;
-		long oppPiecesStraight = board.bitboards.get(turnFlipped).get(Piece.ROOK).data &
+		long oppPiecesStraight = board.bitboards.get(turnFlipped).get(Piece.ROOK).data |
 				board.bitboards.get(turnFlipped).get(Piece.QUEEN).data;
 		if((board.bitboards.get(turnFlipped).get(Piece.PAWN).data &
 				this.maskCastlePawns.get(board.turn).get(castle)) != 0) {
@@ -220,17 +220,17 @@ public class LegalMoveGenerator {
 			return false;
 		}
 		for(CastleRay castleRay : this.castleRaysDiagonal.get(board.turn).get(castle)) {
+			long otherPieces = board.allPieces.data & ~oppPiecesDiagonal;
 			if(castleRay.opponentPiecePrecludesCastling(board.turn,
-					castle, oppPiecesDiagonal,
-					board.playerBitboards.get(board.turn).data)) {
+					castle, oppPiecesDiagonal, otherPieces)) {
 				return false;
 			}
 			
 		}
 		for(CastleRay castleRay : this.castleRaysStraight.get(board.turn).get(castle)) {
+			long otherPieces = board.allPieces.data & ~oppPiecesStraight;
 			if(castleRay.opponentPiecePrecludesCastling(board.turn,
-					castle, oppPiecesStraight,
-					board.playerBitboards.get(board.turn).data)) {
+					castle, oppPiecesStraight, otherPieces)) {
 				return false;
 			}
 			
