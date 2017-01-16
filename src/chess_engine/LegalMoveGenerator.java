@@ -150,6 +150,26 @@ public class LegalMoveGenerator {
 		}
 	}
 	
+	private boolean searchLegalMovesForPieceLongRange(byte start,
+			long myPieces, long oppPieces, long oppTarget, int[] stepSizes) {
+		for(int i = 0; i < stepSizes.length; i++) {
+			int position = start;
+			while(inBounds(position, stepSizes[i])) {
+				position += stepSizes[i];
+				if(((1L << position) & oppTarget) != 0) {
+					return true;
+				}
+				if(((1L << position) & oppPieces) != 0) {
+					break;
+				}
+				if(((1L << position) & myPieces) != 0) {
+					break;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private void appendLegalMovesForPieceShortRange(byte start,
 			long myPieces, long oppPieces, int[] stepSizes,
 			ArrayList<Move> legalMovesCapture,
@@ -170,12 +190,33 @@ public class LegalMoveGenerator {
 		}
 	}
 	
+	private boolean searchLegalMovesForPieceShortRange(byte start,
+			long myPieces, long oppTarget, int[] stepSizes) {
+		for(int i = 0; i < stepSizes.length; i++) {
+			if(!inBounds(start, stepSizes[i])) {
+				continue;
+			}
+			int position = start + stepSizes[i];
+			if(((1L << position) & oppTarget) != 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private void appendLegalMovesForPieceLongRangeDiagonal(byte start,
 			long myPieces, long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
 		int[] stepSizes = {-9, -7, 7, 9};
 		this.appendLegalMovesForPieceLongRange(start, myPieces, oppPieces,
 			stepSizes, legalMovesCapture, legalMovesNoncapture);
+	}
+	
+	private boolean searchLegalMovesForPieceLongRangeDiagonal(byte start,
+			long myPieces, long oppPieces, long oppTarget) {
+		int[] stepSizes = {-9, -7, 7, 9};
+		return this.searchLegalMovesForPieceLongRange(start, myPieces,
+			oppPieces, oppTarget, stepSizes);
 	}
 	
 	private void appendLegalMovesForPieceLongRangeStraight(byte start,
@@ -186,6 +227,13 @@ public class LegalMoveGenerator {
 			stepSizes, legalMovesCapture, legalMovesNoncapture);
 	}
 	
+	private boolean searchLegalMovesForPieceLongRangeStraight(byte start,
+			long myPieces, long oppPieces, long oppTarget) {
+		int[] stepSizes = {-8, -1, 1, 8};
+		return this.searchLegalMovesForPieceLongRange(start, myPieces,
+			oppPieces, oppTarget, stepSizes);
+	}
+	
 	private void appendLegalMovesForKnight(byte start, long myPieces,
 			long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
@@ -194,12 +242,26 @@ public class LegalMoveGenerator {
 			stepSizes, legalMovesCapture, legalMovesNoncapture);
 	}
 	
+	private boolean searchLegalMovesForKnight(byte start, long myPieces,
+			long oppTarget) {
+		int[] stepSizes = {-17, -15, -10, -6, 6, 10, 15, 17};
+		return this.searchLegalMovesForPieceShortRange(start, myPieces,
+			oppTarget, stepSizes);
+	}
+	
 	private void appendLegalMovesForKing(byte start, long myPieces,
 			long oppPieces, ArrayList<Move> legalMovesCapture,
 			ArrayList<Move> legalMovesNoncapture) {
 		int[] stepSizes = {-9, -8, -7, -1, 1, 7, 8, 9};
 		this.appendLegalMovesForPieceShortRange(start, myPieces, oppPieces,
 			stepSizes, legalMovesCapture, legalMovesNoncapture);
+	}
+	
+	private boolean searchLegalMovesForKing(byte start, long myPieces,
+			long oppTarget) {
+		int[] stepSizes = {-9, -8, -7, -1, 1, 7, 8, 9};
+		return this.searchLegalMovesForPieceShortRange(start, myPieces,
+			oppTarget, stepSizes);
 	}
 	
 	private boolean verifyCastleCheckRule(Board board, Castle castle) {
@@ -244,10 +306,8 @@ public class LegalMoveGenerator {
 		// the player's king. Also to speed things up not all of them are
 		// actually legal, but the ones that aren't wouldn't be able to capture
 		// the player's king anyway.
-		ArrayList<Move> oppLegalMovesCapture = new ArrayList<Move>();
-		ArrayList<Move> oppLegalMovesNoncapture = new ArrayList<Move>();
-		long myKings = board.bitboards.get(board.turn).get(Piece.KING).data;
 		Color turnFlipped = Color.flip(board.turn);
+		long myKings = board.bitboards.get(board.turn).get(Piece.KING).data;
 		long myPieces = board.playerBitboards.get(board.turn).data;
 		long oppPieces = board.playerBitboards.get(turnFlipped).data;
 		for(byte i = 0; i < 64; i++) {
@@ -258,49 +318,50 @@ public class LegalMoveGenerator {
 			if((board.bitboards.get(turnFlipped).get(Piece.PAWN).data & mask) != 0) {
 				if(board.turn == Color.WHITE) {
 					// Look at the black player's pawns.
-					if(i % 8 != 0) {
-						oppLegalMovesCapture.add(new Move(i, (byte)(i - 9)));
+					if(i % 8 != 0 && ((1L << (i - 9)) & myKings) != 0) {
+						return true;
 					}
-					if(i % 8 != 7) {
-						oppLegalMovesCapture.add(new Move(i, (byte)(i - 7)));
+					if(i % 8 != 7 && ((1L << (i - 7)) & myKings) != 0) {
+						return true;
 					}
 				}
 				else {
 					// Look at the white player's pawns.
-					if(i % 8 != 0) {
-						oppLegalMovesCapture.add(new Move(i, (byte)(i + 7)));
+					if(i % 8 != 0 && ((1L << (i + 7)) & myKings) != 0) {
+						return true;
 					}
-					if(i % 8 != 7) {
-						oppLegalMovesCapture.add(new Move(i, (byte)(i + 9)));
+					if(i % 8 != 7 && ((1L << (i + 9)) & myKings) != 0) {
+						return true;
 					}
 				}
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.BISHOP).data & mask) != 0) {
-				this.appendLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces,
-						oppLegalMovesCapture, oppLegalMovesNoncapture);
+				if(this.searchLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces, myKings)) {
+					return true;
+				}
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.ROOK).data & mask) != 0) {
-				this.appendLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces,
-						oppLegalMovesCapture, oppLegalMovesNoncapture);
+				if(this.searchLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces, myKings)) {
+					return true;
+				}
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.QUEEN).data & mask) != 0) {
-				this.appendLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces,
-						oppLegalMovesCapture, oppLegalMovesNoncapture);
-				this.appendLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces,
-						oppLegalMovesCapture, oppLegalMovesNoncapture);
+				if(this.searchLegalMovesForPieceLongRangeDiagonal(i, oppPieces, myPieces, myKings)) {
+					return true;
+				}
+				if(this.searchLegalMovesForPieceLongRangeStraight(i, oppPieces, myPieces, myKings)) {
+					return true;
+				}
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.KNIGHT).data & mask) != 0) {
-				this.appendLegalMovesForKnight(i, oppPieces, myPieces,
-						oppLegalMovesCapture, oppLegalMovesNoncapture);
+				if(this.searchLegalMovesForKnight(i, oppPieces, myKings)) {
+					return true;
+				}
 			}
 			else if((board.bitboards.get(turnFlipped).get(Piece.KING).data & mask) != 0) {
-				this.appendLegalMovesForKing(i, oppPieces, myPieces,
-						oppLegalMovesCapture, oppLegalMovesNoncapture);
-			}
-		}
-		for(Move m : oppLegalMovesCapture) {
-			if(((1L << m.destination) & myKings) != 0) {
-				return true;
+				if(this.searchLegalMovesForKing(i, oppPieces, myKings)) {
+					return true;
+				}
 			}
 		}
 		return false;
