@@ -521,12 +521,12 @@ public class LegalMoveGenerator {
 		// destination)
 		ArrayList<Move> legalMoves = new ArrayList<Move>();
 		
-		this.appendLegalMovesForPawn(board, legalMoves, capturesOnly);
-		this.appendLegalMovesForBishop(board, legalMoves, capturesOnly);
-		this.appendLegalMovesForKnight(board, legalMoves, capturesOnly);
-		this.appendLegalMovesForKing(board, legalMoves, capturesOnly);
 		this.appendLegalMovesForQueen(board, legalMoves, capturesOnly);
 		this.appendLegalMovesForRook(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForBishop(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForKnight(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForPawn(board, legalMoves, capturesOnly);
+		this.appendLegalMovesForKing(board, legalMoves, capturesOnly);
 		
 		if(!capturesOnly) {
 			ArrayList<Move> legalMovesResult = new ArrayList<Move>();
