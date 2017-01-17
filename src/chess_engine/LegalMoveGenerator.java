@@ -505,6 +505,7 @@ public class LegalMoveGenerator {
 		
 		for(Move move : legalMoves) {
 			if(((1L << move.destination) & myKings) != 0) {
+				board.turn = Color.flip(board.turn);
 				return true;
 			}
 		}
