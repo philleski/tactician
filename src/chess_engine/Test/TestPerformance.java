@@ -88,7 +88,7 @@ public class TestPerformance {
 	
 	@Test
 	public void testPosition5() {
-		int[] nodeCounts = {1, 44, 1486, 62379};
+		int[] nodeCounts = {1, 44, 1486, 62379, 2103487};
 		for(int depth = 0; depth < nodeCounts.length; depth++) {
 			Board board = new Board();
 			board.setPositionFenstring("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
