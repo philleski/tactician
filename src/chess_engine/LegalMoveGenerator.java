@@ -127,14 +127,14 @@ public class LegalMoveGenerator {
 				stepSizesMove.add(8);
 				stepSizesCapture.add(7);
 				stepSizesCapture.add(9);
-				if(start < 16) {
+				if(i < 16) {
 					stepSizesMove.add(16);
 				}
 			} else {
 				stepSizesMove.add(-8);
 				stepSizesCapture.add(-7);
 				stepSizesCapture.add(-9);
-				if(start >= 48) {
+				if(i >= 48) {
 					stepSizesMove.add(-16);
 				}
 			}
@@ -232,98 +232,65 @@ public class LegalMoveGenerator {
 		return true;
 	}
 	
-	// FIXME - refactor into attack squares
 	private void appendLegalMovesForPawn(Board board,
 			ArrayList<Move> legalMoves, boolean capturesOnly) {
 		long movers = board.bitboards.get(board.turn).get(Piece.PAWN).data;
 		long oppPieces = board.playerBitboards.get(Color.flip(board.turn)).data;
+		long[] attackSquaresMoveTable = board.turn == Color.WHITE ?
+				this.attackSquaresPawnMoveWhite : this.attackSquaresPawnMoveBlack;
+		long[] attackSquaresCaptureTable = board.turn == Color.WHITE ?
+				this.attackSquaresPawnCaptureWhite : this.attackSquaresPawnCaptureBlack;
 		while(movers != 0) {
 			int moverIndex = Long.numberOfTrailingZeros(movers);
 			long mover = 1L << moverIndex;
 			movers ^= mover;
+			boolean isPromotable =
+				(board.turn == Color.WHITE && moverIndex >= 48) ||
+				(board.turn == Color.BLACK && moverIndex < 16);
 			
-			boolean isOnFileLeft = (moverIndex % 8 == 0);
-			boolean isOnFileRight = (moverIndex % 8 == 7);
-			boolean isOnHomeRank;
-			boolean isPromotable;
-			int indexAdvancedOneRow;
-			int indexAdvancedOneRowLeft;
-			int indexAdvancedOneRowRight;
-			int indexAdvancedTwoRows;
-			long maskAdvancedOneRow;
-			long maskAdvancedOneRowLeft;
-			long maskAdvancedOneRowRight;
-			long maskAdvancedTwoRows;
+			// If the pawn is trying to move two squares up and there's something
+			// blocking the first square, pretend it's also blocking the second
+			// square.
+			long moveBlockers = board.allPieces.data & ~mover;
 			if(board.turn == Color.WHITE) {
-				isOnHomeRank = (mover >>> 16 == 0);
-				isPromotable = (mover >>> 48 != 0);
-				indexAdvancedOneRow = moverIndex + 8;
-				indexAdvancedOneRowLeft = moverIndex + 7;
-				indexAdvancedOneRowRight = moverIndex + 9;
-				indexAdvancedTwoRows = moverIndex + 16;
-				maskAdvancedOneRow = mover << 8;
-				maskAdvancedOneRowLeft = mover << 7;
-				maskAdvancedOneRowRight = mover << 9;
-				maskAdvancedTwoRows = mover << 16;
+				moveBlockers |= (moveBlockers & 0x0000000000FF0000L) << 8;
 			} else {
-				isOnHomeRank = (mover >>> 48 != 0);
-				isPromotable = (mover >>> 16 == 0);
-				indexAdvancedOneRow = moverIndex - 8;
-				indexAdvancedOneRowLeft = moverIndex - 9;
-				indexAdvancedOneRowRight = moverIndex - 7;
-				indexAdvancedTwoRows = moverIndex - 16;
-				maskAdvancedOneRow = mover >>> 8;
-				maskAdvancedOneRowLeft = mover >>> 9;
-				maskAdvancedOneRowRight = mover >>> 7;
-				maskAdvancedTwoRows = mover >>> 16;
+				moveBlockers |= (moveBlockers & 0x0000FF0000000000L) >>> 8;
 			}
+			
 			if(!capturesOnly) {
-				// One space forward
-				if((maskAdvancedOneRow & board.allPieces.data) == 0) {
+				long attackSquaresMove = attackSquaresMoveTable[moverIndex];
+				attackSquaresMove &= ~moveBlockers;
+				while(attackSquaresMove != 0) {
+					int attackSquareIndex =
+						Long.numberOfTrailingZeros(attackSquaresMove);
+					long attackSquare = 1L << attackSquareIndex;
+					attackSquaresMove ^= attackSquare;
 					if(!isPromotable) {
-						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow));
+						legalMoves.add(new Move(moverIndex, attackSquareIndex));
 					} else {
-						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.QUEEN));
-						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.KNIGHT));
-						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.ROOK));
-						legalMoves.add(new Move(moverIndex, indexAdvancedOneRow, Piece.BISHOP));
+						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.QUEEN));
+						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.KNIGHT));
+						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.ROOK));
+						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.BISHOP));
 					}
 				}
-				// Two spaces forward
-				if(isOnHomeRank && (maskAdvancedOneRow & board.allPieces.data) == 0 &&
-						(maskAdvancedTwoRows & board.allPieces.data) == 0) {
-					legalMoves.add(new Move(moverIndex, indexAdvancedTwoRows));
-				}
 			}
-			// Capture left
-			if(!isOnFileLeft && (maskAdvancedOneRowLeft & oppPieces) != 0) {
+			
+			long attackSquaresCapture = attackSquaresCaptureTable[moverIndex];
+			attackSquaresCapture &= (oppPieces | board.enPassantTarget);
+			while(attackSquaresCapture != 0) {
+				int attackSquareIndex =
+					Long.numberOfTrailingZeros(attackSquaresCapture);
+				long attackSquare = 1L << attackSquareIndex;
+				attackSquaresCapture ^= attackSquare;
 				if(!isPromotable) {
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex));
 				} else {
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.QUEEN));
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.KNIGHT));
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.ROOK));
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft, Piece.BISHOP));
-				}
-			}
-			// Capture right
-			if(!isOnFileRight && (maskAdvancedOneRowRight & oppPieces) != 0) {
-				if(!isPromotable) {
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight));
-				} else {
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.QUEEN));
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.KNIGHT));
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.ROOK));
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight, Piece.BISHOP));
-				}
-			}
-			// En passant
-			if(board.enPassantTarget != 0) {
-				if(!isOnFileLeft && maskAdvancedOneRowLeft == board.enPassantTarget) {
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowLeft));
-				}
-				if(!isOnFileRight && maskAdvancedOneRowRight == board.enPassantTarget) {
-					legalMoves.add(new Move(moverIndex, indexAdvancedOneRowRight));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.QUEEN));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.KNIGHT));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.ROOK));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.BISHOP));
 				}
 			}
 		}
