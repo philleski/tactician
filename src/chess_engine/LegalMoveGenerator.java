@@ -463,12 +463,12 @@ public class LegalMoveGenerator {
 		// Don't return before restoring the board.
 		board.turn = Color.flip(board.turn);
 		
-		this.appendLegalMovesForPawn(board, legalMoves, true);
-		this.appendLegalMovesForBishop(board, legalMoves, true);
-		this.appendLegalMovesForKnight(board, legalMoves, true);
-		this.appendLegalMovesForKing(board, legalMoves, true);
 		this.appendLegalMovesForQueen(board, legalMoves, true);
 		this.appendLegalMovesForRook(board, legalMoves, true);
+		this.appendLegalMovesForBishop(board, legalMoves, true);
+		this.appendLegalMovesForKnight(board, legalMoves, true);
+		this.appendLegalMovesForPawn(board, legalMoves, true);
+		this.appendLegalMovesForKing(board, legalMoves, true);
 		
 		for(Move move : legalMoves) {
 			if(((1L << move.destination) & myKings) != 0) {
