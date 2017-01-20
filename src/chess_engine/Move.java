@@ -7,8 +7,8 @@ public class Move {
 		this.promoteTo = Piece.NOPIECE;
 	}
 	
-	public Move(int knightIndex, int attackSquareIndex) {
-		this.source = knightIndex;
+	public Move(int sourceIndex, int attackSquareIndex) {
+		this.source = sourceIndex;
 		this.destination = attackSquareIndex;
 		this.promoteTo = Piece.NOPIECE;
 	}
