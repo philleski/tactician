@@ -59,7 +59,9 @@ public class Brain {
 		// because it's a fighting piece and the opponent can't really
 		// checkmate it anyway.
 		int distanceFromHomeRank = 0;
-		int kingIndex = board.kingIndex.get(color);
+		int kingIndex = Long.numberOfTrailingZeros(
+			board.bitboards.get(color).get(Piece.KING).data);
+		
 		if(color == Color.WHITE) {
 			distanceFromHomeRank = (int)(kingIndex / 8);
 		}

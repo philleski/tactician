@@ -25,9 +25,6 @@ public class Board {
 		this.bitboards.put(Color.BLACK, blackBitboards);
 		updateSummaryBitboards();
 		
-		this.kingIndex.put(Color.WHITE, 4);
-		this.kingIndex.put(Color.BLACK, 60);
-		
 		this.turn = Color.WHITE;
 		// If the last move was a double pawn move, this is the destination
 		// coordinate.
@@ -65,8 +62,6 @@ public class Board {
 						other.castleRights.get(color).get(castle));
 			}
 		}
-		this.kingIndex.put(Color.WHITE, other.kingIndex.get(Color.WHITE));
-		this.kingIndex.put(Color.BLACK, other.kingIndex.get(Color.BLACK));
 		// Keep the same object so that we don't have to reinitialize.
 		this.positionHasher = other.positionHasher;
 		this.positionHash = other.positionHash;
@@ -285,7 +280,6 @@ public class Board {
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					Piece.ROOK, rookKingsideSource, rookKingsideDestination);
 			}
-			this.kingIndex.put(this.turn, (int)move.destination);
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
 				this.castleRights);
 		} else if(movedPiece == Piece.PAWN) {
@@ -351,10 +345,6 @@ public class Board {
 					color = Color.BLACK;
 				}
 				Piece piece = Piece.initialToPiece(initial);
-				if(piece == Piece.KING) {
-					this.kingIndex.put(color,
-						(int)NotationHelper.coordToIndex(mask));
-				}
 				if(piece == Piece.NOPIECE) {
 					// A numeric amount of blank squares.
 					mask <<= (initial - '1');
@@ -453,9 +443,7 @@ public class Board {
 	public long maskD8 = notationHelper.generateMask("d8");
 	public long maskF1 = notationHelper.generateMask("f1");
 	public long maskF8 = notationHelper.generateMask("f8");
-	
-	public Map<Color, Integer> kingIndex = new HashMap<Color, Integer>();
-	
+		
 	public Color turn = Color.WHITE;
 	// If the last move was a double pawn move, this is the destination
 	// coordinate.
