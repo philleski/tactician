@@ -61,7 +61,6 @@ public class Brain {
 		int distanceFromHomeRank = 0;
 		int kingIndex = Long.numberOfTrailingZeros(
 			board.bitboards.get(color).get(Piece.KING).data);
-		
 		if(color == Color.WHITE) {
 			distanceFromHomeRank = (int)(kingIndex / 8);
 		}
@@ -71,7 +70,52 @@ public class Brain {
 		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.7f - endgameFraction);
 		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.7f - endgameFraction);
 		
-		return rankFitness + fileFitness;
+		float openFilePenalty = 0;
+		float pawnShieldPenalty = 0;
+		if(endgameFraction < 0.7) {
+			int protectorsHome = 3;
+			int protectorsOneStep = 0;
+			if(color == Color.WHITE) {
+				if(kingIndex % 8 <= 2) {
+					protectorsHome = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x000000000000E000L);
+					protectorsOneStep = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000E00000L);
+				} else if(kingIndex % 8 >= 5) {
+					protectorsHome = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000000700L);
+					protectorsOneStep = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000070000L);
+				}
+			} else {
+				if(kingIndex % 8 <= 2) {
+					protectorsHome = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x00E0000000000000L);
+					protectorsOneStep = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000E00000000000L);
+				} else if(kingIndex % 8 >= 5) {
+					protectorsHome = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0007000000000000L);
+					protectorsOneStep = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000070000000000L);
+				}
+			}
+			if(protectorsHome + protectorsOneStep == 2) {
+				pawnShieldPenalty = 25 * protectorsHome + 50 * protectorsOneStep;
+			} else if(protectorsHome + protectorsOneStep == 1) {
+				pawnShieldPenalty = 50 * protectorsHome + 75 * protectorsOneStep;
+			} else if(protectorsHome + protectorsOneStep == 0) {
+				pawnShieldPenalty = 200;
+			}
+			pawnShieldPenalty *= (1 - endgameFraction);
+			
+			long file = 0x0101010101010101L << (kingIndex % 8);
+			if((board.bitboards.get(color).get(Piece.PAWN).data & file) == 0) {
+				openFilePenalty = 200 * (1 - endgameFraction);
+			}
+		}
+		
+		return rankFitness + fileFitness - pawnShieldPenalty - openFilePenalty;
 	}
 	
 	public float fitness(Board board) {
