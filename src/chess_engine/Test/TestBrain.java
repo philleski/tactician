@@ -87,6 +87,28 @@ public class TestBrain {
 	}
 	
 	@Test
+	public void testFitnessPawnShield() {
+		Brain brain = new Brain();
+		Board shielded = new Board();
+		shielded.setPositionFenstring(
+			"6k1/pppppppp/8/8/8/8/5PPP/6K1 w KQkq - 0 1");
+		float shieldedSafety = brain.fitnessKingSafety(
+			shielded, Color.WHITE, 0.3f);
+		Board forward = new Board();
+		forward.setPositionFenstring(
+			"6k1/pppppppp/8/8/6P1/8/5P1P/6K1 w KQkq - 0 1");
+		float forwardSafety = brain.fitnessKingSafety(
+			forward, Color.WHITE, 0.3f);
+		Board exposed = new Board();
+		exposed.setPositionFenstring(
+			"6k1/pppppppp/8/8/8/8/5P1P/6K1 w KQkq - 0 1");
+		float exposedSafety = brain.fitnessKingSafety(
+			exposed, Color.WHITE, 0.3f);
+		assertTrue(shieldedSafety > forwardSafety);
+		assertTrue(forwardSafety > exposedSafety);
+	}
+	
+	@Test
 	public void testBrainMateInOne() throws IllegalMoveException {
 		Board board = new Board();
 		board.move(new Move("f2", "f3"));

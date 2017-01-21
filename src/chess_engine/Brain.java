@@ -38,19 +38,19 @@ public class Brain {
 	}
 	
 	public float endgameFraction(Board board) {
-		// Returns 0 if it's the start of the game, 1 if it's just two kings.
+		// Returns 0 if the opponent has all the pieces, 1 if just the king.
 		float material = 0;
 		for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
 			Piece piece = entry.getKey();
 			if(piece == Piece.KING) {
 				continue;
 			}
-			int pieceCount = numBitsSet(board.bitboards.get(Color.WHITE).get(piece).data |
-					board.bitboards.get(Color.BLACK).get(piece).data);
+			int pieceCount = numBitsSet(board.bitboards.get(
+				Color.flip(board.turn)).get(piece).data);
 			material += pieceCount * this.FITNESS_PIECE.get(piece);
 		}
 		
-		return 1 - material / (2 * this.FITNESS_START_NOKING);
+		return 1 - material / this.FITNESS_START_NOKING;
 	}
 	
 	public float fitnessKingSafety(Board board, Color color, float endgameFraction) {
@@ -78,26 +78,26 @@ public class Brain {
 			if(color == Color.WHITE) {
 				if(kingIndex % 8 <= 2) {
 					protectorsHome = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x000000000000E000L);
-					protectorsOneStep = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000E00000L);
-				} else if(kingIndex % 8 >= 5) {
-					protectorsHome = numBitsSet(
 						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000000700L);
 					protectorsOneStep = numBitsSet(
 						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000070000L);
+				} else if(kingIndex % 8 >= 5) {
+					protectorsHome = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x000000000000E000L);
+					protectorsOneStep = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000E00000L);					
 				}
 			} else {
 				if(kingIndex % 8 <= 2) {
 					protectorsHome = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x00E0000000000000L);
-					protectorsOneStep = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000E00000000000L);
-				} else if(kingIndex % 8 >= 5) {
-					protectorsHome = numBitsSet(
 						board.bitboards.get(color).get(Piece.PAWN).data & 0x0007000000000000L);
 					protectorsOneStep = numBitsSet(
 						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000070000000000L);
+				} else if(kingIndex % 8 >= 5) {
+					protectorsHome = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x00E0000000000000L);
+					protectorsOneStep = numBitsSet(
+						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000E00000000000L);
 				}
 			}
 			if(protectorsHome + protectorsOneStep == 2) {
@@ -111,7 +111,7 @@ public class Brain {
 			
 			long file = 0x0101010101010101L << (kingIndex % 8);
 			if((board.bitboards.get(color).get(Piece.PAWN).data & file) == 0) {
-				openFilePenalty = 200 * (1 - endgameFraction);
+				openFilePenalty = 400 * (1 - endgameFraction);
 			}
 		}
 		
@@ -386,5 +386,5 @@ public class Brain {
 		{0, 0, 0, 0}
 	};
 	private float FITNESS_KING_RANK_FACTOR = 50;
-	private float[] FITNESS_KING_FILE = {0, 0, -50, -100, -100, -50, 0, 0};
+	private float[] FITNESS_KING_FILE = {0, 0, -75, -150, -150, -75, 0, 0};
 }
