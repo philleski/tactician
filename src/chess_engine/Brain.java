@@ -105,7 +105,7 @@ public class Brain {
 			} else if(protectorsHome + protectorsOneStep == 1) {
 				pawnShieldPenalty = 50 * protectorsHome + 75 * protectorsOneStep;
 			} else if(protectorsHome + protectorsOneStep == 0) {
-				pawnShieldPenalty = 200;
+				pawnShieldPenalty = 150;
 			}
 			pawnShieldPenalty *= (1 - endgameFraction);
 			
@@ -114,7 +114,7 @@ public class Brain {
 				// get opportunities to capture pawns in the center.
 				long file = 0x0101010101010101L << (kingIndex % 8);
 				if((board.bitboards.get(color).get(Piece.PAWN).data & file) == 0) {
-					openFilePenalty = 400 * (1 - endgameFraction);
+					openFilePenalty = 150 * (1 - endgameFraction);
 				}
 			}
 		}
@@ -231,24 +231,27 @@ public class Brain {
 			lastBestMove = entry.bestMove;
 		}
 		ArrayList<Move> lmf = board.legalMovesFast(false);
-		// Check for stalemate or checkmate.
-		if(lmf.size() <= 8) {
-			boolean isMate = true;
-			for(Move move : lmf) {
-				if(((1L << move.source) &
-						board.bitboards.get(board.turn).get(Piece.KING).data) == 0) {
-					isMate = false;
-					break;
+		if(lmf.size() <= 8 || board.isInCheck()) {
+			// Check for stalemate or checkmate.
+			ArrayList<Move> legalMoves = board.legalMoves();
+			if(legalMoves.size() == 0) {
+				boolean isMate = true;
+				for(Move move : lmf) {
+					if(((1L << move.source) &
+							board.bitboards.get(board.turn).get(Piece.KING).data) == 0) {
+						isMate = false;
+						break;
+					}
 				}
-			}
-			if(isMate) {
-				if(board.isInCheck()) {
-					// Checkmate
-					return -FITNESS_LARGE;
-				}
-				else {
-					// Stalemate
-					return 0;
+				if(isMate) {
+					if(board.isInCheck()) {
+						// Checkmate
+						return -FITNESS_LARGE;
+					}
+					else {
+						// Stalemate
+						return 0;
+					}
 				}
 			}
 		}
