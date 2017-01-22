@@ -183,6 +183,11 @@ public class Brain {
 		if(fitness > alpha) {
 			alpha = fitness;
 		}
+		// The player whose king gets captured first loses, even if the other
+		// king gets captured next turn.
+		if(board.bitboards.get(board.turn).get(Piece.KING).data == 0L) {
+			return -FITNESS_LARGE;
+		}
 		ArrayList<Move> lmf = board.legalMovesFast(true);
 		for(Move move : lmf) {
 			long moveTarget = 1L << move.destination;
