@@ -109,9 +109,13 @@ public class Brain {
 			}
 			pawnShieldPenalty *= (1 - endgameFraction);
 			
-			long file = 0x0101010101010101L << (kingIndex % 8);
-			if((board.bitboards.get(color).get(Piece.PAWN).data & file) == 0) {
-				openFilePenalty = 400 * (1 - endgameFraction);
+			if(kingIndex % 8 <= 2 || kingIndex % 8 >= 5) {
+				// Don't have an open file penalty before castling, as we may
+				// get opportunities to capture pawns in the center.
+				long file = 0x0101010101010101L << (kingIndex % 8);
+				if((board.bitboards.get(color).get(Piece.PAWN).data & file) == 0) {
+					openFilePenalty = 400 * (1 - endgameFraction);
+				}
 			}
 		}
 		
@@ -385,6 +389,6 @@ public class Brain {
 		{161, 146, 127, 110},
 		{0, 0, 0, 0}
 	};
-	private float FITNESS_KING_RANK_FACTOR = 50;
+	private float FITNESS_KING_RANK_FACTOR = 75;
 	private float[] FITNESS_KING_FILE = {0, 0, -75, -150, -150, -75, 0, 0};
 }
