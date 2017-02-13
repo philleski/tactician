@@ -241,7 +241,7 @@ public class Brain {
 			ArrayList<Move> legalMoves = board.legalMoves();
 			if(legalMoves.size() == 0) {
 				boolean isMate = true;
-				for(Move move : lmf) {
+				for(Move move : legalMoves) {
 					if(((1L << move.source) &
 							board.bitboards.get(board.turn).get(Piece.KING).data) == 0) {
 						isMate = false;
