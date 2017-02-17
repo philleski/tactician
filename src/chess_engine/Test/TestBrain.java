@@ -109,7 +109,7 @@ public class TestBrain {
 	}
 	
 	@Test
-	public void testBrainMateInOne() throws IllegalMoveException {
+	public void testMateInOneWinning() throws IllegalMoveException {
 		Board board = new Board();
 		board.move(new Move("f2", "f3"));
 		board.move(new Move("e7", "e5"));
@@ -117,6 +117,17 @@ public class TestBrain {
 		Brain brain = new Brain();
 		Move move = brain.getMove(board);
 		assertEquals(move.toString(), "d8h4");
+	}
+	
+	@Test
+	public void testMateInOneLosing() throws IllegalMoveException {
+		// This is to prevent a bug where all moves lead to checkmate and no
+		// move is "good enough", so a null move is played.
+		Board board = new Board();
+		board.setPositionFenstring("8/8/8/8/8/7k/q7/7K w KQkq - 0 1");
+		Brain brain = new Brain();
+		Move move = brain.getMove(board);
+		assertNotNull(move);
 	}
 	
 	@Test

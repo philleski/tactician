@@ -240,23 +240,13 @@ public class Brain {
 			// Check for stalemate or checkmate.
 			ArrayList<Move> legalMoves = board.legalMoves();
 			if(legalMoves.size() == 0) {
-				boolean isMate = true;
-				for(Move move : legalMoves) {
-					if(((1L << move.source) &
-							board.bitboards.get(board.turn).get(Piece.KING).data) == 0) {
-						isMate = false;
-						break;
-					}
+				if(board.isInCheck()) {
+					// Checkmate
+					return -FITNESS_LARGE;
 				}
-				if(isMate) {
-					if(board.isInCheck()) {
-						// Checkmate
-						return -FITNESS_LARGE;
-					}
-					else {
-						// Stalemate
-						return 0;
-					}
+				else {
+					// Stalemate
+					return 0;
 				}
 			}
 		}
@@ -315,7 +305,7 @@ public class Brain {
 			catch(IllegalMoveException e) {
 			}
 			float fitness = -this.alphabeta(copy, depth - 1, -beta, -alpha);
-			if(fitness > alpha) {
+			if(fitness > alpha || bestMove == null) {
 				bestMove = move;
 				alpha = fitness;
 			}
