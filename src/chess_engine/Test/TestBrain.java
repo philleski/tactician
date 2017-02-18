@@ -22,7 +22,7 @@ public class TestBrain {
 	@Test
 	public void testEndgameFractionEnd() {
 		Board board = new Board();
-		board.setPositionFenstring("4k3/8/8/8/8/8/8/8/4K3 b KQkq - 1");
+		board.setPositionFenstring("4k3/8/8/8/8/8/8/8/4K3 b KQkq - 1 0 1");
 		Brain brain = new Brain();
 		float endgameFraction = brain.endgameFraction(board);
 		assertTrue(0.99 < endgameFraction && endgameFraction < 1.01);

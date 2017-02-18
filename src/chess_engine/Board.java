@@ -35,6 +35,7 @@ public class Board {
 				this.castleRights.get(color).put(castle, true);
 			}
 		}
+		this.fullMoveCounter = 1;
 		
 		this.setPositionHash();
 	}
@@ -62,6 +63,7 @@ public class Board {
 						other.castleRights.get(color).get(castle));
 			}
 		}
+		this.fullMoveCounter = other.fullMoveCounter;
 		// Keep the same object so that we don't have to reinitialize.
 		this.positionHasher = other.positionHasher;
 		this.positionHash = other.positionHash;
@@ -307,6 +309,10 @@ public class Board {
 				this.castleRights);
 		}
 		
+		if(this.turn == Color.BLACK) {
+			this.fullMoveCounter++;
+		}
+		
 		this.turn = Color.flip(this.turn);
 		this.positionHash ^= this.positionHasher.getMaskTurn();
 		updateSummaryBitboards();
@@ -324,6 +330,7 @@ public class Board {
 				bitboard.data = 0;
 			}
 		}
+		this.fullMoveCounter = 1;
 		this.updateSummaryBitboards();
 		this.setPositionHash();
 	}
@@ -397,9 +404,12 @@ public class Board {
 					enPassantTarget);
 		}
 		
-		this.setPositionHash();
+		// TODO: implement the halfmove clock
 		
-		// TODO: Implement the halfmove clock and possibly fullmove number.
+		String fullMoveCounter = parts[5];
+		this.fullMoveCounter = Integer.parseInt(fullMoveCounter);
+		
+		this.setPositionHash();
 	}
 	
 	private void setPositionHash() {
@@ -450,6 +460,7 @@ public class Board {
 	public long enPassantTarget = 0;
 	public Map<Color, Map<Castle, Boolean>> castleRights =
 			new HashMap<Color, Map<Castle, Boolean>>();
+	public int fullMoveCounter = 1;
 	
 	// This is used for the transposition tables.
 	public long positionHash = 0;

@@ -242,7 +242,8 @@ public class Brain {
 			if(legalMoves.size() == 0) {
 				if(board.isInCheck()) {
 					// Checkmate
-					return -FITNESS_LARGE;
+					return board.fullMoveCounter * this.FITNESS_MOVE -
+							this.FITNESS_LARGE;
 				}
 				else {
 					// Stalemate
@@ -359,8 +360,9 @@ public class Brain {
 	
 	private TranspositionTable transpositionTable = null;
 	
-	// These are all in centipawns.
-	private float FITNESS_LARGE = 1000000000;   // FIXME - change to short int and get rid of this
+	private float FITNESS_LARGE = 1000000000;
+	// To checkmate as quickly as possible, put in a penalty for waiting.
+	private float FITNESS_MOVE = 10000;
 	private Map<Piece, Float> FITNESS_PIECE = new HashMap<Piece, Float>();
 	private float FITNESS_START_NOKING = 0;
 	
