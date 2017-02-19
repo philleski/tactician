@@ -67,8 +67,8 @@ public class Brain {
 		else {
 			distanceFromHomeRank = 7 - (int)(kingIndex / 8);
 		}
-		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.7f - endgameFraction);
-		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.7f - endgameFraction);
+		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.6f - endgameFraction);
+		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.6f - endgameFraction);
 		
 		float openFilePenalty = 0;
 		float pawnShieldPenalty = 0;
@@ -122,6 +122,29 @@ public class Brain {
 		return rankFitness + fileFitness - pawnShieldPenalty - openFilePenalty;
 	}
 	
+	public float fitnessRookFiles(Board board, Color color, float endgameFraction) {
+		// Assign a bonus for a rook being on an open file (one with no pawns)
+		// or a semi-open file (one with only enemy pawns).
+		float result = 0;
+		long rooks = board.bitboards.get(color).get(Piece.ROOK).data;
+		long myPawns = board.bitboards.get(color).get(Piece.PAWN).data;
+		long oppPawns = board.bitboards.get(Color.flip(color)).get(Piece.PAWN).data;
+		while(rooks != 0) {
+			int rookIndex = Long.numberOfTrailingZeros(rooks);
+			long rook = 1L << rookIndex;
+			rooks ^= rook;
+			long rookFile = 0x0101010101010101L << (rookIndex % 8);
+			if((rookFile & myPawns) == 0) {
+				if((rookFile & oppPawns) == 0) {
+					result += this.FITNESS_ROOK_OPEN_FILE;
+				} else {
+					result += this.FITNESS_ROOK_SEMIOPEN_FILE;
+				}
+			}
+		}
+		return result;
+	}
+	
 	public float fitness(Board board) {
 		float fitness = 0;
 		Color turnFlipped = Color.flip(board.turn);
@@ -170,6 +193,8 @@ public class Brain {
 		
 		fitness += this.fitnessKingSafety(board, board.turn, endgameFraction) -
 				this.fitnessKingSafety(board, turnFlipped, endgameFraction);
+		fitness += this.fitnessRookFiles(board, board.turn, endgameFraction) -
+				this.fitnessRookFiles(board, turnFlipped, endgameFraction);
 						
 		return fitness;
 	}
@@ -357,7 +382,7 @@ public class Brain {
 	}
 	
 	public int totalDepth = 5;
-	
+		
 	private TranspositionTable transpositionTable = null;
 	
 	private float FITNESS_LARGE = 1000000000;
@@ -365,6 +390,9 @@ public class Brain {
 	private float FITNESS_MOVE = 10000;
 	private Map<Piece, Float> FITNESS_PIECE = new HashMap<Piece, Float>();
 	private float FITNESS_START_NOKING = 0;
+	
+	private float FITNESS_ROOK_OPEN_FILE = 50;
+	private float FITNESS_ROOK_SEMIOPEN_FILE = 25;
 	
 	// It goes as [rank][centrality]. rank goes from 0 to 7 and is from the
 	// perspective of that player. centrality goes from 0 (files a, h) to 3
