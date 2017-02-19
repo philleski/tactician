@@ -38,33 +38,92 @@ public class TranspositionTable {
 	// Note: The size is in number of entries, not in bytes.
 	public TranspositionTable(int size) {
 		this.size = size;
-		this.data = new TranspositionEntry[this.size];
-		for(int i = 0; i < this.size; i++) {
-			this.data[i] = new TranspositionEntry();
-		}
-	}
-	
-	private int index(long positionHash) {
-		// Unset the sign bit.
-		return ((int)positionHash & 0x7fffffff) % this.size;
+		this.data = new long[2 * this.size];
 	}
 	
 	public void put(int depth, long positionHash, float fitness, Move bestMove,
 			TranspositionType type) {
-		// Assume we won't store more than MAX_INT entries.
-		this.data[this.index(positionHash)] =
-				new TranspositionEntry(depth, positionHash, fitness, bestMove,
-						type);
+		int index = this.index(positionHash);
+		long contents = 0;
+		contents |= ((long) Float.floatToIntBits(fitness)) << 32;
+		if(bestMove != null) {
+			contents |= (long) (bestMove.source << 24);
+			contents |= (long) (bestMove.destination << 16);
+			if(bestMove.promoteTo == Piece.QUEEN) {
+				contents |= 0x0000000000001000L;
+			} else if(bestMove.promoteTo == Piece.KNIGHT) {
+				contents |= 0x0000000000002000L;
+			} else if(bestMove.promoteTo == Piece.ROOK) {
+				contents |= 0x0000000000004000L;
+			} else if(bestMove.promoteTo == Piece.BISHOP) {
+				contents |= 0x0000000000008000L;
+			}
+		}
+		if(type == TranspositionType.NODE_PV) {
+			contents |= 0x0000000000000100L;
+		} else if(type == TranspositionType.NODE_CUT) {
+			contents |= 0x0000000000000200L;
+		} else if(type == TranspositionType.NODE_ALL) {
+			contents |= 0x0000000000000400L;
+		}
+		contents |= (long) (byte) depth;
+		this.data[index] = positionHash;
+		this.data[index + 1] = contents;
 	}
 	
 	public TranspositionEntry get(long positionHash) {
-		TranspositionEntry entry = this.data[this.index(positionHash)];
-		if(entry.positionHash == positionHash) {
-			return entry;
+		int index = this.index(positionHash);
+		long positionHashFound = this.data[index];
+		if(positionHash != positionHashFound) {
+			return null;
 		}
-		return null;
+		long contents = this.data[index + 1];
+		float fitness = Float.intBitsToFloat((int)(contents >>> 32));
+		Move bestMove = null;
+		if((contents & 0x0000000011111000) != 0) {
+			bestMove = new Move();
+			bestMove.source = (int) (byte) (contents >>> 24);
+			bestMove.destination = (int) (byte) (contents >>> 16);
+			if((contents & 0x0000000000001000L) != 0) {
+				bestMove.promoteTo = Piece.QUEEN;
+			} else if((contents & 0x0000000000002000L) != 0) {
+				bestMove.promoteTo = Piece.KNIGHT;
+			} else if((contents & 0x0000000000004000L) != 0) {
+				bestMove.promoteTo = Piece.ROOK;
+			} else if((contents & 0x0000000000008000L) != 0) {
+				bestMove.promoteTo = Piece.BISHOP;
+			}
+		}
+		TranspositionType type = null;
+		if((contents & 0x0000000000000100L) != 0) {
+			type = TranspositionType.NODE_PV;
+		} else if((contents & 0x0000000000000200L) != 0) {
+			type = TranspositionType.NODE_CUT;
+		} else if((contents & 0x0000000000000400L) != 0) {
+			type = TranspositionType.NODE_ALL;
+		}
+		int depth = (int) (byte) (contents);
+		return new TranspositionEntry(depth, positionHash, fitness, bestMove,
+			type);
+	}
+	
+	private int index(long positionHash) {
+		// Unset the sign bit; the modulus is 2 * this.size because we're
+		// storing the transposition entry in two longs.
+		return ((int)positionHash & 0x7fffffff) % (2 * this.size);
 	}
 	
 	private int size;
-	private TranspositionEntry[] data;
+	
+	// Each transposition entry is composed of two long values together.
+	// The first is the position hash.
+	// The second has:
+	//   bits 0-31: fitness represented as a float
+	//   bits 32-39: the best move's source square
+	//   bits 40-47: the best move's destination square
+	//   bits 48-51: the best move's promoteTo
+	//     (none=0000, Q=0001, N=0010, R=0100, B=1000)
+	//   bits 52-55: the transposition type (PV=0001, Cut=0010, All=0100)
+	//   bits 56-63: the search depth
+	private long[] data;
 }

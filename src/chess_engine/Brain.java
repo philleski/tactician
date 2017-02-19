@@ -8,7 +8,7 @@ import chess_engine.Board;
 import chess_engine.IllegalMoveException;
 
 public class Brain {
-	static int TABLE_SIZE = 4 * 1024 * 1024;
+	static int TABLE_SIZE = 32 * 1024 * 1024;
 	
 	public Brain() {
 		this.transpositionTable = new TranspositionTable(TABLE_SIZE);
