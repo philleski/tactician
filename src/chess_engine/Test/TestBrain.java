@@ -109,6 +109,42 @@ public class TestBrain {
 	}
 	
 	@Test
+	public void testFitnessDoubledPawn() {
+		Brain brain = new Brain();
+		Board doubled = new Board();
+		doubled.setPositionFenstring("7k/8/8/8/8/P7/PP6/7K w KQkq - 0 1");
+		float doubledFitness = brain.fitness(doubled);
+		Board control = new Board();
+		control.setPositionFenstring("7k/8/8/8/8/P7/1PP5/7K w KQkq - 0 1");
+		float controlFitness = brain.fitness(control);
+		assertTrue(doubledFitness < controlFitness);
+	}
+	
+	@Test
+	public void testFitnessIsolatedPawn() {
+		Brain brain = new Brain();
+		Board isolated = new Board();
+		isolated.setPositionFenstring("7k/8/8/8/8/8/P1P5/7K w KQkq - 0 1");
+		float isolatedFitness = brain.fitness(isolated);
+		Board control = new Board();
+		control.setPositionFenstring("7k/8/8/8/8/8/PP6/7K w KQkq - 0 1");
+		float controlFitness = brain.fitness(control);
+		assertTrue(isolatedFitness < controlFitness);
+	}
+	
+	@Test
+	public void testFitnessPassedPawn() {
+		Brain brain = new Brain();
+		Board passed = new Board();
+		passed.setPositionFenstring("7k/8/8/8/2p5/8/P1P5/7K w KQkq - 0 1");
+		float passedFitness = brain.fitness(passed);
+		Board control = new Board();
+		control.setPositionFenstring("7k/8/8/8/1p6/8/P1P5/7K w KQkq - 0 1");
+		float cleanFitness = brain.fitness(control);
+		assertTrue(passedFitness > cleanFitness);
+	}
+	
+	@Test
 	public void testMateInOneWinning() throws IllegalMoveException {
 		Board board = new Board();
 		board.move(new Move("f2", "f3"));

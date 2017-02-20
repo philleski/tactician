@@ -8,10 +8,12 @@ import chess_engine.Board;
 import chess_engine.IllegalMoveException;
 
 public class Brain {
-	static int TABLE_SIZE = 32 * 1024 * 1024;
+	static int TRANSPOSITION_TABLE_SIZE = 32 * 1024 * 1024;
+	static int PAWN_KING_TABLE_SIZE = 64 * 1024;
 	
 	public Brain() {
-		this.transpositionTable = new TranspositionTable(TABLE_SIZE);
+		this.transpositionTable = new TranspositionTable(TRANSPOSITION_TABLE_SIZE);
+		this.pawnKingHashTable = new PawnKingHashTable(PAWN_KING_TABLE_SIZE);
 		
 		this.FITNESS_PIECE.put(Piece.BISHOP, 333f);
 		this.FITNESS_PIECE.put(Piece.KING, 1000000f);
@@ -169,6 +171,34 @@ public class Brain {
 		} else {
 			pawnBitboardRelativeToMe = pawnBitboardRelativeToMe.flip();
 		}
+		
+		PawnKingHashTable.PawnHashTableEntry entry =
+			this.pawnKingHashTable.get(board.positionHashPawnsKings);
+		if(entry == null) {
+			this.pawnKingHashTable.put(
+				board.positionHashPawnsKings,
+				board.bitboards.get(Color.WHITE).get(Piece.PAWN).data,
+				board.bitboards.get(Color.BLACK).get(Piece.PAWN).data,
+				Long.numberOfTrailingZeros(board.bitboards.get(Color.WHITE).get(Piece.KING).data),
+				Long.numberOfTrailingZeros(board.bitboards.get(Color.BLACK).get(Piece.KING).data)
+			);
+			entry = this.pawnKingHashTable.get(board.positionHashPawnsKings);
+		}
+		
+		float doubledPawnPenalty = 15 * (entry.numDoubledPawnsWhite -
+			entry.numDoubledPawnsBlack);
+		float isolatedPawnPenalty = 15 * (entry.numIsolatedPawnsWhite -
+			entry.numIsolatedPawnsBlack);
+		float passedPawnBonus = 30 * (entry.numPassedPawnsWhite -
+			entry.numPassedPawnsBlack);
+		if(board.turn == Color.BLACK) {
+			doubledPawnPenalty *= -1;
+			isolatedPawnPenalty *= -1;
+			passedPawnBonus *= -1;
+		}
+		fitness -= doubledPawnPenalty;
+		fitness -= isolatedPawnPenalty;
+		fitness += passedPawnBonus;
 		
 		// Since pawns can't be on the edge ranks.
 		for(int rank = 1; rank < 7; rank++) {
@@ -384,6 +414,7 @@ public class Brain {
 	public int totalDepth = 5;
 		
 	private TranspositionTable transpositionTable = null;
+	private PawnKingHashTable pawnKingHashTable = null;
 	
 	private float FITNESS_LARGE = 1000000000;
 	// To checkmate as quickly as possible, put in a penalty for waiting.

@@ -67,6 +67,7 @@ public class Board {
 		// Keep the same object so that we don't have to reinitialize.
 		this.positionHasher = other.positionHasher;
 		this.positionHash = other.positionHash;
+		this.positionHashPawnsKings = other.positionHashPawnsKings;
 	}
 	
 	public String toString() {
@@ -217,6 +218,9 @@ public class Board {
 				if((bitboard.data & destinationMask) != 0) {
 					bitboard.data &= ~(destinationMask ^ 0);
 					this.positionHash ^= this.positionHasher.getMask(color, piece, move.destination);
+					if(piece == Piece.PAWN || piece == Piece.KING) {
+						this.positionHashPawnsKings ^= this.positionHasher.getMask(color, piece, move.destination);
+					}
 					break;
 				}
 			}
@@ -235,6 +239,10 @@ public class Board {
 				bitboard.data |= destinationMask;
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					piece, move.source, move.destination);
+				if(piece == Piece.PAWN || piece == Piece.KING) {
+					this.positionHashPawnsKings ^= this.positionHasher.getMask(
+						this.turn, piece, move.source, move.destination);
+				}
 				break;
 			}
 		}
@@ -243,6 +251,8 @@ public class Board {
 			this.bitboards.get(turnFlipped).get(Piece.PAWN).data &=
 				~(destinationMaskRetreatedOneRow ^ 0);
 			this.positionHash ^= this.positionHasher.getMask(turnFlipped,
+				Piece.PAWN, destinationRetreatedOneRow);
+			this.positionHashPawnsKings ^= this.positionHasher.getMask(turnFlipped,
 				Piece.PAWN, destinationRetreatedOneRow);
 		}
 		if(movedPiece == Piece.PAWN && sourceMaskAdvancedTwoRows == destinationMask) {
@@ -253,9 +263,13 @@ public class Board {
 			this.enPassantTarget = destinationMaskRetreatedOneRow;
 			this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(
 				destinationRetreatedOneRow);
+			this.positionHashPawnsKings ^= this.positionHasher.getMaskEnPassantTarget(
+				destinationRetreatedOneRow);
 		} else {
 			if(this.enPassantTarget != 0) {
 				this.positionHash ^= this.positionHasher.getMaskEnPassantTarget((byte)
+					NotationHelper.coordToIndex(this.enPassantTarget));
+				this.positionHashPawnsKings ^= this.positionHasher.getMaskEnPassantTarget((byte)
 					NotationHelper.coordToIndex(this.enPassantTarget));
 			}
 			this.enPassantTarget = 0;
@@ -295,6 +309,8 @@ public class Board {
 				this.positionHash ^= this.positionHasher.getMask(this.turn, Piece.PAWN,
 					move.destination);
 				this.positionHash ^= this.positionHasher.getMask(this.turn, move.promoteTo,
+					move.destination);
+				this.positionHashPawnsKings ^= this.positionHasher.getMask(this.turn, Piece.PAWN,
 					move.destination);
 			}
 		} else if(movedPiece == Piece.ROOK) {
@@ -422,11 +438,16 @@ public class Board {
 					Bitboard bitboard = entry2.getValue();
 					if((bitboard.data & mask) != 0) {
 						this.positionHash ^= this.positionHasher.getMask(color, piece, i);
+						if(piece == Piece.PAWN || piece == Piece.KING) {
+							this.positionHashPawnsKings ^=
+								this.positionHasher.getMask(color, piece, i);
+						}
 					}
 				}
 			}
 			if(this.enPassantTarget == mask) {
 				this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(i);
+				this.positionHashPawnsKings ^= this.positionHasher.getMaskEnPassantTarget(i);
 			}
 		}
 		if(this.turn == Color.BLACK) {
@@ -462,6 +483,7 @@ public class Board {
 			new HashMap<Color, Map<Castle, Boolean>>();
 	public int fullMoveCounter = 1;
 	
-	// This is used for the transposition tables.
+	// These are used for the transposition tables.
 	public long positionHash = 0;
+	public long positionHashPawnsKings = 0;
 };
