@@ -147,6 +147,24 @@ public class Brain {
 		return result;
 	}
 	
+	public float fitnessCastleRights(Board board, Color color, float endgameFraction) {
+		float result = 0;
+		boolean castleRightQueenside = board.castleRights.get(color).get(Castle.QUEENSIDE);
+		boolean castleRightKingside = board.castleRights.get(color).get(Castle.KINGSIDE);
+		if(endgameFraction > 0.5) {
+			return 0;
+		}
+		if(castleRightQueenside) {
+			result += this.FITNESS_CASTLE_RIGHT_QUEENSIDE;
+		}
+		if(castleRightKingside) {
+			result += this.FITNESS_CASTLE_RIGHT_KINGSIDE;
+		}
+		// Castle rights are less important in the endgame.
+		result *= (1 - 2 * endgameFraction);
+		return result;
+	}
+	
 	public float fitness(Board board) {
 		float fitness = 0;
 		Color turnFlipped = Color.flip(board.turn);
@@ -225,6 +243,8 @@ public class Brain {
 				this.fitnessKingSafety(board, turnFlipped, endgameFraction);
 		fitness += this.fitnessRookFiles(board, board.turn, endgameFraction) -
 				this.fitnessRookFiles(board, turnFlipped, endgameFraction);
+		fitness += this.fitnessCastleRights(board, board.turn, endgameFraction) -
+				this.fitnessCastleRights(board, turnFlipped, endgameFraction);
 						
 		return fitness;
 	}
@@ -425,6 +445,9 @@ public class Brain {
 	private float FITNESS_ROOK_OPEN_FILE = 50;
 	private float FITNESS_ROOK_SEMIOPEN_FILE = 25;
 	
+	private float FITNESS_CASTLE_RIGHT_QUEENSIDE = 15;
+	private float FITNESS_CASTLE_RIGHT_KINGSIDE = 30;
+	
 	// It goes as [rank][centrality]. rank goes from 0 to 7 and is from the
 	// perspective of that player. centrality goes from 0 (files a, h) to 3
 	// (files d, e).
@@ -449,5 +472,5 @@ public class Brain {
 		{0, 0, 0, 0}
 	};
 	private float FITNESS_KING_RANK_FACTOR = 75;
-	private float[] FITNESS_KING_FILE = {0, 0, -75, -150, -150, -75, 0, 0};
+	private float[] FITNESS_KING_FILE = {0, 0, -90, -180, -180, -90, 0, 0};
 }

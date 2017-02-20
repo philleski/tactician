@@ -145,6 +145,27 @@ public class TestBrain {
 	}
 	
 	@Test
+	public void testFitnessCastleRights() {
+		Brain brain = new Brain();
+		Board both = new Board();
+		both.setPositionFenstring("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
+		float bothFitness = brain.fitness(both);
+		Board kingside = new Board();
+		kingside.setPositionFenstring("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w Kkq - 0 1");
+		float kingsideFitness = brain.fitness(kingside);
+		Board queenside = new Board();
+		queenside.setPositionFenstring("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w Qkq - 0 1");
+		float queensideFitness = brain.fitness(queenside);
+		Board neither = new Board();
+		neither.setPositionFenstring("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w kq - 0 1");
+		float neitherFitness = brain.fitness(neither);
+		assertTrue(bothFitness > kingsideFitness);
+		assertTrue(bothFitness > queensideFitness);
+		assertTrue(kingsideFitness > neitherFitness);
+		assertTrue(queensideFitness > neitherFitness);
+	}
+	
+	@Test
 	public void testMateInOneWinning() throws IllegalMoveException {
 		Board board = new Board();
 		board.move(new Move("f2", "f3"));
