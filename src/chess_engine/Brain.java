@@ -148,20 +148,41 @@ public class Brain {
 	}
 	
 	public float fitnessCastleRights(Board board, Color color, float endgameFraction) {
-		float result = 0;
-		boolean castleRightQueenside = board.castleRights.get(color).get(Castle.QUEENSIDE);
-		boolean castleRightKingside = board.castleRights.get(color).get(Castle.KINGSIDE);
 		if(endgameFraction > 0.5) {
 			return 0;
 		}
+		
+		float result = 0;
+		boolean castleRightQueenside = board.castleRights.get(color).get(Castle.QUEENSIDE);
+		boolean castleRightKingside = board.castleRights.get(color).get(Castle.KINGSIDE);
 		if(castleRightQueenside) {
 			result += this.FITNESS_CASTLE_RIGHT_QUEENSIDE;
 		}
 		if(castleRightKingside) {
 			result += this.FITNESS_CASTLE_RIGHT_KINGSIDE;
 		}
-		// Castle rights are less important in the endgame.
+		
+		long pawnMaskQueenside = 0L;
+		long pawnMaskKingside = 0L;
+		if(color == Color.WHITE) {
+			pawnMaskQueenside = 0x0000000000070700L;
+			pawnMaskKingside = 0x0000000000E0E000L;
+		} else {
+			pawnMaskQueenside = 0x0007070000000000L;
+			pawnMaskKingside = 0x00E0E00000000000L;
+		}
+		int numPawnsQueenside = numBitsSet(
+			board.bitboards.get(color).get(Piece.PAWN).data &
+			pawnMaskQueenside);
+		int numPawnsKingside = numBitsSet(
+			board.bitboards.get(color).get(Piece.PAWN).data &
+			pawnMaskKingside);
+		
+		result -= 10 * (numPawnsQueenside - 3);
+		result -= 25 * (numPawnsKingside - 3);
+		
 		result *= (1 - 2 * endgameFraction);
+		
 		return result;
 	}
 	

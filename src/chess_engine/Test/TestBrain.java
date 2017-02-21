@@ -166,6 +166,18 @@ public class TestBrain {
 	}
 	
 	@Test
+	public void testFitnessCastleRightsPotential() {
+		Brain brain = new Brain();
+		Board brokenShield = new Board();
+		brokenShield.setPositionFenstring("rnbqrbnk/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQRBNK w KQkq - 0 1");
+		float brokenShieldFitness = brain.fitness(brokenShield);
+		Board control = new Board();
+		control.setPositionFenstring("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
+		float controlFitness = brain.fitness(control);
+		assertTrue(brokenShieldFitness < controlFitness);
+	}
+	
+	@Test
 	public void testMateInOneWinning() throws IllegalMoveException {
 		Board board = new Board();
 		board.move(new Move("f2", "f3"));
