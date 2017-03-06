@@ -55,6 +55,14 @@ public class Bitboard {
 		return this.intersects(~0);
 	}
 	
+	public Bitboard union(long mask) {
+		return new Bitboard(this.data | mask);
+	}
+	
+	public Bitboard union(Bitboard other) {
+		return new Bitboard(this.data | other.getData());
+	}
+	
 	public void updateRemove(long mask) {
 		this.data &= ~(mask ^ 0);
 	}

@@ -426,10 +426,10 @@ public class LegalMoveGenerator {
 		// next move, so the AI wouldn't do it anyway.)
 		Color turnFlipped = Color.flip(board.turn);
 		long oppPiecesDiagonal =
-			board.bitboards.get(turnFlipped).get(Piece.BISHOP).intersection(
+			board.bitboards.get(turnFlipped).get(Piece.BISHOP).union(
 			board.bitboards.get(turnFlipped).get(Piece.QUEEN)).getData();
 		long oppPiecesStraight =
-			board.bitboards.get(turnFlipped).get(Piece.ROOK).intersection(
+			board.bitboards.get(turnFlipped).get(Piece.ROOK).union(
 			board.bitboards.get(turnFlipped).get(Piece.QUEEN)).getData();
 		if(board.bitboards.get(turnFlipped).get(Piece.PAWN).intersects(
 				this.maskCastlePawns.get(board.turn).get(castle))) {
