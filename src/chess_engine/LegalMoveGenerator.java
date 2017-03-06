@@ -548,9 +548,7 @@ public class LegalMoveGenerator {
 		}
 		return result;
 	}
-	
-	private static NotationHelper notationHelper = new NotationHelper();
-	
+		
 	private Map<Color, Map<Castle, Long>> maskCastleSpace =
 			new HashMap<Color, Map<Castle, Long>>();
 	private Map<Color, Map<Castle, Long>> maskCastlePawns =

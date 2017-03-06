@@ -453,7 +453,6 @@ public class Board {
 	
 	public Piece pieceOnSquare(long mask) {
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
-			Color color = entry1.getKey();
 			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
 				Piece piece = entry2.getKey();
 				Bitboard bitboard = entry2.getValue();

@@ -85,5 +85,4 @@ public class CastleRay {
 	private int stepSize;
 	private ArrayList<Long> masks;
 	private long maskTotal;
-	private static NotationHelper notationHelper = new NotationHelper();
 }
