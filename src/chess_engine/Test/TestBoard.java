@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import chess_engine.Board;
 import chess_engine.IllegalMoveException;
-import chess_engine.Move;
 
 public class TestBoard {
 	@Test
