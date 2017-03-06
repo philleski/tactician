@@ -70,6 +70,11 @@ public class Board {
 		this.positionHashPawnsKings = other.positionHashPawnsKings;
 	}
 	
+	public Board(String fenstring) {
+		this();
+		this.setPositionFenstring(fenstring);
+	}
+	
 	public String toString() {
 		String result = "";
 		String rowReversed = "";
@@ -336,6 +341,11 @@ public class Board {
 	
 	public void move(String algebraic) throws IllegalMoveException {
 		Move m = notationHelper.algebraicToMove(this, algebraic);
+		this.move(m);
+	}
+	
+	public void move(String source, String destination) throws IllegalMoveException {
+		Move m = new Move(source, destination);
 		this.move(m);
 	}
 	

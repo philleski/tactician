@@ -178,8 +178,8 @@ public class Brain {
 			board.bitboards.get(color).get(Piece.PAWN).data &
 			pawnMaskKingside);
 		
-		result -= 10 * (numPawnsQueenside - 3);
-		result -= 25 * (numPawnsKingside - 3);
+		result -= 10 * (3 - numPawnsQueenside);
+		result -= 25 * (3 - numPawnsKingside);
 		
 		result *= (1 - 2 * endgameFraction);
 		
@@ -197,6 +197,14 @@ public class Brain {
 			int myPieceCount = numBitsSet(board.bitboards.get(board.turn).get(piece).data);
 			int oppPieceCount = numBitsSet(board.bitboards.get(turnFlipped).get(piece).data);
 			fitness += (myPieceCount - oppPieceCount) * this.FITNESS_PIECE.get(piece);
+			if(piece == Piece.BISHOP) {
+				if(myPieceCount >= 2) {
+					fitness += this.FITNESS_BISHOP_PAIR_BONUS;
+				}
+				if(oppPieceCount >= 2) {
+					fitness -= this.FITNESS_BISHOP_PAIR_BONUS;
+				}
+			}
 		}
 		
 		float endgameFraction = this.endgameFraction(board);
@@ -468,6 +476,8 @@ public class Brain {
 	
 	private float FITNESS_CASTLE_RIGHT_QUEENSIDE = 15;
 	private float FITNESS_CASTLE_RIGHT_KINGSIDE = 30;
+	
+	private float FITNESS_BISHOP_PAIR_BONUS = 50;
 	
 	// It goes as [rank][centrality]. rank goes from 0 to 7 and is from the
 	// perspective of that player. centrality goes from 0 (files a, h) to 3
