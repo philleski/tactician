@@ -52,7 +52,7 @@ public class Bitboard {
 	}
 	
 	public boolean isEmpty() {
-		return this.intersects(~0);
+		return this.data == 0L;
 	}
 	
 	public Bitboard union(long mask) {
