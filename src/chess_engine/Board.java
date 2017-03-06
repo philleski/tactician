@@ -87,7 +87,7 @@ public class Board {
 				for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
 					Piece piece = entry2.getKey();
 					Bitboard bitboard = entry2.getValue();
-					if((bitboard.data & mask) != 0) {
+					if(bitboard.intersects(mask)) {
 						representation = piece.name().charAt(0);
 						if(piece == Piece.KNIGHT) {
 							representation = 'N';
@@ -131,8 +131,8 @@ public class Board {
 			Color color = entry1.getKey();
 			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
 				Bitboard bitboard = entry2.getValue();
-				this.playerBitboards.get(color).data |= bitboard.data;
-				this.allPieces.data |= bitboard.data;
+				this.playerBitboards.get(color).updateUnion(bitboard);
+				this.allPieces.updateUnion(bitboard);
 			}
 		}
 	}
@@ -165,18 +165,18 @@ public class Board {
 		byte rookQueensideDestination;
 		byte destinationRetreatedOneRow;
 		long destinationMaskRetreatedOneRow;
-		long maskKingsideRookStartNegative;
-		long maskKingsideRookEnd;
-		long maskQueensideRookStartNegative;
-		long maskQueensideRookEnd;
+		Bitboard kingsideRookStart;
+		Bitboard kingsideRookEnd;
+		Bitboard queensideRookStart;
+		Bitboard queensideRookEnd;
 		long sourceMaskAdvancedTwoRows;
 		if(this.turn == Color.WHITE) {
 			destinationRetreatedOneRow = (byte)(move.destination - 8);
 			destinationMaskRetreatedOneRow = destinationMask >>> 8;
-			maskKingsideRookStartNegative = this.maskH1Negative;
-			maskKingsideRookEnd = this.maskF1;
-			maskQueensideRookStartNegative = this.maskA1Negative;
-			maskQueensideRookEnd = this.maskD1;
+			kingsideRookStart = this.bbH1;
+			kingsideRookEnd = this.bbF1;
+			queensideRookStart = this.bbA1;
+			queensideRookEnd = this.bbD1;
 			rookKingsideSource = 7;
 			rookKingsideSourceOpp = 63;
 			rookKingsideDestination = 5;
@@ -187,10 +187,10 @@ public class Board {
 		} else {
 			destinationRetreatedOneRow = (byte)(move.destination + 8);
 			destinationMaskRetreatedOneRow = destinationMask << 8;
-			maskKingsideRookStartNegative = this.maskH8Negative;
-			maskKingsideRookEnd = this.maskF8;
-			maskQueensideRookStartNegative = this.maskA8Negative;
-			maskQueensideRookEnd = this.maskD8;
+			kingsideRookStart = this.bbH8;
+			kingsideRookEnd = this.bbF8;
+			queensideRookStart = this.bbA8;
+			queensideRookEnd = this.bbD8;
 			rookKingsideSource = 63;
 			rookKingsideSourceOpp = 7;
 			rookKingsideDestination = 61;
@@ -201,13 +201,16 @@ public class Board {
 		}
 		
 		// If the opponent's rook is captured, remove their castling rights.
-		if((destinationMask & this.bitboards.get(turnFlipped).get(Piece.ROOK).data) != 0) {
+		if(this.bitboards.get(turnFlipped).get(Piece.ROOK).intersects(
+				destinationMask)) {
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
 				this.castleRights);
 			if(move.destination == rookQueensideSourceOpp) {
-				this.castleRights.get(turnFlipped).put(Castle.QUEENSIDE, false);
+				this.castleRights.get(turnFlipped).put(
+					Castle.QUEENSIDE, false);
 			} else if(move.destination == rookKingsideSourceOpp) {
-				this.castleRights.get(turnFlipped).put(Castle.KINGSIDE, false);
+				this.castleRights.get(turnFlipped).put(
+					Castle.KINGSIDE, false);
 			}
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
 				this.castleRights);
@@ -215,16 +218,21 @@ public class Board {
 		
 		// Remove whatever is in the destination spot.
 		boolean found = false;
-		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 :
+				this.bitboards.entrySet()) {
 			Color color = entry1.getKey();
-			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+			for(Map.Entry<Piece, Bitboard> entry2 :
+					entry1.getValue().entrySet()) {
 				Piece piece = entry2.getKey();
 				Bitboard bitboard = entry2.getValue();
-				if((bitboard.data & destinationMask) != 0) {
-					bitboard.data &= ~(destinationMask ^ 0);
-					this.positionHash ^= this.positionHasher.getMask(color, piece, move.destination);
+				if(bitboard.intersects(destinationMask)) {
+					bitboard.updateRemove(destinationMask);
+					this.positionHash ^= this.positionHasher.getMask(
+						color, piece, move.destination);
 					if(piece == Piece.PAWN || piece == Piece.KING) {
-						this.positionHashPawnsKings ^= this.positionHasher.getMask(color, piece, move.destination);
+						this.positionHashPawnsKings ^=
+							this.positionHasher.getMask(color, piece,
+								move.destination);
 					}
 					break;
 				}
@@ -238,10 +246,10 @@ public class Board {
 		for(Map.Entry<Piece, Bitboard> entry : this.bitboards.get(this.turn).entrySet()) {
 			Piece piece = entry.getKey();
 			Bitboard bitboard = entry.getValue();
-			if((bitboard.data & sourceMask) != 0) {
+			if(bitboard.intersects(sourceMask)) {
 				movedPiece = piece;
-				bitboard.data &= ~(sourceMask ^ 0);
-				bitboard.data |= destinationMask;
+				bitboard.updateRemove(sourceMask);
+				bitboard.updateUnion(destinationMask);
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					piece, move.source, move.destination);
 				if(piece == Piece.PAWN || piece == Piece.KING) {
@@ -253,8 +261,8 @@ public class Board {
 		}
 		
 		if(movedPiece == Piece.PAWN && destinationMask == this.enPassantTarget) {
-			this.bitboards.get(turnFlipped).get(Piece.PAWN).data &=
-				~(destinationMaskRetreatedOneRow ^ 0);
+			this.bitboards.get(turnFlipped).get(Piece.PAWN).updateRemove(
+				destinationMaskRetreatedOneRow);
 			this.positionHash ^= this.positionHasher.getMask(turnFlipped,
 				Piece.PAWN, destinationRetreatedOneRow);
 			this.positionHashPawnsKings ^= this.positionHasher.getMask(turnFlipped,
@@ -286,18 +294,18 @@ public class Board {
 			this.castleRights.get(this.turn).put(Castle.QUEENSIDE, false);
 			if(move.source - 2 == move.destination) {
 				// Castle queenside
-				this.bitboards.get(this.turn).get(Piece.ROOK).data &=
-					maskQueensideRookStartNegative;
-				this.bitboards.get(this.turn).get(Piece.ROOK).data |=
-					maskQueensideRookEnd;
+				this.bitboards.get(this.turn).get(Piece.ROOK).updateRemove(
+					queensideRookStart);
+				this.bitboards.get(this.turn).get(Piece.ROOK).updateUnion(
+					queensideRookEnd);
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					Piece.ROOK, rookQueensideSource, rookQueensideDestination);
 			} else if(move.source + 2 == move.destination) {
 				// Castle kingside
-				this.bitboards.get(this.turn).get(Piece.ROOK).data &=
-					maskKingsideRookStartNegative;
-				this.bitboards.get(this.turn).get(Piece.ROOK).data |=
-					maskKingsideRookEnd;
+				this.bitboards.get(this.turn).get(Piece.ROOK).updateRemove(
+					kingsideRookStart);
+				this.bitboards.get(this.turn).get(Piece.ROOK).updateUnion(
+					kingsideRookEnd);
 				this.positionHash ^= this.positionHasher.getMask(this.turn,
 					Piece.ROOK, rookKingsideSource, rookKingsideDestination);
 			}
@@ -305,18 +313,20 @@ public class Board {
 				this.castleRights);
 		} else if(movedPiece == Piece.PAWN) {
 			if(move.promoteTo != Piece.NOPIECE) {
-				this.bitboards.get(this.turn).get(Piece.PAWN).data &= ~(destinationMask ^ 0);
-				this.bitboards.get(this.turn).get(move.promoteTo).data |= destinationMask;
+				this.bitboards.get(this.turn).get(Piece.PAWN).updateRemove(
+					destinationMask);
+				this.bitboards.get(this.turn).get(move.promoteTo).updateUnion(
+					destinationMask);
 				// We switched the position hash for all pieces above under the
 				// assumption that the destination piece would be the same as
 				// the source piece. Since that's not the case with promotion,
 				// do the xor again to unset the destination mask for the pawn.
-				this.positionHash ^= this.positionHasher.getMask(this.turn, Piece.PAWN,
-					move.destination);
-				this.positionHash ^= this.positionHasher.getMask(this.turn, move.promoteTo,
-					move.destination);
-				this.positionHashPawnsKings ^= this.positionHasher.getMask(this.turn, Piece.PAWN,
-					move.destination);
+				this.positionHash ^= this.positionHasher.getMask(this.turn,
+					Piece.PAWN, move.destination);
+				this.positionHash ^= this.positionHasher.getMask(this.turn,
+					move.promoteTo, move.destination);
+				this.positionHashPawnsKings ^= this.positionHasher.getMask(
+					this.turn, Piece.PAWN, move.destination);
 			}
 		} else if(movedPiece == Piece.ROOK) {
 			this.positionHash ^= this.positionHasher.getMaskCastleRights(
@@ -344,16 +354,19 @@ public class Board {
 		this.move(m);
 	}
 	
-	public void move(String source, String destination) throws IllegalMoveException {
+	public void move(String source, String destination)
+			throws IllegalMoveException {
 		Move m = new Move(source, destination);
 		this.move(m);
 	}
 	
 	private void setPositionEmpty() {
-		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
-			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 :
+				this.bitboards.entrySet()) {
+			for(Map.Entry<Piece, Bitboard> entry2 :
+					entry1.getValue().entrySet()) {
 				Bitboard bitboard = entry2.getValue();
-				bitboard.data = 0;
+				bitboard.reset();
 			}
 		}
 		this.fullMoveCounter = 1;
@@ -382,7 +395,7 @@ public class Board {
 					// A numeric amount of blank squares.
 					mask <<= (initial - '1');
 				} else {
-					this.bitboards.get(color).get(piece).data |= mask;
+					this.bitboards.get(color).get(piece).updateUnion(mask);
 				}
 				if(j < placementPartLength - 1) {
 					// If we happen to be on h8 it may cause an out-of-bounds
@@ -438,16 +451,33 @@ public class Board {
 		this.setPositionHash();
 	}
 	
+	public Piece pieceOnSquare(long mask) {
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+			Color color = entry1.getKey();
+			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+				Piece piece = entry2.getKey();
+				Bitboard bitboard = entry2.getValue();
+				if(bitboard.intersects(mask)) {
+					return piece;
+				}
+			}
+		}
+		return Piece.NOPIECE;
+	}
+	
 	private void setPositionHash() {
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
-			for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+			for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 :
+					this.bitboards.entrySet()) {
 				Color color = entry1.getKey();
-				for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+				for(Map.Entry<Piece, Bitboard> entry2 :
+						entry1.getValue().entrySet()) {
 					Piece piece = entry2.getKey();
 					Bitboard bitboard = entry2.getValue();
-					if((bitboard.data & mask) != 0) {
-						this.positionHash ^= this.positionHasher.getMask(color, piece, i);
+					if(bitboard.intersects(mask)) {
+						this.positionHash ^= this.positionHasher.getMask(
+							color, piece, i);
 						if(piece == Piece.PAWN || piece == Piece.KING) {
 							this.positionHashPawnsKings ^=
 								this.positionHasher.getMask(color, piece, i);
@@ -456,8 +486,10 @@ public class Board {
 				}
 			}
 			if(this.enPassantTarget == mask) {
-				this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(i);
-				this.positionHashPawnsKings ^= this.positionHasher.getMaskEnPassantTarget(i);
+				this.positionHash ^=
+					this.positionHasher.getMaskEnPassantTarget(i);
+				this.positionHashPawnsKings ^=
+					this.positionHasher.getMaskEnPassantTarget(i);
 			}
 		}
 		if(this.turn == Color.BLACK) {
@@ -467,23 +499,26 @@ public class Board {
 			this.castleRights);
 	}
 
-	private static LegalMoveGenerator legalMoveGenerator = new LegalMoveGenerator();
+	private static LegalMoveGenerator legalMoveGenerator =
+		new LegalMoveGenerator();
 	private static NotationHelper notationHelper = new NotationHelper();
 	private PositionHasher positionHasher = null;
 	
-	public Map<Color, Map<Piece, Bitboard>> bitboards = new HashMap<Color, Map<Piece, Bitboard>>();
-	public Map<Color, Bitboard> playerBitboards = new HashMap<Color, Bitboard>();
+	public Map<Color, Map<Piece, Bitboard>> bitboards =
+		new HashMap<Color, Map<Piece, Bitboard>>();
+	public Map<Color, Bitboard> playerBitboards =
+		new HashMap<Color, Bitboard>();
 	public Bitboard allPieces;
 	
 	// Convenience masks for castling
-	public long maskA1Negative = ~(notationHelper.generateMask("a1") ^ 0);
-	public long maskA8Negative = ~(notationHelper.generateMask("a8") ^ 0);
-	public long maskH1Negative = ~(notationHelper.generateMask("h1") ^ 0);
-	public long maskH8Negative = ~(notationHelper.generateMask("h8") ^ 0);
-	public long maskD1 = notationHelper.generateMask("d1");
-	public long maskD8 = notationHelper.generateMask("d8");
-	public long maskF1 = notationHelper.generateMask("f1");
-	public long maskF8 = notationHelper.generateMask("f8");
+	public Bitboard bbA1 = new Bitboard("a1");
+	public Bitboard bbA8 = new Bitboard("a8");
+	public Bitboard bbH1 = new Bitboard("h1");
+	public Bitboard bbH8 = new Bitboard("h8");
+	public Bitboard bbD1 = new Bitboard("d1");
+	public Bitboard bbD8 = new Bitboard("d8");
+	public Bitboard bbF1 = new Bitboard("f1");
+	public Bitboard bbF8 = new Bitboard("f8");
 		
 	public Color turn = Color.WHITE;
 	// If the last move was a double pawn move, this is the destination

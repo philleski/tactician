@@ -36,13 +36,13 @@ public class CastleRay {
 	}
 	
 	public CastleRay(String squareStart, String squareEnd, int stepSize) {
-		this(notationHelper.generateMask(squareStart),
-				notationHelper.generateMask(squareEnd), stepSize);
+		this(new Bitboard(squareStart).getData(),
+			new Bitboard(squareEnd).getData(), stepSize);
 	}
 	
 	public CastleRay flip() {
-		long maskStart = Bitboard.flip(this.maskStart);
-		long maskEnd = Bitboard.flip(this.maskEnd);
+		long maskStart = new Bitboard(this.maskStart).flip().getData();
+		long maskEnd = new Bitboard(this.maskEnd).flip().getData();
 		int stepSize = 0;
 		if(Math.abs(this.stepSize) == 1) {
 			stepSize = this.stepSize;

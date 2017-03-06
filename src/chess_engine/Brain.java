@@ -12,8 +12,10 @@ public class Brain {
 	static int PAWN_KING_TABLE_SIZE = 64 * 1024;
 	
 	public Brain() {
-		this.transpositionTable = new TranspositionTable(TRANSPOSITION_TABLE_SIZE);
-		this.pawnKingHashTable = new PawnKingHashTable(PAWN_KING_TABLE_SIZE);
+		this.transpositionTable = new TranspositionTable(
+			TRANSPOSITION_TABLE_SIZE);
+		this.pawnKingHashTable = new PawnKingHashTable(
+			PAWN_KING_TABLE_SIZE);
 		
 		this.FITNESS_PIECE.put(Piece.BISHOP, 333f);
 		this.FITNESS_PIECE.put(Piece.KING, 1000000f);
@@ -30,15 +32,6 @@ public class Brain {
 			8 * FITNESS_PIECE.get(Piece.PAWN);
 	}
 	
-	private static int numBitsSet(long x) {
-		// Taken from http://en.wikipedia.org/wiki/Hamming_weight
-		int count;
-		for(count = 0; x != 0; count++) {
-			x &= x - 1;
-		}
-		return count;
-	}
-	
 	public float endgameFraction(Board board) {
 		// Returns 0 if the opponent has all the pieces, 1 if just the king.
 		float material = 0;
@@ -47,30 +40,33 @@ public class Brain {
 			if(piece == Piece.KING) {
 				continue;
 			}
-			int pieceCount = numBitsSet(board.bitboards.get(
-				Color.flip(board.turn)).get(piece).data);
+			int pieceCount = board.bitboards.get(Color.flip(board.turn))
+				.get(piece).numBitsSet();
 			material += pieceCount * this.FITNESS_PIECE.get(piece);
 		}
 		
 		return 1 - material / this.FITNESS_START_NOKING;
 	}
 	
-	public float fitnessKingSafety(Board board, Color color, float endgameFraction) {
+	public float fitnessKingSafety(Board board, Color color,
+			float endgameFraction) {
 		// The king should be in the corner at the beginning of the game
 		// because it's safer there, but in the center at the end of the game
 		// because it's a fighting piece and the opponent can't really
 		// checkmate it anyway.
 		int distanceFromHomeRank = 0;
-		int kingIndex = Long.numberOfTrailingZeros(
-			board.bitboards.get(color).get(Piece.KING).data);
+		int kingIndex = board.bitboards.get(color).get(Piece.KING)
+			.numTrailingZeros();
 		if(color == Color.WHITE) {
 			distanceFromHomeRank = (int)(kingIndex / 8);
 		}
 		else {
 			distanceFromHomeRank = 7 - (int)(kingIndex / 8);
 		}
-		float rankFitness = -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.6f - endgameFraction);
-		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.6f - endgameFraction);
+		float rankFitness = -this.FITNESS_KING_RANK_FACTOR *
+			distanceFromHomeRank * (0.6f - endgameFraction);
+		float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] *
+			(0.6f - endgameFraction);
 		
 		float openFilePenalty = 0;
 		float pawnShieldPenalty = 0;
@@ -79,27 +75,35 @@ public class Brain {
 			int protectorsOneStep = 0;
 			if(color == Color.WHITE) {
 				if(kingIndex % 8 <= 2) {
-					protectorsHome = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000000700L);
-					protectorsOneStep = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000070000L);
+					protectorsHome = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x0000000000000700L)
+						.numBitsSet();
+					protectorsOneStep = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x0000000000070000L)
+						.numBitsSet();
 				} else if(kingIndex % 8 >= 5) {
-					protectorsHome = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x000000000000E000L);
-					protectorsOneStep = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000000000E00000L);					
+					protectorsHome = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x000000000000E000L)
+						.numBitsSet();
+					protectorsOneStep = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x0000000000E00000L)
+						.numBitsSet();
 				}
 			} else {
 				if(kingIndex % 8 <= 2) {
-					protectorsHome = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0007000000000000L);
-					protectorsOneStep = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000070000000000L);
+					protectorsHome = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x0007000000000000L)
+						.numBitsSet();
+					protectorsOneStep = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x0000070000000000L)
+						.numBitsSet();
 				} else if(kingIndex % 8 >= 5) {
-					protectorsHome = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x00E0000000000000L);
-					protectorsOneStep = numBitsSet(
-						board.bitboards.get(color).get(Piece.PAWN).data & 0x0000E00000000000L);
+					protectorsHome = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x00E0000000000000L)
+						.numBitsSet();
+					protectorsOneStep = board.bitboards.get(color)
+						.get(Piece.PAWN).intersection(0x0000E00000000000L)
+						.numBitsSet();
 				}
 			}
 			if(protectorsHome + protectorsOneStep == 2) {
@@ -115,7 +119,8 @@ public class Brain {
 				// Don't have an open file penalty before castling, as we may
 				// get opportunities to capture pawns in the center.
 				long file = 0x0101010101010101L << (kingIndex % 8);
-				if((board.bitboards.get(color).get(Piece.PAWN).data & file) == 0) {
+				if(!board.bitboards.get(color).get(Piece.PAWN)
+						.intersects(file)) {
 					openFilePenalty = 150 * (1 - endgameFraction);
 				}
 			}
@@ -128,9 +133,10 @@ public class Brain {
 		// Assign a bonus for a rook being on an open file (one with no pawns)
 		// or a semi-open file (one with only enemy pawns).
 		float result = 0;
-		long rooks = board.bitboards.get(color).get(Piece.ROOK).data;
-		long myPawns = board.bitboards.get(color).get(Piece.PAWN).data;
-		long oppPawns = board.bitboards.get(Color.flip(color)).get(Piece.PAWN).data;
+		long rooks = board.bitboards.get(color).get(Piece.ROOK).getData();
+		long myPawns = board.bitboards.get(color).get(Piece.PAWN).getData();
+		long oppPawns = board.bitboards.get(Color.flip(color)).get(Piece.PAWN)
+			.getData();
 		while(rooks != 0) {
 			int rookIndex = Long.numberOfTrailingZeros(rooks);
 			long rook = 1L << rookIndex;
@@ -171,12 +177,10 @@ public class Brain {
 			pawnMaskQueenside = 0x0007070000000000L;
 			pawnMaskKingside = 0x00E0E00000000000L;
 		}
-		int numPawnsQueenside = numBitsSet(
-			board.bitboards.get(color).get(Piece.PAWN).data &
-			pawnMaskQueenside);
-		int numPawnsKingside = numBitsSet(
-			board.bitboards.get(color).get(Piece.PAWN).data &
-			pawnMaskKingside);
+		int numPawnsQueenside = board.bitboards.get(color).get(Piece.PAWN)
+			.intersection(pawnMaskQueenside).numBitsSet();
+		int numPawnsKingside = board.bitboards.get(color).get(Piece.PAWN)
+			.intersection(pawnMaskKingside).numBitsSet();
 		
 		result -= 10 * (3 - numPawnsQueenside);
 		result -= 25 * (3 - numPawnsKingside);
@@ -194,9 +198,12 @@ public class Brain {
 			if(piece == Piece.PAWN) {
 				continue;
 			}
-			int myPieceCount = numBitsSet(board.bitboards.get(board.turn).get(piece).data);
-			int oppPieceCount = numBitsSet(board.bitboards.get(turnFlipped).get(piece).data);
-			fitness += (myPieceCount - oppPieceCount) * this.FITNESS_PIECE.get(piece);
+			int myPieceCount = board.bitboards.get(board.turn).get(piece)
+				.numBitsSet();
+			int oppPieceCount = board.bitboards.get(turnFlipped).get(piece)
+				.numBitsSet();
+			fitness += (myPieceCount - oppPieceCount) *
+				this.FITNESS_PIECE.get(piece);
 			if(piece == Piece.BISHOP) {
 				if(myPieceCount >= 2) {
 					fitness += this.FITNESS_BISHOP_PAIR_BONUS;
@@ -224,10 +231,12 @@ public class Brain {
 		if(entry == null) {
 			this.pawnKingHashTable.put(
 				board.positionHashPawnsKings,
-				board.bitboards.get(Color.WHITE).get(Piece.PAWN).data,
-				board.bitboards.get(Color.BLACK).get(Piece.PAWN).data,
-				Long.numberOfTrailingZeros(board.bitboards.get(Color.WHITE).get(Piece.KING).data),
-				Long.numberOfTrailingZeros(board.bitboards.get(Color.BLACK).get(Piece.KING).data)
+				board.bitboards.get(Color.WHITE).get(Piece.PAWN).getData(),
+				board.bitboards.get(Color.BLACK).get(Piece.PAWN).getData(),
+				board.bitboards.get(Color.WHITE).get(Piece.KING)
+					.numTrailingZeros(),
+				board.bitboards.get(Color.BLACK).get(Piece.KING)
+					.numTrailingZeros()
 			);
 			entry = this.pawnKingHashTable.get(board.positionHashPawnsKings);
 		}
@@ -259,10 +268,10 @@ public class Brain {
 				pawnFactor += endgameFraction *
 						this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
 				
-				int myPawnsOnRank = numBitsSet(pawnBitboardRelativeToMe.data &
-					rankMask & centralityMask);
-				int oppPawnsOnRank = numBitsSet(pawnBitboardRelativeToOpp.data &
-					rankMask & centralityMask);
+				int myPawnsOnRank = pawnBitboardRelativeToMe.intersection(
+					rankMask & centralityMask).numBitsSet();
+				int oppPawnsOnRank = pawnBitboardRelativeToOpp.intersection(
+					rankMask & centralityMask).numBitsSet();
 				
 				fitness += pawnFactor * (myPawnsOnRank - oppPawnsOnRank);
 			}
@@ -289,7 +298,7 @@ public class Brain {
 		}
 		// The player whose king gets captured first loses, even if the other
 		// king gets captured next turn.
-		if(board.bitboards.get(board.turn).get(Piece.KING).data == 0L) {
+		if(board.bitboards.get(board.turn).get(Piece.KING).isEmpty()) {
 			return -FITNESS_LARGE;
 		}
 		ArrayList<Move> lmf = board.legalMovesFast(true);

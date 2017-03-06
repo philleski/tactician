@@ -13,33 +13,39 @@ public class LegalMoveGenerator {
 		}
 		
 		this.maskCastleSpace.get(Color.WHITE).put(Castle.KINGSIDE,
-			notationHelper.generateMask("f1", "g1"));
+			new Bitboard("f1", "g1").getData());
 		this.maskCastleSpace.get(Color.WHITE).put(Castle.QUEENSIDE,
-			notationHelper.generateMask("b1", "c1", "d1"));
+			new Bitboard("b1", "c1", "d1").getData());
 		this.maskCastleSpace.get(Color.BLACK).put(Castle.KINGSIDE,
-			Bitboard.flip(this.maskCastleSpace.get(Color.WHITE).get(Castle.KINGSIDE)));
+			new Bitboard(this.maskCastleSpace.get(Color.WHITE)
+				.get(Castle.KINGSIDE)).flip().getData());
 		this.maskCastleSpace.get(Color.BLACK).put(Castle.QUEENSIDE,
-			Bitboard.flip(this.maskCastleSpace.get(Color.WHITE).get(Castle.QUEENSIDE)));
+			new Bitboard(this.maskCastleSpace.get(Color.WHITE)
+				.get(Castle.QUEENSIDE)).flip().getData());
 		
 		this.maskCastlePawns.get(Color.WHITE).put(Castle.KINGSIDE,
-			notationHelper.generateMask("d2", "e2", "f2", "g2"));
+			new Bitboard("d2", "e2", "f2", "g2").getData());
 		this.maskCastlePawns.get(Color.WHITE).put(Castle.QUEENSIDE,
-			notationHelper.generateMask("b2", "c2", "d2", "e2", "f2"));
+			new Bitboard("b2", "c2", "d2", "e2", "f2").getData());
 		this.maskCastlePawns.get(Color.BLACK).put(Castle.KINGSIDE,
-			Bitboard.flip(this.maskCastlePawns.get(Color.WHITE).get(Castle.KINGSIDE)));
+			new Bitboard(this.maskCastlePawns.get(Color.WHITE)
+				.get(Castle.KINGSIDE)).flip().getData());
 		this.maskCastlePawns.get(Color.BLACK).put(Castle.QUEENSIDE,
-			Bitboard.flip(this.maskCastlePawns.get(Color.WHITE).get(Castle.QUEENSIDE)));
+			new Bitboard(this.maskCastlePawns.get(Color.WHITE)
+				.get(Castle.QUEENSIDE)).flip().getData());
 			
 		this.maskCastleKnights.get(Color.WHITE).put(Castle.KINGSIDE,
-			notationHelper.generateMask("c2", "d2", "g2", "d3", "e3", "f3",
-				"g3", "h2"));
+			new Bitboard("c2", "d2", "g2", "d3", "e3", "f3", "g3", "h2")
+				.getData());
 		this.maskCastleKnights.get(Color.WHITE).put(Castle.QUEENSIDE,
-			notationHelper.generateMask("b2", "c2", "f2", "g2", "c3", "d3",
-				"e3", "f3"));
+			new Bitboard("b2", "c2", "f2", "g2", "c3", "d3", "e3", "f3")
+				.getData());
 		this.maskCastleKnights.get(Color.BLACK).put(Castle.KINGSIDE,
-			Bitboard.flip(this.maskCastleKnights.get(Color.WHITE).get(Castle.KINGSIDE)));
+			new Bitboard(this.maskCastleKnights.get(Color.WHITE)
+				.get(Castle.KINGSIDE)).flip().getData());
 		this.maskCastleKnights.get(Color.BLACK).put(Castle.QUEENSIDE,
-			Bitboard.flip(this.maskCastleKnights.get(Color.WHITE).get(Castle.QUEENSIDE)));
+			new Bitboard(this.maskCastleKnights.get(Color.WHITE)
+				.get(Castle.QUEENSIDE)).flip().getData());
 		
 		this.addCastleRayStraight(Color.WHITE, Castle.KINGSIDE, "d1", "a1", -1);
 		this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "d2", "a5", 7);
@@ -234,8 +240,8 @@ public class LegalMoveGenerator {
 	
 	private void appendLegalMovesForPawn(Board board,
 			ArrayList<Move> legalMoves, boolean capturesOnly) {
-		long movers = board.bitboards.get(board.turn).get(Piece.PAWN).data;
-		long oppPieces = board.playerBitboards.get(Color.flip(board.turn)).data;
+		long movers = board.bitboards.get(board.turn).get(Piece.PAWN).getData();
+		long oppPieces = board.playerBitboards.get(Color.flip(board.turn)).getData();
 		long[] attackSquaresMoveTable = board.turn == Color.WHITE ?
 				this.attackSquaresPawnMoveWhite : this.attackSquaresPawnMoveBlack;
 		long[] attackSquaresCaptureTable = board.turn == Color.WHITE ?
@@ -251,7 +257,7 @@ public class LegalMoveGenerator {
 			// If the pawn is trying to move two squares up and there's something
 			// blocking the first square, pretend it's also blocking the second
 			// square.
-			long moveBlockers = board.allPieces.data & ~mover;
+			long moveBlockers = board.allPieces.getData() & ~mover;
 			if(board.turn == Color.WHITE) {
 				moveBlockers |= (moveBlockers & 0x0000000000FF0000L) << 8;
 			} else {
@@ -299,14 +305,14 @@ public class LegalMoveGenerator {
 	private void appendLegalMovesForLongRangePiece(Board board,
 			Piece piece, long[] attackSquaresTable, ArrayList<Move> legalMoves,
 			boolean capturesOnly) {
-		long movers = board.bitboards.get(board.turn).get(piece).data;
-		long myPieces = board.playerBitboards.get(board.turn).data;
+		long movers = board.bitboards.get(board.turn).get(piece).getData();
+		long myPieces = board.playerBitboards.get(board.turn).getData();
 		while(movers != 0) {
 			int moverIndex = Long.numberOfTrailingZeros(movers);
 			long mover = 1L << moverIndex;
 			movers ^= mover;
 			long attackSquares = attackSquaresTable[moverIndex];
-			long incidentSquares = attackSquares & board.allPieces.data;
+			long incidentSquares = attackSquares & board.allPieces.getData();
 			long incidentSquaresBefore = incidentSquares & (mover - 1L);
 			long incidentSquaresAfter = moverIndex == 63 ? 0L :
 				incidentSquares & ~(mover + mover - 1L);
@@ -328,7 +334,7 @@ public class LegalMoveGenerator {
 				if((attackSquare & myPieces) != 0) {
 					continue;
 				}
-				if(capturesOnly && (attackSquare & board.allPieces.data) == 0) {
+				if(capturesOnly && !board.allPieces.intersects(attackSquare)) {
 					continue;
 				}
 				legalMoves.add(new Move(moverIndex, attackSquareIndex));
@@ -367,18 +373,18 @@ public class LegalMoveGenerator {
 	private void appendLegalMovesForShortRangePiece(Board board,
 			Piece piece, long[] attackSquaresTable,
 			ArrayList<Move> legalMoves, boolean capturesOnly) {
-		long movers = board.bitboards.get(board.turn).get(piece).data;
+		long movers = board.bitboards.get(board.turn).get(piece).getData();
 		while(movers != 0) {
 			int moverIndex = Long.numberOfTrailingZeros(movers);
 			long mover = 1L << moverIndex;
 			movers ^= mover;
 			long attackSquares = attackSquaresTable[moverIndex];
-			attackSquares &= ~board.playerBitboards.get(board.turn).data;
+			attackSquares &= ~board.playerBitboards.get(board.turn).getData();
 			while(attackSquares != 0) {
 				int attackSquareIndex = Long.numberOfTrailingZeros(attackSquares);
 				long attackSquare = 1L << attackSquareIndex;
 				attackSquares ^= attackSquare;
-				if(capturesOnly && (attackSquare & board.allPieces.data) == 0) {
+				if(capturesOnly && !board.allPieces.intersects(attackSquare)) {
 					continue;
 				}
 				legalMoves.add(new Move(moverIndex, attackSquareIndex));
@@ -404,8 +410,7 @@ public class LegalMoveGenerator {
 			if(!board.castleRights.get(board.turn).get(castle)) {
 				continue;
 			}
-			if((board.allPieces.data &
-					this.maskCastleSpace.get(board.turn).get(castle)) != 0) {
+			if(board.allPieces.intersects(this.maskCastleSpace.get(board.turn).get(castle))) {
 				continue;
 			}
 			if(this.verifyCastleCheckRule(board, castle)) {
@@ -420,28 +425,32 @@ public class LegalMoveGenerator {
 		// check. (If it's into a check the opponent would take the king in the
 		// next move, so the AI wouldn't do it anyway.)
 		Color turnFlipped = Color.flip(board.turn);
-		long oppPiecesDiagonal = board.bitboards.get(turnFlipped).get(Piece.BISHOP).data |
-				board.bitboards.get(turnFlipped).get(Piece.QUEEN).data;
-		long oppPiecesStraight = board.bitboards.get(turnFlipped).get(Piece.ROOK).data |
-				board.bitboards.get(turnFlipped).get(Piece.QUEEN).data;
-		if((board.bitboards.get(turnFlipped).get(Piece.PAWN).data &
-				this.maskCastlePawns.get(board.turn).get(castle)) != 0) {
+		long oppPiecesDiagonal =
+			board.bitboards.get(turnFlipped).get(Piece.BISHOP).intersection(
+			board.bitboards.get(turnFlipped).get(Piece.QUEEN)).getData();
+		long oppPiecesStraight =
+			board.bitboards.get(turnFlipped).get(Piece.ROOK).intersection(
+			board.bitboards.get(turnFlipped).get(Piece.QUEEN)).getData();
+		if(board.bitboards.get(turnFlipped).get(Piece.PAWN).intersects(
+				this.maskCastlePawns.get(board.turn).get(castle))) {
 			return false;
 		}
-		if((board.bitboards.get(turnFlipped).get(Piece.KNIGHT).data &
-				this.maskCastleKnights.get(board.turn).get(castle)) != 0) {
+		if(board.bitboards.get(turnFlipped).get(Piece.KNIGHT).intersects(
+				this.maskCastleKnights.get(board.turn).get(castle))) {
 			return false;
 		}
-		for(CastleRay castleRay : this.castleRaysDiagonal.get(board.turn).get(castle)) {
-			long otherPieces = board.allPieces.data & ~oppPiecesDiagonal;
+		for(CastleRay castleRay : this.castleRaysDiagonal.get(board.turn)
+				.get(castle)) {
+			long otherPieces = board.allPieces.getData() & ~oppPiecesDiagonal;
 			if(castleRay.opponentPiecePrecludesCastling(board.turn,
 					castle, oppPiecesDiagonal, otherPieces)) {
 				return false;
 			}
 			
 		}
-		for(CastleRay castleRay : this.castleRaysStraight.get(board.turn).get(castle)) {
-			long otherPieces = board.allPieces.data & ~oppPiecesStraight;
+		for(CastleRay castleRay : this.castleRaysStraight.get(board.turn)
+				.get(castle)) {
+			long otherPieces = board.allPieces.getData() & ~oppPiecesStraight;
 			if(castleRay.opponentPiecePrecludesCastling(board.turn,
 					castle, oppPiecesStraight, otherPieces)) {
 				return false;
@@ -458,7 +467,7 @@ public class LegalMoveGenerator {
 		// actually legal, but the ones that aren't wouldn't be able to capture
 		// the player's king anyway.
 		ArrayList<Move> legalMoves = new ArrayList<Move>();
-		long myKings = board.bitboards.get(board.turn).get(Piece.KING).data;
+		Bitboard myKings = board.bitboards.get(board.turn).get(Piece.KING);
 		
 		// Don't return before restoring the board.
 		board.turn = Color.flip(board.turn);
@@ -471,7 +480,7 @@ public class LegalMoveGenerator {
 		this.appendLegalMovesForKing(board, legalMoves, true);
 		
 		for(Move move : legalMoves) {
-			if(((1L << move.destination) & myKings) != 0) {
+			if(myKings.intersects(1L << move.destination)) {
 				board.turn = Color.flip(board.turn);
 				return true;
 			}
@@ -499,7 +508,7 @@ public class LegalMoveGenerator {
 			ArrayList<Move> legalMovesResult = new ArrayList<Move>();
 			ArrayList<Move> legalMovesNoncapture = new ArrayList<Move>();
 			for(Move move : legalMoves) {
-				if(((1L << move.destination) & board.allPieces.data) != 0) {
+				if(board.allPieces.intersects(1L << move.destination)) {
 					legalMovesResult.add(move);
 				} else {
 					legalMovesNoncapture.add(move);
@@ -511,7 +520,7 @@ public class LegalMoveGenerator {
 		} else {
 			ArrayList<Move> legalMovesCapture = new ArrayList<Move>();
 			for(Move move : legalMoves) {
-				if(((1L << move.destination) & board.allPieces.data) != 0) {
+				if(board.allPieces.intersects(1L << move.destination)) {
 					legalMovesCapture.add(move);
 				}
 			}
