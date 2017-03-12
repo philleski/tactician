@@ -11,10 +11,8 @@ public class Brain {
 	static int PAWN_KING_TABLE_SIZE = 64 * 1024;
 	
 	public Brain() {
-		this.transpositionTable = new TranspositionTable(
-			TRANSPOSITION_TABLE_SIZE);
-		this.pawnKingHashTable = new PawnKingHashTable(
-			PAWN_KING_TABLE_SIZE);
+		this.transpositionTable = new TranspositionTable(TRANSPOSITION_TABLE_SIZE);
+		this.pawnKingHashTable = new PawnKingHashTable(PAWN_KING_TABLE_SIZE);
 		
 		this.FITNESS_PIECE.put(Piece.BISHOP, 333f);
 		this.FITNESS_PIECE.put(Piece.KING, 1000000f);
@@ -35,14 +33,10 @@ public class Brain {
 		this.pawnShieldKingside = new HashMap<Color, Bitboard>();
 		this.pawnShieldKingsideForward = new HashMap<Color, Bitboard>();
 		
-		this.pawnShieldQueenside.put(Color.WHITE,
-			new Bitboard("a2", "b2", "c2"));
-		this.pawnShieldQueensideForward.put(Color.WHITE,
-			new Bitboard("a3", "b3", "c3"));
-		this.pawnShieldKingside.put(Color.WHITE,
-			new Bitboard("f2", "g2", "h2"));
-		this.pawnShieldKingsideForward.put(Color.WHITE,
-			new Bitboard("f3", "g3", "h3"));
+		this.pawnShieldQueenside.put(Color.WHITE, new Bitboard("a2", "b2", "c2"));
+		this.pawnShieldQueensideForward.put(Color.WHITE, new Bitboard("a3", "b3", "c3"));
+		this.pawnShieldKingside.put(Color.WHITE, new Bitboard("f2", "g2", "h2"));
+		this.pawnShieldKingsideForward.put(Color.WHITE, new Bitboard("f3", "g3", "h3"));
 		
 		this.pawnShieldQueenside.put(Color.BLACK,
 			this.pawnShieldQueenside.get(Color.WHITE).flip());
@@ -62,11 +56,9 @@ public class Brain {
 			if(piece == Piece.KING) {
 				continue;
 			}
-			int pieceCount = board.bitboards.get(Color.flip(board.turn))
-				.get(piece).numBitsSet();
+			int pieceCount = board.bitboards.get(Color.flip(board.turn)).get(piece).numBitsSet();
 			material += pieceCount * this.FITNESS_PIECE.get(piece);
 		}
-		
 		return 1 - material / this.FITNESS_START_NOKING;
 	}
 	
@@ -77,8 +69,7 @@ public class Brain {
 		// because it's a fighting piece and the opponent can't really
 		// checkmate it anyway.
 		int distanceFromHomeRank = 0;
-		int kingIndex = board.bitboards.get(color).get(Piece.KING)
-			.numTrailingZeros();
+		int kingIndex = board.bitboards.get(color).get(Piece.KING).numTrailingZeros();
 		if(color == Color.WHITE) {
 			distanceFromHomeRank = (int)(kingIndex / 8);
 		}
@@ -126,11 +117,10 @@ public class Brain {
 			pawnShieldPenalty *= (1 - endgameFraction);
 			
 			if(kingIndex % 8 <= 2 || kingIndex % 8 >= 5) {
-				// Don't have an open file penalty before castling, as we may
-				// get opportunities to capture pawns in the center.
+				// Don't have an open file penalty before castling, as we may get opportunities to
+				// capture pawns in the center.
 				Bitboard file = Bitboard.bitboardFromFile(kingIndex % 8);
-				if(!board.bitboards.get(color).get(Piece.PAWN)
-						.intersects(file)) {
+				if(!board.bitboards.get(color).get(Piece.PAWN).intersects(file)) {
 					openFilePenalty = 150 * (1 - endgameFraction);
 				}
 			}
@@ -145,8 +135,7 @@ public class Brain {
 		float result = 0;
 		long rooks = board.bitboards.get(color).get(Piece.ROOK).getData();
 		long myPawns = board.bitboards.get(color).get(Piece.PAWN).getData();
-		long oppPawns = board.bitboards.get(Color.flip(color)).get(Piece.PAWN)
-			.getData();
+		long oppPawns = board.bitboards.get(Color.flip(color)).get(Piece.PAWN).getData();
 		while(rooks != 0) {
 			int rookIndex = Long.numberOfTrailingZeros(rooks);
 			long rook = 1L << rookIndex;
@@ -199,12 +188,9 @@ public class Brain {
 			if(piece == Piece.PAWN) {
 				continue;
 			}
-			int myPieceCount = board.bitboards.get(board.turn).get(piece)
-				.numBitsSet();
-			int oppPieceCount = board.bitboards.get(turnFlipped).get(piece)
-				.numBitsSet();
-			fitness += (myPieceCount - oppPieceCount) *
-				this.FITNESS_PIECE.get(piece);
+			int myPieceCount = board.bitboards.get(board.turn).get(piece).numBitsSet();
+			int oppPieceCount = board.bitboards.get(turnFlipped).get(piece).numBitsSet();
+			fitness += (myPieceCount - oppPieceCount) * this.FITNESS_PIECE.get(piece);
 			if(piece == Piece.BISHOP) {
 				if(myPieceCount >= 2) {
 					fitness += this.FITNESS_BISHOP_PAIR_BONUS;
@@ -234,10 +220,8 @@ public class Brain {
 				board.positionHashPawnsKings,
 				board.bitboards.get(Color.WHITE).get(Piece.PAWN).getData(),
 				board.bitboards.get(Color.BLACK).get(Piece.PAWN).getData(),
-				board.bitboards.get(Color.WHITE).get(Piece.KING)
-					.numTrailingZeros(),
-				board.bitboards.get(Color.BLACK).get(Piece.KING)
-					.numTrailingZeros()
+				board.bitboards.get(Color.WHITE).get(Piece.KING).numTrailingZeros(),
+				board.bitboards.get(Color.BLACK).get(Piece.KING).numTrailingZeros()
 			);
 			entry = this.pawnKingHashTable.get(board.positionHashPawnsKings);
 		}
@@ -265,9 +249,9 @@ public class Brain {
 					Bitboard.bitboardFromFile(centrality).union(
 						Bitboard.bitboardFromFile(8 - centrality));
 				float pawnFactor = (1 - endgameFraction) *
-						this.FITNESS_PAWN_TABLE_OPENING[rank][centrality];
+					this.FITNESS_PAWN_TABLE_OPENING[rank][centrality];
 				pawnFactor += endgameFraction *
-						this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
+					this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
 				
 				int myPawnsOnRank = pawnBitboardRelativeToMe
 					.intersection(rankBitboard)
@@ -283,11 +267,11 @@ public class Brain {
 		}
 		
 		fitness += this.fitnessKingSafety(board, board.turn, endgameFraction) -
-				this.fitnessKingSafety(board, turnFlipped, endgameFraction);
+			this.fitnessKingSafety(board, turnFlipped, endgameFraction);
 		fitness += this.fitnessRookFiles(board, board.turn, endgameFraction) -
-				this.fitnessRookFiles(board, turnFlipped, endgameFraction);
+			this.fitnessRookFiles(board, turnFlipped, endgameFraction);
 		fitness += this.fitnessCastleRights(board, board.turn, endgameFraction) -
-				this.fitnessCastleRights(board, turnFlipped, endgameFraction);
+			this.fitnessCastleRights(board, turnFlipped, endgameFraction);
 						
 		return fitness;
 	}
@@ -332,7 +316,7 @@ public class Brain {
 			return this.quiescentSearch(board, alpha, beta, -1);
 		}
 		TranspositionTable.TranspositionEntry entry =
-				this.transpositionTable.get(board.positionHash);
+			this.transpositionTable.get(board.positionHash);
 		Move lastBestMove = null;
 		if(entry != null) {
 			if(entry.depth == depth) {
@@ -356,8 +340,7 @@ public class Brain {
 			if(legalMoves.size() == 0) {
 				if(board.isInCheck()) {
 					// Checkmate
-					return board.fullMoveCounter * this.FITNESS_MOVE -
-							this.FITNESS_LARGE;
+					return board.fullMoveCounter * this.FITNESS_MOVE - this.FITNESS_LARGE;
 				}
 				else {
 					// Stalemate
@@ -381,16 +364,15 @@ public class Brain {
 			}
 		}
 		TranspositionTable.TranspositionType nodeType =
-				TranspositionTable.TranspositionType.NODE_ALL;
+			TranspositionTable.TranspositionType.NODE_ALL;
 		Move bestMove = null;
 		for(Move move : lmf) {
 			Board copy = new Board(board);
 			copy.move(move);
 			float fitness = -this.alphabeta(copy, depth - 1, -beta, -alpha);
 			if(fitness >= beta) {
-				this.transpositionTable.put(depth, board.positionHash,
-						beta, bestMove,
-						TranspositionTable.TranspositionType.NODE_CUT);
+				this.transpositionTable.put(depth, board.positionHash, beta, bestMove,
+					TranspositionTable.TranspositionType.NODE_CUT);
 				return beta;
 			}
 			if(fitness > alpha) {
@@ -399,8 +381,7 @@ public class Brain {
 				alpha = fitness;
 			}
 		}
-		this.transpositionTable.put(depth, board.positionHash, alpha, bestMove,
-				nodeType);
+		this.transpositionTable.put(depth, board.positionHash, alpha, bestMove, nodeType);
 		return alpha;
 	}
 	
@@ -441,7 +422,7 @@ public class Brain {
 			}
 			copy.move(pvMove);
 			TranspositionTable.TranspositionEntry entry =
-					this.transpositionTable.get(copy.positionHash);
+				this.transpositionTable.get(copy.positionHash);
 			if(entry == null || entry.bestMove == null) {
 				break;
 			}

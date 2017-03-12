@@ -72,14 +72,12 @@ public class NotationHelper {
 		for(Move m : board.legalMoves()) {
 			long sourceMask = 1L << m.source;
 			String sourceSquare = coordToSquare(sourceMask);
-			if(algebraic.equals("O-O") &&
-					board.pieceOnSquare(sourceMask) == Piece.KING) {
+			if(algebraic.equals("O-O") && board.pieceOnSquare(sourceMask) == Piece.KING) {
 				if(m.source + 2 == m.destination) {
 					return m;
 				}
 			}
-			else if(algebraic.equals("O-O-O") &&
-					board.pieceOnSquare(sourceMask) == Piece.KING) {
+			else if(algebraic.equals("O-O-O") && board.pieceOnSquare(sourceMask) == Piece.KING) {
 				if(m.source - 2 == m.destination) {
 					return m;
 				}
@@ -88,20 +86,18 @@ public class NotationHelper {
 				String algebraicDest = "";
 				if(algebraic.charAt(algebraic.length() - 2) == '=') {
 					algebraicDest = algebraic.substring(algebraic.length() - 4,
-							algebraic.length() - 2);
+						algebraic.length() - 2);
 				}
 				else {
 					algebraicDest = algebraic.substring(algebraic.length() - 2,
-							algebraic.length());
+						algebraic.length());
 				}
-				if(algebraicDest.charAt(0) < 'a' ||
-						algebraicDest.charAt(0) > 'h') {
+				if(algebraicDest.charAt(0) < 'a' || algebraicDest.charAt(0) > 'h') {
 					System.err.println("Illegal move: destination " +
 						"file not from a-h: " + algebraicDest);
 					return null;
 				}
-				if(algebraicDest.charAt(1) < '1' ||
-						algebraicDest.charAt(1) > '8') {
+				if(algebraicDest.charAt(1) < '1' || algebraicDest.charAt(1) > '8') {
 					System.err.println("Illegal move: destination " +
 						"rank not from 1-8: " + algebraicDest);
 					return null;
@@ -115,22 +111,17 @@ public class NotationHelper {
 							if(m.promoteTo == Piece.NOPIECE) {
 								return m;
 							}
-							char promoteChar = algebraic.charAt(
-									algebraic.length() - 1);
-							if(promoteChar == 'B' &&
-									m.promoteTo == Piece.BISHOP) {
+							char promoteChar = algebraic.charAt(algebraic.length() - 1);
+							if(promoteChar == 'B' && m.promoteTo == Piece.BISHOP) {
 								return m;
 							}
-							else if(promoteChar == 'N' &&
-									m.promoteTo == Piece.KNIGHT) {
+							else if(promoteChar == 'N' && m.promoteTo == Piece.KNIGHT) {
 								return m;
 							}
-							else if(promoteChar == 'Q' &&
-									m.promoteTo == Piece.QUEEN) {
+							else if(promoteChar == 'Q' && m.promoteTo == Piece.QUEEN) {
 								return m;
 							}
-							else if(promoteChar == 'R' &&
-									m.promoteTo == Piece.ROOK) {
+							else if(promoteChar == 'R' && m.promoteTo == Piece.ROOK) {
 								return m;
 							}
 						}
@@ -149,26 +140,22 @@ public class NotationHelper {
 						if(algebraicTrimmed.charAt(1) >= 'a' &&
 								algebraicTrimmed.charAt(1) <= 'h') {
 							// File algebraic ambiguity.
-							if(sourceSquare.charAt(0) !=
-									algebraicTrimmed.charAt(1)) {
+							if(sourceSquare.charAt(0) != algebraicTrimmed.charAt(1)) {
 								continue;
 							}
 						}
 						else {
 							// Rank algebraic ambiguity.
-							if(sourceSquare.charAt(1) !=
-									algebraicTrimmed.charAt(1)) {
+							if(sourceSquare.charAt(1) != algebraicTrimmed.charAt(1)) {
 								continue;
 							}
 						}
 					} else if(algebraicTrimmedLength == 5) {
 						// Double algebraic ambiguity.
-						if(sourceSquare.charAt(0) !=
-								algebraicTrimmed.charAt(1)) {
+						if(sourceSquare.charAt(0) != algebraicTrimmed.charAt(1)) {
 							continue;
 						}
-						if(sourceSquare.charAt(1) !=
-								algebraicTrimmed.charAt(2)) {
+						if(sourceSquare.charAt(1) != algebraicTrimmed.charAt(2)) {
 							continue;
 						}
 					}
@@ -194,8 +181,8 @@ public class NotationHelper {
 		return new Move();
 	}
 	
-	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves,
-			long pieceFamily, int source, int dest) {
+	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves, long pieceFamily,
+			int source, int dest) {
 		ArrayList<String> piecesToDest = new ArrayList<String>();
 		String sourceSquare = indexToSquare(source);
 		for(Move m : legalMoves) {
@@ -232,8 +219,7 @@ public class NotationHelper {
 	}
 	
 	public String moveToLongAlgebraic(Board board, Move move) {
-		String result = coordToSquare(1L << move.source) +
-				coordToSquare(1L << move.destination);
+		String result = coordToSquare(1L << move.source) + coordToSquare(1L << move.destination);
 		if(move.promoteTo == Piece.BISHOP) {
 			result += "b";
 		}

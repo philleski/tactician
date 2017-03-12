@@ -24,8 +24,7 @@ public class ChessEngine {
 	
 	public static void log(String line) {
 		try {
-			FileWriter writer = new FileWriter(
-					"/Users/philip.leszczynski/chess.log", true);
+			FileWriter writer = new FileWriter("/Users/philip.leszczynski/chess.log", true);
 			writer.write(line + "\n");
 			writer.close();
 		}
@@ -38,10 +37,8 @@ public class ChessEngine {
 		System.out.println(line);
 	}
 	
-	public static void logPrincipalVariation(Brain brain, Board board,
-			Move move) {
-		ArrayList<Move> principalVariation =
-				brain.getPrincipalVariation(board, move);
+	public static void logPrincipalVariation(Brain brain, Board board, Move move) {
+		ArrayList<Move> principalVariation = brain.getPrincipalVariation(board, move);
 		ArrayList<String> movesAlgebraic = new ArrayList<String>();
 		for(Move pvMove : principalVariation) {
 			movesAlgebraic.add(notationHelper.moveToAlgebraic(board, pvMove));
@@ -54,21 +51,18 @@ public class ChessEngine {
 		// Implements https://en.wikipedia.org/wiki/Universal_Chess_Interface
 		log("< " + line);
 		if(line.equals("uci")) {
-			// Command to start the engine
 			respond("id name Phil");
 			respond("id author Phil Leszczynski");
 			respond("uciok");
 		}
 		else if(line.equals("isready")) {
-			// Giving the engine time to initialize.
 			respond("readyok");
 		}
 		else if(line.startsWith("position fen ")) {
 			String fenstring = line.substring(13);
 			log(fenstring);
 			if(board.enPassantTarget != 0) {
-				log("EP Target: " + NotationHelper.coordToSquare(
-						board.enPassantTarget));
+				log("EP Target: " + NotationHelper.coordToSquare(board.enPassantTarget));
 			}
 			else {
 				log("EP Target: None");
@@ -78,8 +72,7 @@ public class ChessEngine {
 		}
 		else if(line.startsWith("go ")) {
 			Move move = brain.getMove(board);
-			String moveLongAlgebraic = notationHelper.moveToLongAlgebraic(
-					board, move);
+			String moveLongAlgebraic = notationHelper.moveToLongAlgebraic(board, move);
 			logPrincipalVariation(brain, board, move);
 			respond("bestmove " + moveLongAlgebraic);
 		}
@@ -87,8 +80,7 @@ public class ChessEngine {
 	
 	public static void main(String[] args) {
 		logClear();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				System.in));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		String line = "";
 		while(true) {
 			try {

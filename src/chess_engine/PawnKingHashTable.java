@@ -5,8 +5,8 @@ public class PawnKingHashTable {
 		public PawnHashTableEntry() {
 		}
 		
-		public PawnHashTableEntry(long positionHash, long pawnMaskWhite,
-				long pawnMaskBlack, int kingIndexWhite, int kingIndexBlack) {
+		public PawnHashTableEntry(long positionHash, long pawnMaskWhite, long pawnMaskBlack,
+				int kingIndexWhite, int kingIndexBlack) {
 			this.positionHash = positionHash;
 			this.pawnMaskWhite = pawnMaskWhite;
 			this.pawnMaskBlack = pawnMaskBlack;
@@ -29,19 +29,16 @@ public class PawnKingHashTable {
 		public int numPassedPawnsBlack = 0;
 	}
 	
-	public void put(long positionHash, long pawnMaskWhite,
-			long pawnMaskBlack, int kingIndexWhite, int kingIndexBlack) {
+	public void put(long positionHash, long pawnMaskWhite, long pawnMaskBlack, int kingIndexWhite,
+			int kingIndexBlack) {
 		int index = this.index(positionHash);
-		this.data[index] = new PawnHashTableEntry(positionHash,
-			pawnMaskWhite, pawnMaskBlack, kingIndexWhite,
-			kingIndexBlack);
+		this.data[index] = new PawnHashTableEntry(positionHash, pawnMaskWhite, pawnMaskBlack,
+			kingIndexWhite, kingIndexBlack);
 		
 		for(int fileIndex = 0; fileIndex < 8; fileIndex++) {
 			Bitboard fileBitboard = Bitboard.bitboardFromFile(fileIndex);
-			int filePawnsWhite = fileBitboard
-				.intersection(pawnMaskWhite).numBitsSet();
-			int filePawnsBlack = fileBitboard
-				.intersection(pawnMaskBlack).numBitsSet();
+			int filePawnsWhite = fileBitboard.intersection(pawnMaskWhite).numBitsSet();
+			int filePawnsBlack = fileBitboard.intersection(pawnMaskBlack).numBitsSet();
 			if(filePawnsWhite > 1) {
 				this.data[index].numDoubledPawnsWhite += filePawnsWhite;
 			}

@@ -30,22 +30,14 @@ public class TestBrain {
 	public void testFitnessKingSafetyOpening() {
 		// In the opening the king is safest close to its home corner.
 		Brain brain = new Brain();
-		Board homeCorner = new Board(
-			"rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
-		float homeCornerSafety = brain.fitnessKingSafety(
-			homeCorner, Color.WHITE, 0);
-		Board homeEdge = new Board(
-			"rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-		float homeEdgeSafety = brain.fitnessKingSafety(
-			homeEdge, Color.WHITE, 0);
-		Board sideEdge = new Board(
-			"rnbqrbnk/pppppppp/8/8/7K/8/PPPPPPPP/RNBQ1BNR w KQkq - 0 1");
-		float sideEdgeSafety = brain.fitnessKingSafety(
-			sideEdge, Color.WHITE, 0);
-		Board center = new Board(
-			"rnbqrbnk/pppppppp/8/8/4K3/8/PPPPPPPP/RNBQ1BNR w KQkq - 0 1");
-		float centerSafety = brain.fitnessKingSafety(
-			center, Color.WHITE, 0);
+		Board homeCorner = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
+		float homeCornerSafety = brain.fitnessKingSafety(homeCorner, Color.WHITE, 0);
+		Board homeEdge = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		float homeEdgeSafety = brain.fitnessKingSafety(homeEdge, Color.WHITE, 0);
+		Board sideEdge = new Board("rnbqrbnk/pppppppp/8/8/7K/8/PPPPPPPP/RNBQ1BNR w KQkq - 0 1");
+		float sideEdgeSafety = brain.fitnessKingSafety(sideEdge, Color.WHITE, 0);
+		Board center = new Board("rnbqrbnk/pppppppp/8/8/4K3/8/PPPPPPPP/RNBQ1BNR w KQkq - 0 1");
+		float centerSafety = brain.fitnessKingSafety(center, Color.WHITE, 0);
 		assertTrue(homeCornerSafety > homeEdgeSafety);
 		assertTrue(homeEdgeSafety > sideEdgeSafety);
 		assertTrue(sideEdgeSafety > centerSafety);
@@ -56,17 +48,13 @@ public class TestBrain {
 		// In the endgame the king is a fighting piece most effective in the center.
 		Brain brain = new Brain();
 		Board homeCorner = new Board("k7/p7/8/8/8/8/P7/K7 w KQkq - 0 1");
-		float homeCornerSafety = brain.fitnessKingSafety(
-			homeCorner, Color.WHITE, 1);
+		float homeCornerSafety = brain.fitnessKingSafety(homeCorner, Color.WHITE, 1);
 		Board homeEdge = new Board("k7/p7/8/8/8/8/P7/3K4 w KQkq - 0 1");
-		float homeEdgeSafety = brain.fitnessKingSafety(
-			homeEdge, Color.WHITE, 1);
+		float homeEdgeSafety = brain.fitnessKingSafety(homeEdge, Color.WHITE, 1);
 		Board sideEdge = new Board("k7/p7/8/8/K7/8/P7/8 w KQkq - 0 1");
-		float sideEdgeSafety = brain.fitnessKingSafety(
-			sideEdge, Color.WHITE, 1);
+		float sideEdgeSafety = brain.fitnessKingSafety(sideEdge, Color.WHITE, 1);
 		Board center = new Board("k7/p7/8/8/3K4/8/P7/8 w KQkq - 0 1");
-		float centerSafety = brain.fitnessKingSafety(
-			center, Color.WHITE, 1);
+		float centerSafety = brain.fitnessKingSafety(center, Color.WHITE, 1);
 		assertTrue(homeCornerSafety < homeEdgeSafety);
 		assertTrue(homeEdgeSafety < sideEdgeSafety);
 		assertTrue(sideEdgeSafety < centerSafety);
@@ -75,18 +63,12 @@ public class TestBrain {
 	@Test
 	public void testFitnessPawnShield() {
 		Brain brain = new Brain();
-		Board shielded = new Board(
-			"6k1/pppppppp/8/8/8/8/5PPP/6K1 w KQkq - 0 1");
-		float shieldedSafety = brain.fitnessKingSafety(
-			shielded, Color.WHITE, 0.3f);
-		Board forward = new Board(
-			"6k1/pppppppp/8/8/6P1/8/5P1P/6K1 w KQkq - 0 1");
-		float forwardSafety = brain.fitnessKingSafety(
-			forward, Color.WHITE, 0.3f);
-		Board exposed = new Board(
-			"6k1/pppppppp/8/8/8/8/5P1P/6K1 w KQkq - 0 1");
-		float exposedSafety = brain.fitnessKingSafety(
-			exposed, Color.WHITE, 0.3f);
+		Board shielded = new Board("6k1/pppppppp/8/8/8/8/5PPP/6K1 w KQkq - 0 1");
+		float shieldedSafety = brain.fitnessKingSafety(shielded, Color.WHITE, 0.3f);
+		Board forward = new Board("6k1/pppppppp/8/8/6P1/8/5P1P/6K1 w KQkq - 0 1");
+		float forwardSafety = brain.fitnessKingSafety(forward, Color.WHITE, 0.3f);
+		Board exposed = new Board("6k1/pppppppp/8/8/8/8/5P1P/6K1 w KQkq - 0 1");
+		float exposedSafety = brain.fitnessKingSafety(exposed, Color.WHITE, 0.3f);
 		assertTrue(shieldedSafety > forwardSafety);
 		assertTrue(forwardSafety > exposedSafety);
 	}
@@ -124,17 +106,13 @@ public class TestBrain {
 	@Test
 	public void testFitnessCastleRights() {
 		Brain brain = new Brain();
-		Board both = new Board(
-			"rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
+		Board both = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
 		float bothFitness = brain.fitness(both);
-		Board kingside = new Board(
-			"rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w Kkq - 0 1");
+		Board kingside = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w Kkq - 0 1");
 		float kingsideFitness = brain.fitness(kingside);
-		Board queenside = new Board(
-			"rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w Qkq - 0 1");
+		Board queenside = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w Qkq - 0 1");
 		float queensideFitness = brain.fitness(queenside);
-		Board neither = new Board(
-			"rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w kq - 0 1");
+		Board neither = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w kq - 0 1");
 		float neitherFitness = brain.fitness(neither);
 		assertTrue(bothFitness > kingsideFitness);
 		assertTrue(bothFitness > queensideFitness);
@@ -145,11 +123,9 @@ public class TestBrain {
 	@Test
 	public void testFitnessCastleRightsPotential() {
 		Brain brain = new Brain();
-		Board brokenShield = new Board(
-			"rnbqrbnk/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQRBNK w KQkq - 0 1");
+		Board brokenShield = new Board("rnbqrbnk/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQRBNK w KQkq - 0 1");
 		float brokenShieldFitness = brain.fitness(brokenShield);
-		Board control = new Board(
-			"rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
+		Board control = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
 		float controlFitness = brain.fitness(control);
 		assertTrue(brokenShieldFitness < controlFitness);
 	}
@@ -167,8 +143,8 @@ public class TestBrain {
 	
 	@Test
 	public void testMateInOneLosing() {
-		// This is to prevent a bug where all moves lead to checkmate and no
-		// move is "good enough", so a null move is played.
+		// This is to prevent a bug where all moves lead to checkmate and no move is "good enough",
+		// so a null move is played.
 		Board board = new Board("8/8/8/8/8/7k/q7/7K w KQkq - 0 1");
 		Brain brain = new Brain();
 		Move move = brain.getMove(board);
@@ -182,8 +158,8 @@ public class TestBrain {
 		board.move("d7", "d5");
 		board.move("c3", "b5");
 		board.move("d8", "h4");
-		// Move the c-pawn so the knight actually recognizes the fork instead
-		// of just trying to win a pawn.
+		// Move the c-pawn so the knight actually recognizes the fork instead of just trying to win
+		// a pawn.
 		board.move("h2", "h3");
 		board.move("c7", "c6");
 		Brain brain = new Brain();

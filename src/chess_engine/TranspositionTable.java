@@ -11,8 +11,8 @@ public class TranspositionTable {
 		public TranspositionEntry() {
 		}
 		
-		public TranspositionEntry(int depth, long positionHash,
-				float fitness, Move bestMove, TranspositionType type) {
+		public TranspositionEntry(int depth, long positionHash, float fitness, Move bestMove,
+				TranspositionType type) {
 			this.depth = depth;
 			this.positionHash = positionHash;
 			this.fitness = fitness;
@@ -103,8 +103,7 @@ public class TranspositionTable {
 			type = TranspositionType.NODE_ALL;
 		}
 		int depth = (int) (byte) (contents);
-		return new TranspositionEntry(depth, positionHash, fitness, bestMove,
-			type);
+		return new TranspositionEntry(depth, positionHash, fitness, bestMove, type);
 	}
 	
 	private int index(long positionHash) {

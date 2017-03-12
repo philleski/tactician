@@ -54,21 +54,19 @@ public class CastleRay {
 		return new CastleRay(maskStart, maskEnd, stepSize);
 	}
 	
-	public boolean opponentPiecePrecludesCastling(Color color, Castle castle,
-			long oppPieceMask, long otherPieces) {
+	public boolean opponentPiecePrecludesCastling(Color color, Castle castle, long oppPieceMask,
+			long otherPieces) {
 		if((this.maskTotal & oppPieceMask) == 0) {
-			// The opposing piece is not in the ray so it can't prevent us from
-			// castling.
+			// The opposing piece is not in the ray so it can't prevent us from castling.
 			return false;
 		}
 		if((this.maskTotal & otherPieces) == 0) {
-			// The opposing piece is in the ray but no other pieces are, so
-			// it prevents us from castling.
+			// The opposing piece is in the ray but no other pieces are, so it prevents us from
+			// castling.
 			return true;
 		}
-		// At this point both the opposing piece and one of our pieces is in
-		// the ray. We can castle if and only if our piece is closer to
-		// maskStart.
+		// At this point both the opposing piece and one of our pieces is in the ray. We can castle
+		// if and only if our piece is closer the starting mask.
 		for(long mask : this.masks) {
 			if((mask & oppPieceMask) != 0) {
 				return true;
