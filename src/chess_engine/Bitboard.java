@@ -1,6 +1,10 @@
 package chess_engine;
 
 public class Bitboard {
+	public Bitboard() {
+		this.data = 0L;
+	}
+	
 	public Bitboard(long data) {
 		this.data = data;
 	}
@@ -11,6 +15,18 @@ public class Bitboard {
 			result |= NotationHelper.squareToCoord(square);
 		}
 		this.data = result;
+	}
+	
+	public static Bitboard bitboardFromRank(int rank) {
+		long zerothRankMask = 0x00000000000000ffL;
+		long rankMask = zerothRankMask << (8 * rank);
+		return new Bitboard(rankMask);
+	}
+	
+	public static Bitboard bitboardFromFile(int file) {
+		long zerothFileMask = 0x0101010101010101L;
+		long fileMask = zerothFileMask << file;
+		return new Bitboard(fileMask);
 	}
 	
 	public Bitboard copy() {
@@ -50,6 +66,10 @@ public class Bitboard {
 	
 	public boolean intersects(long mask) {
 		return this.intersection(mask).getData() != 0;
+	}
+	
+	public boolean intersects(Bitboard other) {
+		return this.intersects(other.getData());
 	}
 	
 	public boolean isEmpty() {

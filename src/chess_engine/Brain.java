@@ -29,6 +29,29 @@ public class Brain {
 			2 * FITNESS_PIECE.get(Piece.BISHOP) +
 			FITNESS_PIECE.get(Piece.QUEEN) +
 			8 * FITNESS_PIECE.get(Piece.PAWN);
+		
+		this.pawnShieldQueenside = new HashMap<Color, Bitboard>();
+		this.pawnShieldQueensideForward = new HashMap<Color, Bitboard>();
+		this.pawnShieldKingside = new HashMap<Color, Bitboard>();
+		this.pawnShieldKingsideForward = new HashMap<Color, Bitboard>();
+		
+		this.pawnShieldQueenside.put(Color.WHITE,
+			new Bitboard("a2", "b2", "c2"));
+		this.pawnShieldQueensideForward.put(Color.WHITE,
+			new Bitboard("a3", "b3", "c3"));
+		this.pawnShieldKingside.put(Color.WHITE,
+			new Bitboard("f2", "g2", "h2"));
+		this.pawnShieldKingsideForward.put(Color.WHITE,
+			new Bitboard("f3", "g3", "h3"));
+		
+		this.pawnShieldQueenside.put(Color.BLACK,
+			this.pawnShieldQueenside.get(Color.WHITE).flip());
+		this.pawnShieldQueensideForward.put(Color.BLACK,
+			this.pawnShieldQueensideForward.get(Color.WHITE).flip());
+		this.pawnShieldKingside.put(Color.BLACK,
+			this.pawnShieldKingside.get(Color.WHITE).flip());
+		this.pawnShieldKingsideForward.put(Color.BLACK,
+			this.pawnShieldKingsideForward.get(Color.WHITE).flip());
 	}
 	
 	public float endgameFraction(Board board) {
@@ -75,33 +98,21 @@ public class Brain {
 			if(color == Color.WHITE) {
 				if(kingIndex % 8 <= 2) {
 					protectorsHome = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x0000000000000700L)
+						.get(Piece.PAWN)
+						.intersection(pawnShieldQueenside.get(color))
 						.numBitsSet();
 					protectorsOneStep = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x0000000000070000L)
+						.get(Piece.PAWN)
+						.intersection(pawnShieldQueensideForward.get(color))
 						.numBitsSet();
 				} else if(kingIndex % 8 >= 5) {
 					protectorsHome = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x000000000000E000L)
+						.get(Piece.PAWN)
+						.intersection(pawnShieldKingside.get(color))
 						.numBitsSet();
 					protectorsOneStep = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x0000000000E00000L)
-						.numBitsSet();
-				}
-			} else {
-				if(kingIndex % 8 <= 2) {
-					protectorsHome = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x0007000000000000L)
-						.numBitsSet();
-					protectorsOneStep = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x0000070000000000L)
-						.numBitsSet();
-				} else if(kingIndex % 8 >= 5) {
-					protectorsHome = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x00E0000000000000L)
-						.numBitsSet();
-					protectorsOneStep = board.bitboards.get(color)
-						.get(Piece.PAWN).intersection(0x0000E00000000000L)
+						.get(Piece.PAWN)
+						.intersection(pawnShieldKingsideForward.get(color))
 						.numBitsSet();
 				}
 			}
@@ -117,7 +128,7 @@ public class Brain {
 			if(kingIndex % 8 <= 2 || kingIndex % 8 >= 5) {
 				// Don't have an open file penalty before castling, as we may
 				// get opportunities to capture pawns in the center.
-				long file = 0x0101010101010101L << (kingIndex % 8);
+				Bitboard file = Bitboard.bitboardFromFile(kingIndex % 8);
 				if(!board.bitboards.get(color).get(Piece.PAWN)
 						.intersects(file)) {
 					openFilePenalty = 150 * (1 - endgameFraction);
@@ -140,9 +151,9 @@ public class Brain {
 			int rookIndex = Long.numberOfTrailingZeros(rooks);
 			long rook = 1L << rookIndex;
 			rooks ^= rook;
-			long rookFile = 0x0101010101010101L << (rookIndex % 8);
-			if((rookFile & myPawns) == 0) {
-				if((rookFile & oppPawns) == 0) {
+			Bitboard rookFile = Bitboard.bitboardFromFile(rookIndex % 8);
+			if(!rookFile.intersects(myPawns)) {
+				if(!rookFile.intersects(oppPawns)) {
 					result += this.FITNESS_ROOK_OPEN_FILE;
 				} else {
 					result += this.FITNESS_ROOK_SEMIOPEN_FILE;
@@ -166,20 +177,11 @@ public class Brain {
 		if(castleRightKingside) {
 			result += this.FITNESS_CASTLE_RIGHT_KINGSIDE;
 		}
-		
-		long pawnMaskQueenside = 0L;
-		long pawnMaskKingside = 0L;
-		if(color == Color.WHITE) {
-			pawnMaskQueenside = 0x0000000000070700L;
-			pawnMaskKingside = 0x0000000000E0E000L;
-		} else {
-			pawnMaskQueenside = 0x0007070000000000L;
-			pawnMaskKingside = 0x00E0E00000000000L;
-		}
+
 		int numPawnsQueenside = board.bitboards.get(color).get(Piece.PAWN)
-			.intersection(pawnMaskQueenside).numBitsSet();
+			.intersection(this.pawnShieldQueenside.get(color)).numBitsSet();
 		int numPawnsKingside = board.bitboards.get(color).get(Piece.PAWN)
-			.intersection(pawnMaskKingside).numBitsSet();
+			.intersection(this.pawnShieldKingside.get(color)).numBitsSet();
 		
 		result -= 10 * (3 - numPawnsQueenside);
 		result -= 25 * (3 - numPawnsKingside);
@@ -257,20 +259,24 @@ public class Brain {
 		
 		// Since pawns can't be on the edge ranks.
 		for(int rank = 1; rank < 7; rank++) {
-			long rankMask = 0x00000000000000ffL << (rank * 8);
+			Bitboard rankBitboard = Bitboard.bitboardFromRank(rank);
 			for(int centrality = 0; centrality < 4; centrality++) {
-				long centralityMask = (0x0101010101010101L << centrality) |
-						(0x0101010101010101L << (8 - centrality));
-				
+				Bitboard centralityBitboard =
+					Bitboard.bitboardFromFile(centrality).union(
+						Bitboard.bitboardFromFile(8 - centrality));
 				float pawnFactor = (1 - endgameFraction) *
 						this.FITNESS_PAWN_TABLE_OPENING[rank][centrality];
 				pawnFactor += endgameFraction *
 						this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
 				
-				int myPawnsOnRank = pawnBitboardRelativeToMe.intersection(
-					rankMask & centralityMask).numBitsSet();
-				int oppPawnsOnRank = pawnBitboardRelativeToOpp.intersection(
-					rankMask & centralityMask).numBitsSet();
+				int myPawnsOnRank = pawnBitboardRelativeToMe
+					.intersection(rankBitboard)
+					.intersection(centralityBitboard)
+					.numBitsSet();
+				int oppPawnsOnRank = pawnBitboardRelativeToOpp
+					.intersection(rankBitboard)
+					.intersection(centralityBitboard)
+					.numBitsSet();
 				
 				fitness += pawnFactor * (myPawnsOnRank - oppPawnsOnRank);
 			}
@@ -496,4 +502,9 @@ public class Brain {
 	};
 	private float FITNESS_KING_RANK_FACTOR = 75;
 	private float[] FITNESS_KING_FILE = {0, 0, -90, -180, -180, -90, 0, 0};
+	
+	Map<Color, Bitboard> pawnShieldQueenside;
+	Map<Color, Bitboard> pawnShieldQueensideForward;
+	Map<Color, Bitboard> pawnShieldKingside;
+	Map<Color, Bitboard> pawnShieldKingsideForward;
 }

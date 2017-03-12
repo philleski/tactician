@@ -12,8 +12,7 @@ public class Board {
 		whiteBitboards.put(Piece.BISHOP, new Bitboard("c1", "f1"));
 		whiteBitboards.put(Piece.KING, new Bitboard("e1"));
 		whiteBitboards.put(Piece.KNIGHT, new Bitboard("b1", "g1"));
-		whiteBitboards.put(Piece.PAWN, new Bitboard(
-			"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"));
+		whiteBitboards.put(Piece.PAWN, Bitboard.bitboardFromRank(1));
 		whiteBitboards.put(Piece.QUEEN, new Bitboard("d1"));
 		whiteBitboards.put(Piece.ROOK, new Bitboard("a1", "h1"));
 		for(Map.Entry<Piece, Bitboard> entry : whiteBitboards.entrySet()) {

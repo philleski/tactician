@@ -12,6 +12,7 @@ public class PositionHasher {
 		// debugging.
 		Random generator = new Random(0);
 		
+		this.masks = new HashMap<Color, Map<Piece, Long[]>>();
 		for(Color color : Color.values()) {
 			Map<Piece, Long[]> colorMask = new HashMap<Piece, Long[]>();
 			for(Piece piece : Piece.values()) {
@@ -42,14 +43,16 @@ public class PositionHasher {
 	}
 	
 	public long getMask(Color color, Piece piece, int index, int index2) {
-		return this.getMask(color, piece, index) ^ this.getMask(color, piece, index2);
+		return this.getMask(color, piece, index) ^ this.getMask(
+			color, piece, index2);
 	}
 	
 	public long getMaskEnPassantTarget(byte index) {
 		return this.getMask(Color.WHITE, Piece.PAWN, (byte)(index % 8));
 	}
 	
-	public long getMaskCastleRights(Map<Color, Map<Castle, Boolean>> castleRights) {
+	public long getMaskCastleRights(
+			Map<Color, Map<Castle, Boolean>> castleRights) {
 		byte index = 0;
 		if(castleRights.get(Color.WHITE).get(Castle.KINGSIDE)) {
 			index += 56;
@@ -67,8 +70,9 @@ public class PositionHasher {
 	}
 	
 	public long getMaskTurn() {
-		return this.getMask(Color.WHITE, Piece.PAWN, (byte)(56));   // The a8 square
+		// The a8 square is reserved for turn hashing.
+		return this.getMask(Color.WHITE, Piece.PAWN, (byte)(56));
 	}
 	
-	private Map<Color, Map<Piece, Long[]>> masks = new HashMap<Color, Map<Piece, Long[]>>();
+	private Map<Color, Map<Piece, Long[]>> masks;
 }

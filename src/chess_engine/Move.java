@@ -21,17 +21,17 @@ public class Move {
 	
 	public Move(String source, String destination) {
 		this.source = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
-				source));
-		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
-				destination));
+			source));
+		this.destination = NotationHelper.coordToIndex(
+			NotationHelper.squareToCoord(destination));
 		this.promoteTo = Piece.NOPIECE;
 	}
 	
 	public Move(String source, String destination, Piece promoteTo) {
 		this.source = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
-				source));
-		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(
-				destination));
+			source));
+		this.destination = NotationHelper.coordToIndex(
+			NotationHelper.squareToCoord(destination));
 		this.promoteTo = promoteTo;
 	}
 	

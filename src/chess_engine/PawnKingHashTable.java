@@ -5,19 +5,18 @@ public class PawnKingHashTable {
 		public PawnHashTableEntry() {
 		}
 		
-		public PawnHashTableEntry(long positionHash, long pawnBitboardWhite,
-				long pawnBitboardBlack, int kingIndexWhite,
-				int kingIndexBlack) {
+		public PawnHashTableEntry(long positionHash, long pawnMaskWhite,
+				long pawnMaskBlack, int kingIndexWhite, int kingIndexBlack) {
 			this.positionHash = positionHash;
-			this.pawnBitboardWhite = pawnBitboardWhite;
-			this.pawnBitboardBlack = pawnBitboardBlack;
+			this.pawnMaskWhite = pawnMaskWhite;
+			this.pawnMaskBlack = pawnMaskBlack;
 			this.kingIndexWhite = kingIndexWhite;
 			this.kingIndexBlack = kingIndexBlack;
 		}
 		
 		public long positionHash = 0;
-		public long pawnBitboardWhite = 0;
-		public long pawnBitboardBlack = 0;
+		public long pawnMaskWhite = 0;
+		public long pawnMaskBlack = 0;
 		public int kingIndexWhite = 0;
 		public int kingIndexBlack = 0;
 		
@@ -30,17 +29,19 @@ public class PawnKingHashTable {
 		public int numPassedPawnsBlack = 0;
 	}
 	
-	public void put(long positionHash, long pawnBitboardWhite,
-			long pawnBitboardBlack, int kingIndexWhite, int kingIndexBlack) {
+	public void put(long positionHash, long pawnMaskWhite,
+			long pawnMaskBlack, int kingIndexWhite, int kingIndexBlack) {
 		int index = this.index(positionHash);
 		this.data[index] = new PawnHashTableEntry(positionHash,
-			pawnBitboardWhite, pawnBitboardBlack, kingIndexWhite,
+			pawnMaskWhite, pawnMaskBlack, kingIndexWhite,
 			kingIndexBlack);
 		
 		for(int fileIndex = 0; fileIndex < 8; fileIndex++) {
-			long file = 0x0101010101010101L << (fileIndex % 8);
-			int filePawnsWhite = numBitsSet(pawnBitboardWhite & file);
-			int filePawnsBlack = numBitsSet(pawnBitboardBlack & file);
+			Bitboard fileBitboard = Bitboard.bitboardFromFile(fileIndex);
+			int filePawnsWhite = fileBitboard
+				.intersection(pawnMaskWhite).numBitsSet();
+			int filePawnsBlack = fileBitboard
+				.intersection(pawnMaskBlack).numBitsSet();
 			if(filePawnsWhite > 1) {
 				this.data[index].numDoubledPawnsWhite += filePawnsWhite;
 			}
@@ -48,45 +49,49 @@ public class PawnKingHashTable {
 				this.data[index].numDoubledPawnsBlack += filePawnsBlack;
 			}
 			
-			long fileLeft = 0;
-			long fileRight = 0;
+			Bitboard fileBitboardLeft = new Bitboard();
+			Bitboard fileBitboardRight = new Bitboard();
 			if(fileIndex > 0) {
-				fileLeft = file >>> 1;
+				fileBitboardLeft = new Bitboard(fileIndex - 1);
 			}
 			if(fileIndex < 7) {
-				fileRight = file << 1;
+				fileBitboardRight = new Bitboard(fileIndex + 1);
 			}
 			if(filePawnsWhite >= 1) {
-				int filePawnsWhiteLeft = numBitsSet(pawnBitboardWhite & fileLeft);
-				int filePawnsWhiteRight = numBitsSet(pawnBitboardWhite & fileRight);
+				int filePawnsWhiteLeft = fileBitboardLeft
+					.intersection(pawnMaskWhite).numBitsSet();
+				int filePawnsWhiteRight = fileBitboardRight
+					.intersection(pawnMaskWhite).numBitsSet();
 				if(filePawnsWhiteLeft == 0 && filePawnsWhiteRight == 0) {
 					this.data[index].numIsolatedPawnsWhite += filePawnsWhite;
 				}
 			}
 			if(filePawnsBlack >= 1) {
-				int filePawnsBlackLeft = numBitsSet(pawnBitboardBlack & fileLeft);
-				int filePawnsBlackRight = numBitsSet(pawnBitboardBlack & fileRight);
+				int filePawnsBlackLeft = fileBitboardLeft
+					.intersection(pawnMaskBlack).numBitsSet();
+				int filePawnsBlackRight = fileBitboardRight
+					.intersection(pawnMaskBlack).numBitsSet();
 				if(filePawnsBlackLeft == 0 && filePawnsBlackRight == 0) {
 					this.data[index].numIsolatedPawnsBlack += filePawnsBlack;
 				}
 			}
 		}
 		
-		long whitePawns = pawnBitboardWhite;
+		long whitePawns = pawnMaskWhite;
 		while(whitePawns != 0) {
 			int pawnIndex = Long.numberOfTrailingZeros(whitePawns);
 			long pawn = 1L << pawnIndex;
 			whitePawns ^= pawn;
-			if((this.passedPawnMasksWhite[pawnIndex] & pawnBitboardBlack) == 0) {
+			if((this.passedPawnMasksWhite[pawnIndex] & pawnMaskBlack) == 0) {
 				this.data[index].numPassedPawnsWhite++;
 			}
 		}
-		long blackPawns = pawnBitboardBlack;
+		long blackPawns = pawnMaskBlack;
 		while(blackPawns != 0) {
 			int pawnIndex = Long.numberOfTrailingZeros(blackPawns);
 			long pawn = 1L << pawnIndex;
 			blackPawns ^= pawn;
-			if((this.passedPawnMasksBlack[pawnIndex] & pawnBitboardWhite) == 0) {
+			if((this.passedPawnMasksBlack[pawnIndex] & pawnMaskWhite) == 0) {
 				this.data[index].numPassedPawnsBlack++;
 			}
 		}
@@ -104,16 +109,6 @@ public class PawnKingHashTable {
 	private int index(long positionHash) {
 		// Unset the sign bit.
 		return ((int)positionHash & 0x7fffffff) % this.size;
-	}
-	
-	// FIXME - Brain uses this too -- put in a common location
-	private static int numBitsSet(long x) {
-		// Taken from http://en.wikipedia.org/wiki/Hamming_weight
-		int count;
-		for(count = 0; x != 0; count++) {
-			x &= x - 1;
-		}
-		return count;
 	}
 	
 	public PawnKingHashTable(int size) {

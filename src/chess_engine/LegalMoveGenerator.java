@@ -47,36 +47,58 @@ public class LegalMoveGenerator {
 			new Bitboard(this.maskCastleKnights.get(Color.WHITE)
 				.get(Castle.QUEENSIDE)).flip().getData());
 		
-		this.addCastleRayStraight(Color.WHITE, Castle.KINGSIDE, "d1", "a1", -1);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "d2", "a5", 7);
-		this.addCastleRayStraight(Color.WHITE, Castle.KINGSIDE, "e2", "e8", 8);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "f2", "h4", 9);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "e2", "a6", 7);
-		this.addCastleRayStraight(Color.WHITE, Castle.KINGSIDE, "f2", "f8", 8);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "g2", "h3", 9);
+		this.addCastleRayStraight(
+			Color.WHITE, Castle.KINGSIDE, "d1", "a1", -1);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.KINGSIDE, "d2", "a5", 7);
+		this.addCastleRayStraight(
+			Color.WHITE, Castle.KINGSIDE, "e2", "e8", 8);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.KINGSIDE, "f2", "h4", 9);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.KINGSIDE, "e2", "a6", 7);
+		this.addCastleRayStraight(
+			Color.WHITE, Castle.KINGSIDE, "f2", "f8", 8);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.KINGSIDE, "g2", "h3", 9);
 		
-		this.addCastleRayStraight(Color.WHITE, Castle.QUEENSIDE, "f1", "h1", 1);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "d2", "a5", 7);
-		this.addCastleRayStraight(Color.WHITE, Castle.QUEENSIDE, "e2", "e8", 8);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "f2", "h4", 9);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "c2", "a4", 7);
-		this.addCastleRayStraight(Color.WHITE, Castle.QUEENSIDE, "d2", "d8", 8);
-		this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "e2", "h5", 9);
+		this.addCastleRayStraight(
+			Color.WHITE, Castle.QUEENSIDE, "f1", "h1", 1);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.QUEENSIDE, "d2", "a5", 7);
+		this.addCastleRayStraight(
+			Color.WHITE, Castle.QUEENSIDE, "e2", "e8", 8);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.QUEENSIDE, "f2", "h4", 9);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.QUEENSIDE, "c2", "a4", 7);
+		this.addCastleRayStraight(
+			Color.WHITE, Castle.QUEENSIDE, "d2", "d8", 8);
+		this.addCastleRayDiagonal(
+			Color.WHITE, Castle.QUEENSIDE, "e2", "h5", 9);
 		
-		this.castleRaysDiagonal.put(Color.BLACK, new HashMap<Castle, ArrayList<CastleRay>>());
-		this.castleRaysStraight.put(Color.BLACK, new HashMap<Castle, ArrayList<CastleRay>>());
+		this.castleRaysDiagonal.put(Color.BLACK,
+			new HashMap<Castle, ArrayList<CastleRay>>());
+		this.castleRaysStraight.put(Color.BLACK,
+			new HashMap<Castle, ArrayList<CastleRay>>());
 		for(Castle castle : Castle.values()) {
-			ArrayList<CastleRay> castleRaysDiagonalBlack = new ArrayList<CastleRay>();
-			for(CastleRay castleRay : this.castleRaysDiagonal.get(Color.WHITE).get(castle)) {
+			ArrayList<CastleRay> castleRaysDiagonalBlack =
+				new ArrayList<CastleRay>();
+			for(CastleRay castleRay :
+					this.castleRaysDiagonal.get(Color.WHITE).get(castle)) {
 				castleRaysDiagonalBlack.add(castleRay.flip());
 			}
-			this.castleRaysDiagonal.get(Color.BLACK).put(castle, castleRaysDiagonalBlack);
+			this.castleRaysDiagonal.get(Color.BLACK).put(
+				castle, castleRaysDiagonalBlack);
 			
-			ArrayList<CastleRay> castleRaysStraightBlack = new ArrayList<CastleRay>();
-			for(CastleRay castleRay : this.castleRaysStraight.get(Color.WHITE).get(castle)) {
+			ArrayList<CastleRay> castleRaysStraightBlack =
+				new ArrayList<CastleRay>();
+			for(CastleRay castleRay :
+					this.castleRaysStraight.get(Color.WHITE).get(castle)) {
 				castleRaysStraightBlack.add(castleRay.flip());
 			}
-			this.castleRaysStraight.get(Color.BLACK).put(castle, castleRaysStraightBlack);
+			this.castleRaysStraight.get(Color.BLACK).put(castle,
+				castleRaysStraightBlack);
 		}
 		
 		this.castleMoves.put(Color.WHITE, new HashMap<Castle, Move>());
@@ -106,15 +128,17 @@ public class LegalMoveGenerator {
 				new int[]{-8, 8});
 		for(int i = 0; i < 64; i++) {
 			this.attackSquaresBishop[i] = this.attackSquaresA1H8[i] |
-					this.attackSquaresA8H1[i];
+				this.attackSquaresA8H1[i];
 			this.attackSquaresRook[i] = this.attackSquaresHorizontal[i] |
-					this.attackSquaresVertical[i];
+				this.attackSquaresVertical[i];
 			this.attackSquaresQueen[i] = this.attackSquaresBishop[i] |
-					this.attackSquaresRook[i];
-			this.attackSquaresPawnBlack[i] = this.attackSquaresPawnCaptureBlack[i] |
-					this.attackSquaresPawnMoveBlack[i];
-			this.attackSquaresPawnWhite[i] = this.attackSquaresPawnCaptureWhite[i] |
-					this.attackSquaresPawnMoveWhite[i];
+				this.attackSquaresRook[i];
+			this.attackSquaresPawnBlack[i] =
+				this.attackSquaresPawnCaptureBlack[i] |
+				this.attackSquaresPawnMoveBlack[i];
+			this.attackSquaresPawnWhite[i] =
+				this.attackSquaresPawnCaptureWhite[i] |
+				this.attackSquaresPawnMoveWhite[i];
 		}
 	}
 	
@@ -196,10 +220,12 @@ public class LegalMoveGenerator {
 	public void addCastleRayDiagonal(Color color, Castle castle,
 			String squareStart, String squareEnd, int stepSize) {
 		if(!this.castleRaysDiagonal.containsKey(color)) {
-			this.castleRaysDiagonal.put(color, new HashMap<Castle, ArrayList<CastleRay>>());
+			this.castleRaysDiagonal.put(color, new HashMap<Castle,
+				ArrayList<CastleRay>>());
 		}
 		if(!this.castleRaysDiagonal.get(color).containsKey(castle)) {
-			this.castleRaysDiagonal.get(color).put(castle, new ArrayList<CastleRay>());
+			this.castleRaysDiagonal.get(color).put(castle,
+				new ArrayList<CastleRay>());
 		}
 		this.castleRaysDiagonal.get(color).get(castle).add(
 				new CastleRay(squareStart, squareEnd, stepSize));
@@ -208,10 +234,12 @@ public class LegalMoveGenerator {
 	public void addCastleRayStraight(Color color, Castle castle,
 			String squareStart, String squareEnd, int stepSize) {
 		if(!this.castleRaysStraight.containsKey(color)) {
-			this.castleRaysStraight.put(color, new HashMap<Castle, ArrayList<CastleRay>>());
+			this.castleRaysStraight.put(color, new HashMap<Castle,
+				ArrayList<CastleRay>>());
 		}
 		if(!this.castleRaysStraight.get(color).containsKey(castle)) {
-			this.castleRaysStraight.get(color).put(castle, new ArrayList<CastleRay>());
+			this.castleRaysStraight.get(color).put(castle,
+				new ArrayList<CastleRay>());
 		}
 		this.castleRaysStraight.get(color).get(castle).add(
 				new CastleRay(squareStart, squareEnd, stepSize));
@@ -240,12 +268,16 @@ public class LegalMoveGenerator {
 	
 	private void appendLegalMovesForPawn(Board board,
 			ArrayList<Move> legalMoves, boolean capturesOnly) {
-		long movers = board.bitboards.get(board.turn).get(Piece.PAWN).getData();
-		long oppPieces = board.playerBitboards.get(Color.flip(board.turn)).getData();
+		long movers = board.bitboards.get(board.turn).get(Piece.PAWN)
+			.getData();
+		long oppPieces = board.playerBitboards.get(Color.flip(board.turn))
+			.getData();
 		long[] attackSquaresMoveTable = board.turn == Color.WHITE ?
-				this.attackSquaresPawnMoveWhite : this.attackSquaresPawnMoveBlack;
+			this.attackSquaresPawnMoveWhite :
+			this.attackSquaresPawnMoveBlack;
 		long[] attackSquaresCaptureTable = board.turn == Color.WHITE ?
-				this.attackSquaresPawnCaptureWhite : this.attackSquaresPawnCaptureBlack;
+			this.attackSquaresPawnCaptureWhite :
+			this.attackSquaresPawnCaptureBlack;
 		while(movers != 0) {
 			int moverIndex = Long.numberOfTrailingZeros(movers);
 			long mover = 1L << moverIndex;
@@ -254,9 +286,9 @@ public class LegalMoveGenerator {
 				(board.turn == Color.WHITE && moverIndex >= 48) ||
 				(board.turn == Color.BLACK && moverIndex < 16);
 			
-			// If the pawn is trying to move two squares up and there's something
-			// blocking the first square, pretend it's also blocking the second
-			// square.
+			// If the pawn is trying to move two squares up and there's
+			// something blocking the first square, pretend it's also blocking
+			// the second square.
 			long moveBlockers = board.allPieces.getData() & ~mover;
 			if(board.turn == Color.WHITE) {
 				moveBlockers |= (moveBlockers & 0x0000000000FF0000L) << 8;
@@ -273,12 +305,17 @@ public class LegalMoveGenerator {
 					long attackSquare = 1L << attackSquareIndex;
 					attackSquaresMove ^= attackSquare;
 					if(!isPromotable) {
-						legalMoves.add(new Move(moverIndex, attackSquareIndex));
+						legalMoves.add(new Move(moverIndex,
+							attackSquareIndex));
 					} else {
-						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.QUEEN));
-						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.KNIGHT));
-						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.ROOK));
-						legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.BISHOP));
+						legalMoves.add(new Move(moverIndex,
+							attackSquareIndex, Piece.QUEEN));
+						legalMoves.add(new Move(moverIndex,
+							attackSquareIndex, Piece.KNIGHT));
+						legalMoves.add(new Move(moverIndex,
+							attackSquareIndex, Piece.ROOK));
+						legalMoves.add(new Move(moverIndex,
+							attackSquareIndex, Piece.BISHOP));
 					}
 				}
 			}
@@ -293,10 +330,14 @@ public class LegalMoveGenerator {
 				if(!isPromotable) {
 					legalMoves.add(new Move(moverIndex, attackSquareIndex));
 				} else {
-					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.QUEEN));
-					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.KNIGHT));
-					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.ROOK));
-					legalMoves.add(new Move(moverIndex, attackSquareIndex, Piece.BISHOP));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex,
+						Piece.QUEEN));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex,
+						Piece.KNIGHT));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex,
+						Piece.ROOK));
+					legalMoves.add(new Move(moverIndex, attackSquareIndex,
+						Piece.BISHOP));
 				}
 			}
 		}
@@ -328,7 +369,8 @@ public class LegalMoveGenerator {
 			attackSquares &= incidentMaskBefore;
 			attackSquares &= incidentMaskAfter;
 			while(attackSquares != 0) {
-				int attackSquareIndex = Long.numberOfTrailingZeros(attackSquares);
+				int attackSquareIndex = Long.numberOfTrailingZeros(
+					attackSquares);
 				long attackSquare = 1L << attackSquareIndex;
 				attackSquares ^= attackSquare;
 				if((attackSquare & myPieces) != 0) {
@@ -410,7 +452,8 @@ public class LegalMoveGenerator {
 			if(!board.castleRights.get(board.turn).get(castle)) {
 				continue;
 			}
-			if(board.allPieces.intersects(this.maskCastleSpace.get(board.turn).get(castle))) {
+			if(board.allPieces.intersects(this.maskCastleSpace.get(
+					board.turn).get(castle))) {
 				continue;
 			}
 			if(this.verifyCastleCheckRule(board, castle)) {
