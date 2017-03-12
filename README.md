@@ -23,3 +23,9 @@ Parameters: `-Xms512M -Xmx1524M -jar /Users/philip.leszczynski/chess/chess_engin
 The two parameter options give the program extra memory for the transposition tables.
 
 Once the engine is configured you can play a game in ScidvsMac by going to Play -> Computer - UCI Engine. If you'd like to play as black they have an icon for that right above the board.
+
+## Style
+
+We use the Google Java style guide for this project: https://google.github.io/styleguide/javaguide.html
+
+At the moment we're still transitioning over.
