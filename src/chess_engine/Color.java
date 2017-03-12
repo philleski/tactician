@@ -5,20 +5,11 @@ public enum Color {
 	WHITE;
 
 	public static Color flip(Color c) {
-		if(c == BLACK) {
-			return WHITE;
+		if(c == Color.BLACK) {
+			return Color.WHITE;
 		}
 		else {
-			return BLACK;
-		}
-	}
-	
-	public static String getName(Color c) {
-		if(c == BLACK) {
-			return "black";
-		}
-		else {
-			return "white";
+			return Color.BLACK;
 		}
 	}
 }

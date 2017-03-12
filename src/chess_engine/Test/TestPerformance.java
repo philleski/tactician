@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 import chess_engine.Board;
-import chess_engine.IllegalMoveException;
 import chess_engine.Move;
 
 // Check that the move generations works correctly based on publicly generated
@@ -27,11 +26,7 @@ public class TestPerformance {
 		}
 		for(Move move : legalMoves) {
 			Board copy = new Board(board);
-			try {
-				copy.move(move);
-			}
-			catch(IllegalMoveException e) {
-			}
+			copy.move(move);
 			nodes += this.perft(copy, depth - 1);
 		}
 		return nodes;

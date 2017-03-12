@@ -64,10 +64,10 @@ public class NotationHelper {
 		return 1L << (long) offset;
 	}
 	
-	public Move algebraicToMove(Board board, String algebraic)
-			throws IllegalMoveException {
+	public Move algebraicToMove(Board board, String algebraic) {
 		if(algebraic.length() < 2) {
-			throw new IllegalMoveException("Illegal move: too short.");
+			System.err.println("Illegal move: too short: " + algebraic);
+			return null;
 		}
 		for(Move m : board.legalMoves()) {
 			long sourceMask = 1L << m.source;
@@ -96,13 +96,15 @@ public class NotationHelper {
 				}
 				if(algebraicDest.charAt(0) < 'a' ||
 						algebraicDest.charAt(0) > 'h') {
-					throw new IllegalMoveException("Illegal move: destination "
-							+ "file not from a-h: " + algebraicDest);
+					System.err.println("Illegal move: destination " +
+						"file not from a-h: " + algebraicDest);
+					return null;
 				}
 				if(algebraicDest.charAt(1) < '1' ||
 						algebraicDest.charAt(1) > '8') {
-					throw new IllegalMoveException("Illegal move: destination "
-							+ "rank not from 1-8: " + algebraicDest);
+					System.err.println("Illegal move: destination " +
+						"rank not from 1-8: " + algebraicDest);
+					return null;
 				}
 				if(squareToCoord(algebraicDest) != m.destination) {
 					continue;

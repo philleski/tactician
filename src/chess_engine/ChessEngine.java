@@ -45,11 +45,7 @@ public class ChessEngine {
 		ArrayList<String> movesAlgebraic = new ArrayList<String>();
 		for(Move pvMove : principalVariation) {
 			movesAlgebraic.add(notationHelper.moveToAlgebraic(board, pvMove));
-			try {
-				board.move(pvMove);
-			}
-			catch(IllegalMoveException e) {
-			}
+			board.move(pvMove);
 		}
 		log("PV: " + movesAlgebraic);
 	}

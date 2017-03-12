@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chess_engine.Board;
-import chess_engine.IllegalMoveException;
 
 public class Brain {
 	static int TRANSPOSITION_TABLE_SIZE = 32 * 1024 * 1024;
@@ -309,11 +308,7 @@ public class Brain {
 				continue;
 			}
 			Board copy = new Board(board);
-			try {
-				copy.move(move);
-			}
-			catch(IllegalMoveException e) {
-			}
+			copy.move(move);
 			fitness = -this.quiescentSearch(copy, -beta, -alpha, moveTarget);
 			if(fitness >= beta) {
 				return beta;
@@ -384,11 +379,7 @@ public class Brain {
 		Move bestMove = null;
 		for(Move move : lmf) {
 			Board copy = new Board(board);
-			try {
-				copy.move(move);
-			}
-			catch(IllegalMoveException e) {
-			}
+			copy.move(move);
 			float fitness = -this.alphabeta(copy, depth - 1, -beta, -alpha);
 			if(fitness >= beta) {
 				this.transpositionTable.put(depth, board.positionHash,
@@ -413,11 +404,7 @@ public class Brain {
 		float beta = FITNESS_LARGE;
 		for(Move move : board.legalMoves()) {
 			Board copy = new Board(board);
-			try {
-				copy.move(move);
-			}
-			catch(IllegalMoveException e) {
-			}
+			copy.move(move);
 			float fitness = -this.alphabeta(copy, depth - 1, -beta, -alpha);
 			if(fitness > alpha || bestMove == null) {
 				bestMove = move;
@@ -446,11 +433,7 @@ public class Brain {
 				principalVariation.remove(principalVariation.size() - 1);
 				break;
 			}
-			try {
-				copy.move(pvMove);
-			}
-			catch(IllegalMoveException e) {
-			}
+			copy.move(pvMove);
 			TranspositionTable.TranspositionEntry entry =
 					this.transpositionTable.get(copy.positionHash);
 			if(entry == null || entry.bestMove == null) {

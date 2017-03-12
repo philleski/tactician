@@ -9,6 +9,15 @@ public enum Piece {
 	QUEEN,
 	ROOK;
 	
+	public char initial() {
+		if(this == Piece.KNIGHT) {
+			return 'N';
+		} else if(this == Piece.NOPIECE) {
+			return '?';
+		}
+		return this.name().charAt(0);
+	}
+	
 	public static Piece initialToPiece(char initial) {
 		initial = Character.toUpperCase(initial);
 		if(initial == 'B') {

@@ -5,11 +5,10 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import chess_engine.Board;
-import chess_engine.IllegalMoveException;
 
 public class TestBoard {
 	@Test
-	public void testFullMoveCounterWhite() throws IllegalMoveException {
+	public void testFullMoveCounterWhite() {
 		Board board = new Board();
 		board.move("e2", "e4");
 		board.move("e7", "e5");
@@ -20,7 +19,7 @@ public class TestBoard {
 	}
 	
 	@Test
-	public void testFullMoveCounterBlack() throws IllegalMoveException {
+	public void testFullMoveCounterBlack() {
 		Board board = new Board();
 		board.move("e2", "e4");
 		board.move("e7", "e5");
@@ -32,7 +31,7 @@ public class TestBoard {
 	}
 	
 	@Test
-	public void testFullMoveCounterCopy() throws IllegalMoveException {
+	public void testFullMoveCounterCopy() {
 		Board board1 = new Board();
 		board1.move("e2", "e4");
 		board1.move("e7", "e5");
@@ -41,7 +40,7 @@ public class TestBoard {
 	}
 	
 	@Test
-	public void testFullMoveFEN() throws IllegalMoveException {
+	public void testFullMoveFEN() {
 		Board board = new Board("4k3/8/8/8/8/8/8/8/4K3 b KQkq - 16 16");
 		assertEquals(board.fullMoveCounter, 16);
 	}

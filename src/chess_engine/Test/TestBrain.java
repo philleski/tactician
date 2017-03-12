@@ -7,7 +7,6 @@ import org.junit.Test;
 import chess_engine.Board;
 import chess_engine.Brain;
 import chess_engine.Color;
-import chess_engine.IllegalMoveException;
 import chess_engine.Move;
 
 public class TestBrain {
@@ -156,7 +155,7 @@ public class TestBrain {
 	}
 	
 	@Test
-	public void testMateInOneWinning() throws IllegalMoveException {
+	public void testMateInOneWinning() {
 		Board board = new Board();
 		board.move("f2", "f3");
 		board.move("e7", "e5");
@@ -167,7 +166,7 @@ public class TestBrain {
 	}
 	
 	@Test
-	public void testMateInOneLosing() throws IllegalMoveException {
+	public void testMateInOneLosing() {
 		// This is to prevent a bug where all moves lead to checkmate and no
 		// move is "good enough", so a null move is played.
 		Board board = new Board("8/8/8/8/8/7k/q7/7K w KQkq - 0 1");
@@ -177,7 +176,7 @@ public class TestBrain {
 	}
 	
 	@Test
-	public void testFork() throws IllegalMoveException {
+	public void testFork() {
 		Board board = new Board();
 		board.move("b1", "c3");
 		board.move("d7", "d5");
@@ -193,7 +192,7 @@ public class TestBrain {
 	}
 	
 	@Test
-	public void testFitness() throws IllegalMoveException {
+	public void testFitness() {
 		Board board = new Board();
 		board.move("e2", "e4");
 		board.move("d7", "d5");

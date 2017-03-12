@@ -5,11 +5,10 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import chess_engine.Board;
-import chess_engine.IllegalMoveException;
 
 public class TestPositionHasher {
 	@Test
-	public void testPositionHashCopy() throws IllegalMoveException {
+	public void testPositionHashCopy() {
 		Board board1 = new Board();
 		board1.move("e2", "e4");
 		board1.move("a7", "a5");
@@ -18,7 +17,7 @@ public class TestPositionHasher {
 	}
 	
 	@Test
-	public void testPositionHashCapture() throws IllegalMoveException {
+	public void testPositionHashCapture() {
 		Board board1 = new Board();
 		board1.move("e2", "e4");
 		board1.move("d7", "d6");
@@ -35,7 +34,7 @@ public class TestPositionHasher {
 	}
 	
 	@Test
-	public void testPositionHashKnight() throws IllegalMoveException {
+	public void testPositionHashKnight() {
 		Board board1 = new Board();
 		board1.move("a2", "a3");
 		board1.move("g8", "f6");
@@ -48,7 +47,7 @@ public class TestPositionHasher {
 	}
 	
 	@Test
-	public void testPositionHashBishop() throws IllegalMoveException {
+	public void testPositionHashBishop() {
 		Board board1 = new Board();
 		board1.move("e2", "e4");
 		board1.move("e7", "e5");
@@ -65,7 +64,7 @@ public class TestPositionHasher {
 	}
 	
 	@Test
-	public void testPositionHashRook() throws IllegalMoveException {
+	public void testPositionHashRook() {
 		Board board1 = new Board();
 		board1.move("a2", "a4");
 		board1.move("a7", "a5");
@@ -82,7 +81,7 @@ public class TestPositionHasher {
 	}
 	
 	@Test
-	public void testPositionHashQueen() throws IllegalMoveException {
+	public void testPositionHashQueen() {
 		Board board1 = new Board();
 		board1.move("e2", "e4");
 		board1.move("a7", "a5");
@@ -99,7 +98,7 @@ public class TestPositionHasher {
 	}
 	
 	@Test
-	public void testPositionHashKing() throws IllegalMoveException {
+	public void testPositionHashKing() {
 		Board board1 = new Board();
 		board1.move("e2", "e4");
 		board1.move("a7", "a5");
@@ -118,7 +117,7 @@ public class TestPositionHasher {
 	}
 	
 	@Test
-	public void testPositionHashCastle() throws IllegalMoveException {
+	public void testPositionHashCastle() {
 		Board board1 = new Board();
 		board1.move("e2", "e4");
 		board1.move("a7", "a5");

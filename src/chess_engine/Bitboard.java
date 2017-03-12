@@ -26,14 +26,15 @@ public class Bitboard {
 	}
 	
 	public Bitboard flip() {
+		long firstRank = 0x00000000000000ffL;
 		long mask = this.data;
 		long output = 0;
 		for(int i = 0; i < 4; i++) {
-			long row = mask & (0x00000000000000ffL << (8 * i));
+			long row = mask & (firstRank << (8 * i));
 			output += row << (8 * (7 - 2 * i));
 		}
 		for(int i = 4; i < 8; i++) {
-			long row = mask & (0x00000000000000ffL << (8 * i));
+			long row = mask & (firstRank << (8 * i));
 			output += row >>> (8 * (2 * i - 7));
 		}
 		return new Bitboard(output);

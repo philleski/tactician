@@ -533,13 +533,7 @@ public class LegalMoveGenerator {
 		ArrayList<Move> result = new ArrayList<Move>();
 		for(Move m : legalMovesFast) {
 			Board copy = new Board(board);
-			try {
-				copy.move(m);
-			}
-			catch(IllegalMoveException e) {
-				System.out.println("Illegal move: " + e);
-				continue;
-			}
+			copy.move(m);
 			// Go back to the original player to see if they're in check.
 			copy.turn = Color.flip(copy.turn);
 			if(!copy.isInCheck()) {
