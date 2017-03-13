@@ -4,7 +4,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * <p>This class represents the full state of a chessboard. For example it contains bitboards
+ * for all the pieces, castling rights, and where en passant is possible. It also has the
+ * {@link #move(Move)} method which makes a given move on the board. It also tracks the position
+ * hashes which are useful for memoizing duplicates through transposition tables. See
+ * {@link PositionHasher} and {@link PawnKingHashTable} for more details.
+ * 
+ * <p>When the board changes state we have several summary fields that MUST be updated. This
+ * includes the summary bitboards {@link #playerBitboards} and {@link #allPieces} which track the
+ * occupied pieces for white/black and for both players, respectively. Also when a move is made the
+ * position hashes {@link #positionHash} and {@link #positionHashPawnsKings} must be updated for
+ * the transposition table memoization to work. We need to update {@link #castleRights},
+ * {@link #enPassantTarget}, and {@link #fullMoveCounter} as well as necessary.
+ * 
+ * @author Phil Leszczynski
+ */
 public class Board {
+	/**
+	 * Initializes a board at the chess starting position. There are 16 pieces on the board on
+	 * their usual squares, the summary bitboards are updated accordingly, the full move counter is
+	 * set to 1, the en passant target is unset, the castling rights are cleared, and the position
+	 * hashes are initialized.
+	 */
 	public Board() {
 		this.positionHasher = new PositionHasher();
 		Map<Piece, Bitboard> whiteBitboards = new HashMap<Piece, Bitboard>();
@@ -20,8 +42,10 @@ public class Board {
 			Bitboard bitboard = entry.getValue();
 			blackBitboards.put(piece, bitboard.flip());
 		}
+		this.bitboards = new HashMap<Color, Map<Piece, Bitboard>>();
 		this.bitboards.put(Color.WHITE, whiteBitboards);
 		this.bitboards.put(Color.BLACK, blackBitboards);
+		this.playerBitboards = new HashMap<Color, Bitboard>();
 		updateSummaryBitboards();
 		
 		this.turn = Color.WHITE;
@@ -40,8 +64,14 @@ public class Board {
 		this.setPositionHash();
 	}
 	
+	/**
+	 * Initializes a board to be a duplicate of another board. Sets the piece bitboards to match
+	 * the other board, updates the summary bitboards, updates the full move counter, updates the
+	 * en passant target, copies the castling rights, and copies the position hashes.
+	 * @param other the board whose state to copy
+	 */
 	public Board(Board other) {
-		this.bitboards.clear();
+		this.bitboards = new HashMap<Color, Map<Piece, Bitboard>>();
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : other.bitboards.entrySet()) {
 			Color color = entry1.getKey();
 			Map<Piece, Bitboard> bitboardsForColor = new HashMap<Piece, Bitboard>();
@@ -52,6 +82,7 @@ public class Board {
 			}
 			this.bitboards.put(color, bitboardsForColor);
 		}
+		this.playerBitboards = new HashMap<Color, Bitboard>();
 		updateSummaryBitboards();
 		
 		this.turn = other.turn;
@@ -70,11 +101,20 @@ public class Board {
 		this.positionHashPawnsKings = other.positionHashPawnsKings;
 	}
 	
+	/**
+	 * Initializes a board to a state given by a FEN string. FEN is a standard for representing
+	 * chessboard state; for more details
+	 * @see <a href="https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">
+	 *      Forsyth-Edwards Notation</a>
+	 * @param fenstring the string in FEN notation representing the board state
+	 */
 	public Board(String fenstring) {
 		this();
 		this.setPositionFenstring(fenstring);
 	}
 	
+	/** Pretty prints the most important parts of the board state. */
+	@Override
 	public String toString() {
 		String result = "";
 		String rowReversed = "";
@@ -120,35 +160,43 @@ public class Board {
 		return result;
 	}
 	
-	public void updateSummaryBitboards() {
-		this.playerBitboards.put(Color.WHITE, new Bitboard());
-		this.playerBitboards.put(Color.BLACK, new Bitboard());
-		this.allPieces = new Bitboard();
-		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
-			Color color = entry1.getKey();
-			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
-				Bitboard bitboard = entry2.getValue();
-				this.playerBitboards.get(color).updateUnion(bitboard);
-				this.allPieces.updateUnion(bitboard);
-			}
-		}
-	}
-	
+	/**
+	 * Returns whether or not the player in {@link #turn} is in check.
+	 * @return true if the player is in check, false otherwise
+	 */
 	public boolean isInCheck() {
-		// Determining whether the board is in check involves a lot of legal move generation
-		// internals, especially if we want it to be fast. So the logic is moved over to
-		// LegalMoveGenerator.
 		return legalMoveGenerator.isInCheck(this);
 	}
 	
+	/**
+	 * Returns the pseudo-legal moves for the player in {@link #turn}. See
+	 * {@link LegalMoveGenerator#legalMovesFast} for a precise definition.
+	 * @param capturesOnly if true return only the pseudo-legal moves that capture a piece, if
+	 *        false return all pseudo-legal moves. En passant counts as a capture.
+	 * @return an ArrayList of pseudo-legal moves for the current position
+	 */
 	public ArrayList<Move> legalMovesFast(boolean capturesOnly) {
 		return legalMoveGenerator.legalMovesFast(this, capturesOnly);
 	}
 	
+	/**
+	 * Returns the legal moves for the player in {@link #turn}. This includes all legal moves per
+	 * the rules of chess, not just pseudo-legal moves.
+	 * @return an AraryList of legal moves for the current position
+	 */
 	public ArrayList<Move> legalMoves() {
 		return legalMoveGenerator.legalMoves(this);
 	}
 	
+	/**
+	 * When making a move, handles the special case where the opponent's rook is captured. In this
+	 * case the castling rights corresponding to that rook must be removed. This handles the
+	 * unusual scenario where for example white's h1 rook is captured and then white eventually
+	 * swings the a1 rook over to h1 and attempts to castle kingside. Such a move is not allowed by
+	 * the rules of chess, so we must remove kingside castling rights in that case. Note that
+	 * summary tables are not updated here, they should be updated in {@link #move(Move)}.
+	 * @param move the move containing a rook capture
+	 */
 	private void moveHandleOpponentRookCapture(Move move) {
 		Color turnFlipped = Color.flip(this.turn);
 		byte rookKingsideSourceOpponent;
@@ -171,29 +219,41 @@ public class Board {
 		this.positionHash ^= this.positionHasher.getMaskCastleRights(this.castleRights);
 	}
 	
+	/**
+	 * When making a move, removes the piece on the destination square from the opposing player's
+	 * piece bitboard. Note that summary tables are not updated here, they should be updated in
+	 * {@link #move(Move)}.
+	 * @param move the move containing a capture
+	 */
 	private void moveRemoveDestination(Move move) {
 		long destinationMask = 1L << move.destination;
+		Color turnFlipped = Color.flip(this.turn);
 		
-		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
-			Color color = entry1.getKey();
-			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
-				Piece piece = entry2.getKey();
-				Bitboard bitboard = entry2.getValue();
-				if(bitboard.intersects(destinationMask)) {
-					bitboard.updateRemove(destinationMask);
-					this.positionHash ^= this.positionHasher.getMask(
-						color, piece, move.destination);
-					if(piece == Piece.PAWN || piece == Piece.KING) {
-						this.positionHashPawnsKings ^=
-							this.positionHasher.getMask(color, piece, move.destination);
-					}
-					return;
+		Map<Piece, Bitboard> opponentBitboards = this.bitboards.get(turnFlipped);
+		for(Map.Entry<Piece, Bitboard> entry2 : opponentBitboards.entrySet()) {
+			Piece piece = entry2.getKey();
+			Bitboard bitboard = entry2.getValue();
+			if(bitboard.intersects(destinationMask)) {
+				bitboard.updateRemove(destinationMask);
+				this.positionHash ^= this.positionHasher.getMask(
+					turnFlipped, piece, move.destination);
+				if(piece == Piece.PAWN || piece == Piece.KING) {
+					this.positionHashPawnsKings ^=
+						this.positionHasher.getMask(turnFlipped, piece, move.destination);
 				}
+				return;
 			}
 		}
 	}
 	
-	private Piece moveUpdateSource(Move move) {
+	/**
+	 * When making a move, transfers the piece within the player's piece bitboard from the source
+	 * square to the destination square. Note that summary tables are not updated here, they should
+	 * be updated in {@link #move(Move)}.
+	 * @param move the move for which to transfer piece position
+	 * @return the type of piece that moved
+	 */
+	private Piece moveUpdateTransferPiece(Move move) {
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
 		
@@ -217,6 +277,16 @@ public class Board {
 		return movedPiece;
 	}
 	
+	/**
+	 * When making a move, handles the case where an en passant capture occurred. Assume that the
+	 * source piece has already been transferred with {@link #moveUpdateTransferPiece(Move)}. Note
+	 * that {@link #moveRemoveDestination(Move)} only removes the opposing piece on the destination
+	 * square, whereas with en passant the pawn behind the destination square is captured. So in
+	 * this case we still have to remove the opposing pawn. Note that summary tables are not
+	 * updated here, they should be updated in {@link #move(Move)}.
+	 * @see <a href="https://en.wikipedia.org/wiki/En_passant">En Passant</a>
+	 * @param move the move containing the en passant capture
+	 */
 	private void moveEnPassant(Move move) {
 		long destinationMask = 1L << move.destination;
 		Color turnFlipped = Color.flip(this.turn);
@@ -239,6 +309,12 @@ public class Board {
 			turnFlipped, Piece.PAWN, destinationRetreatedOneRow);
 	}
 	
+	/**
+	 * When making a move, updates the en passant target {@link #enPassantTarget} if the pawn has
+	 * moved forward two spaces. See the definition of {@link #enPassantTarget} for more details.
+	 * Note that summary tables are not updated here, they should be updated in {@link #move(Move)}.
+	 * @param move a move where the pawn moved forward two spaces
+	 */
 	private void moveSetEnPassantTarget(Move move) {
 		long destinationMask = 1L << move.destination;
 		byte destinationRetreatedOneRow;
@@ -263,6 +339,13 @@ public class Board {
 			destinationRetreatedOneRow);
 	}
 	
+	/**
+	 * When making a move, removes the en passant target {@link #enPassantTarget} if the move is
+	 * anything other than a pawn moving forward two spaces. See the definition of
+	 * {@link #enPassantTarget} for more details. Note that summary tables are not updated here,
+	 * they should be updated in {@link #move(Move)}.
+	 * @param move a move that is anything other than a pawn moving forward two spaces
+	 */
 	private void moveUnsetEnPassantTarget(Move move) {
 		if(this.enPassantTarget != 0) {
 			this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(
@@ -273,7 +356,14 @@ public class Board {
 		this.enPassantTarget = 0;
 	}
 	
-	private void moveRemoveCastleRights(Move move) {
+	/**
+	 * When making a move, if it is a king move, removes both kingside and queenside castling
+	 * rights from that player. The rules of chess state that if a king has moved or castled, the
+	 * player can no longer castle for the rest of the game. Note that summary tables are not
+	 * updated here, they should be updated in {@link #move(Move)}.
+	 * @param move a king move, including castling
+	 */
+	private void moveKingRemoveCastleRights(Move move) {
 		this.positionHash ^= this.positionHasher.getMaskCastleRights(
 			this.castleRights);
 		this.castleRights.get(this.turn).put(Castle.KINGSIDE, false);
@@ -282,6 +372,12 @@ public class Board {
 			this.castleRights);
 	}
 	
+	/**
+	 * When making a move, if the player castles queenside, update the position of the rook. Update
+	 * the position hash accordingly. Note that summary tables are not updated here, they should be
+	 * updated in {@link #move(Move)}.
+	 * @param move a move where the player castles queenside
+	 */
 	private void moveCastleQueenside(Move move) {
 		Bitboard rookStart;
 		Bitboard rookEnd;
@@ -306,6 +402,12 @@ public class Board {
 			rookDestination);
 	}
 	
+	/**
+	 * When making a move, if the player castles kingside, update the position of the rook. Update
+	 * the position hash accordingly. Note that summary tables are not updated here, they should be
+	 * updated in {@link #move(Move)}.
+	 * @param move a move where the player castles kingside
+	 */
 	private void moveCastleKingside(Move move) {
 		Bitboard rookStart;
 		Bitboard rookEnd;
@@ -330,6 +432,15 @@ public class Board {
 			rookDestination);
 	}
 	
+	/**
+	 * When making a move, handle the case where a pawn is promoted. Note that
+	 * {@link Board#moveUpdateTransferPiece(Move)} updates the pawn bitboard to move the pawn onto
+	 * the destination square on the promotion rank. We have to correct for this by removing the
+	 * pawn from that square on its bitboard, in addition to updating the bitboard of the promoted
+	 * piece. Note that summary tables are not updated here, they should be updated in
+	 * {@link #move(Move)}.
+	 * @param move a move that promotes a pawn to a queen, knight, rook, or bishop.
+	 */
 	private void movePromote(Move move) {
 		long destinationMask = 1L << move.destination;
 		
@@ -345,6 +456,13 @@ public class Board {
 			move.destination);
 	}
 	
+	/**
+	 * When making a move, if a rook moves, remove castling rights if needed. The rules of chess
+	 * stipulate that if a rook moves from its initial square then castling on that side is not
+	 * allowed for the rest of the game, but castling on the other side may be allowed. Note that
+	 * summary tables are not updated here, they should be updated in {@link #move(Move)}.
+	 * @param move a rook move
+	 */
 	private void moveUpdateCastlingRightsForRookMove(Move move) {
 		byte rookQueensideSource;
 		byte rookKingsideSource;
@@ -366,6 +484,13 @@ public class Board {
 		this.positionHash ^= this.positionHasher.getMaskCastleRights(this.castleRights);
 	}
 
+	/**
+	 * Make a move and fully update the state of the board. For example this updates the bitboard
+	 * of the moving piece, removes a captured piece if any from its bitboard, updates castling
+	 * rights, and updates the en passant target square. It also switches the player to move,
+	 * increments the fullmove counter if needed, and updates summary bitboards.
+	 * @param move the move to make on the board
+	 */
 	public void move(Move move) {
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
@@ -381,8 +506,10 @@ public class Board {
 		if(this.bitboards.get(turnFlipped).get(Piece.ROOK).intersects(destinationMask)) {
 			this.moveHandleOpponentRookCapture(move);
 		}
-		this.moveRemoveDestination(move);
-		Piece movedPiece = this.moveUpdateSource(move);
+		if(this.playerBitboards.get(turnFlipped).intersects(destinationMask)) {
+			this.moveRemoveDestination(move);
+		}
+		Piece movedPiece = this.moveUpdateTransferPiece(move);
 		if(movedPiece == Piece.PAWN && destinationMask == this.enPassantTarget) {
 			this.moveEnPassant(move);
 		}
@@ -392,14 +519,13 @@ public class Board {
 			this.moveUnsetEnPassantTarget(move);
 		}
 		if(movedPiece == Piece.KING) {
-			this.moveRemoveCastleRights(move);
+			this.moveKingRemoveCastleRights(move);
 			if(move.source - 2 == move.destination) {
 				this.moveCastleQueenside(move);
 			} else if(move.source + 2 == move.destination) {
 				this.moveCastleKingside(move);
 			}
-		} else if(movedPiece == Piece.PAWN &&
-				move.promoteTo != Piece.NOPIECE) {
+		} else if(movedPiece == Piece.PAWN && move.promoteTo != Piece.NOPIECE) {
 			this.movePromote(move);
 		} else if(movedPiece == Piece.ROOK) {
 			this.moveUpdateCastlingRightsForRookMove(move);
@@ -414,21 +540,27 @@ public class Board {
 		updateSummaryBitboards();
 	}
 	
-	public void move(String algebraic) {
-		Move m = notationHelper.algebraicToMove(this, algebraic);
-		this.move(m);
-	}
-	
+	/**
+	 * Make a move and fully update the state of the board. See {@link #move(Move)} for a summary
+	 * of the pre and post conditions. Note we're assuming this move is not a promotion. If such a
+	 * move is needed one can use {@link #move(Move)}.
+	 * @param source the square from which to move, for example "c3"
+	 * @param destination the square where to move, for example "c6"
+	 */
 	public void move(String source, String destination) {
 		Move m = new Move(source, destination);
 		this.move(m);
 	}
 	
-	private void setPositionEmpty() {
+	/**
+	 * Clears the board so that it contains no pieces. Updates the summary bitboards and position
+	 * hashes accordingly, and sets the full move counter to 1.
+	 */
+	private void clear() {
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
 			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
 				Bitboard bitboard = entry2.getValue();
-				bitboard.reset();
+				bitboard.clear();
 			}
 		}
 		this.fullMoveCounter = 1;
@@ -436,12 +568,20 @@ public class Board {
 		this.setPositionHash();
 	}
 	
+	/**
+	 * Sets the board to a state given by a FEN string. FEN is a standard for representing
+	 * chessboard state. Note the halfmove clock is not yet implemented, as this engine does not
+	 * yet detect threefold move repetition. For more details about FEN
+	 * @see <a href="https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">
+	 *      Forsyth-Edwards Notation</a>
+	 * @param fenstring the string in FEN notation representing the board state
+	 */
 	public void setPositionFenstring(String fenstring) {
 		String[] parts = fenstring.split(" ");
 		
 		String placement = parts[0];
 		String[] placementParts = placement.split("/");
-		this.setPositionEmpty();
+		this.clear();
 		for(int i = 0; i < 8; i++) {
 			// Start with rank 8 and go to rank 1.
 			long mask = 1L << 8 * (7 - i);   // a8, a7, ..., a1
@@ -501,11 +641,10 @@ public class Board {
 			this.enPassantTarget = 0;
 		}
 		else {
-			this.enPassantTarget = NotationHelper.squareToCoord(
-					enPassantTarget);
+			this.enPassantTarget = NotationHelper.squareToCoord(enPassantTarget);
 		}
 		
-		// TODO: implement the halfmove clock
+		// Note we don't yet implement the halfmove clock.
 		
 		String fullMoveCounter = parts[5];
 		this.fullMoveCounter = Integer.parseInt(fullMoveCounter);
@@ -513,6 +652,14 @@ public class Board {
 		this.setPositionHash();
 	}
 	
+	/**
+	 * Returns the type of piece on a given square. Returns {@link Piece#NOPIECE} if no piece is
+	 * found there.
+	 * @param mask a 64-bit long representing a bitboard containing only the square. See
+	 *        {@link Bitboard} for a description of the 64-bit representation.
+	 * @return the type of piece residing on the given square, or {@link Piece#NOPIECE} if no piece
+	 *         is found.
+	 */
 	public Piece pieceOnSquare(long mask) {
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
 			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
@@ -526,7 +673,13 @@ public class Board {
 		return Piece.NOPIECE;
 	}
 	
+	/**
+	 * Sets the {@link #positionHash} and {@link #positionHashPawnsKings} variables for the
+	 * current board position.
+	 */
 	private void setPositionHash() {
+		this.positionHash = 0;
+		this.positionHashPawnsKings = 0;
 		for(byte i = 0; i < 64; i++) {
 			long mask = 1L << i;
 			for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
@@ -553,35 +706,111 @@ public class Board {
 		}
 		this.positionHash ^= this.positionHasher.getMaskCastleRights(this.castleRights);
 	}
-
-	private static LegalMoveGenerator legalMoveGenerator =
-		new LegalMoveGenerator();
+	
+	/**
+	 * Updates the summary bitboards {@link #playerBitboards} and {@link #allPieces} for the
+	 * current board position.
+	 */
+	private void updateSummaryBitboards() {
+		this.playerBitboards.put(Color.WHITE, new Bitboard());
+		this.playerBitboards.put(Color.BLACK, new Bitboard());
+		this.allPieces = new Bitboard();
+		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
+			Color color = entry1.getKey();
+			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
+				Bitboard bitboard = entry2.getValue();
+				this.playerBitboards.get(color).updateUnion(bitboard);
+				this.allPieces.updateUnion(bitboard);
+			}
+		}
+	}
+	
+	/**
+	 * A double map containing the bitboards for each color and piece. For example this includes
+	 * the bitboard containing white bishops within the current board position.
+	 */
+	public Map<Color, Map<Piece, Bitboard>> bitboards;
+	
+	/**
+	 * A map of bitboards containing all the pieces for each color. For example this includes the
+	 * bitboard containing all the pieces on the board for the white player.
+	 */
+	public Map<Color, Bitboard> playerBitboards;
+	
+	/**
+	 * A summary bitboard containing all the pieces on the board.
+	 */
+	public Bitboard allPieces;
+	
+	/**
+	 * The color of the player who will next make a move. For example this is white at the start
+	 * of the game.
+	 */
+	public Color turn;
+	
+	/**
+	 * A mask representing the en passant target square. See {@link Bitboard} for a description of
+	 * the 64-bit long occupied square implementation. If the last move was not a pawn moving
+	 * forward two spaces, of if it's the start of the game, the en passant target is set to 0.
+	 * Otherwise if the last move was a pawn moving forward two spaces, the en passant target is
+	 * set to the square in between the source and destination squares. This signifies that if the
+	 * other player wishes to make an en passant capture on the next move, his/her pawn will end up
+	 * on the en passant target square.
+	 * @see <a href="https://en.wikipedia.org/wiki/En_passant">En Passant</a>
+	 */
+	public long enPassantTarget;
+	
+	/**
+	 * A double map containing castling rights for each color and castle type. If the corresponding
+	 * Boolean value is set to true that means the player can castle in that direction, otherwise
+	 * it is prohibited. Note that this is the long-term definition of right-to-castle, meaning
+	 * neither the king nor the chosen rook has moved up to this point in the game. Other
+	 * conditions must still be met for castling to be a legal move: for example there may be no
+	 * pieces between the king and the rook, and the player cannot castle out of / through / into
+	 * check. For a full description of castling requirements:
+	 * @see <a href="https://en.wikipedia.org/wiki/Castling">Castling</a>
+	 */
+	public Map<Color, Map<Castle, Boolean>> castleRights;
+	
+	/**
+	 * An integer representing the number of full moves that elapsed through the game, according to
+	 * the FEN standard. This starts at 1 and is incremented whenever black makes a move.
+	 * @see <a href="https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">
+	 *      Forsyth-Edwards Notation</a>
+	 */
+	public int fullMoveCounter;
+	
+	/**
+	 * A Zobrist hash of the current position, used for memoization through the transposition table
+	 * {@link TranspositionTable}. It hashes the bitboards of all the pieces, the side to move,
+	 * castling rights, and the en passant target square. This is useful when we want to evaluate
+	 * the same position arising through a different series of moves; we can save computational
+	 * resources by looking at what we concluded in the previous position.
+	 * @see <a href="https://en.wikipedia.org/wiki/Zobrist_hashing">Zobrist Hashing</a>
+	 */
+	public long positionHash;
+	
+	/**
+	 * A Zobrist hash of the current position containing only the kings and pawns. It hashes only
+	 * the bitboards of the pawns and kings. It ignores the side to move, castling rights, and the
+	 * en passant target. We use a special position hash since the pawn structure and king position
+	 * are relatively static throughout the middlegame. Therefore we can perform more expensive
+	 * calculations related to pawn structure and king safety, as we will get a much higher hit
+	 * rate through memoization.
+	 */
+	public long positionHashPawnsKings;
+	
+	private static LegalMoveGenerator legalMoveGenerator = new LegalMoveGenerator();
 	private static NotationHelper notationHelper = new NotationHelper();
 	private PositionHasher positionHasher = null;
 	
-	public Map<Color, Map<Piece, Bitboard>> bitboards =
-		new HashMap<Color, Map<Piece, Bitboard>>();
-	public Map<Color, Bitboard> playerBitboards =
-		new HashMap<Color, Bitboard>();
-	public Bitboard allPieces;
-	
-	// Convenience masks for castling
-	public Bitboard bbA1 = new Bitboard("a1");
-	public Bitboard bbA8 = new Bitboard("a8");
-	public Bitboard bbH1 = new Bitboard("h1");
-	public Bitboard bbH8 = new Bitboard("h8");
-	public Bitboard bbD1 = new Bitboard("d1");
-	public Bitboard bbD8 = new Bitboard("d8");
-	public Bitboard bbF1 = new Bitboard("f1");
-	public Bitboard bbF8 = new Bitboard("f8");
-		
-	public Color turn = Color.WHITE;
-	// If the last move was a double pawn move, this is the destination coordinate.
-	public long enPassantTarget = 0;
-	public Map<Color, Map<Castle, Boolean>> castleRights;
-	public int fullMoveCounter = 1;
-	
-	// These are used for the transposition tables.
-	public long positionHash = 0;
-	public long positionHashPawnsKings = 0;
+	// Convenience bitboards for castling.
+	private Bitboard bbA1 = new Bitboard("a1");
+	private Bitboard bbA8 = new Bitboard("a8");
+	private Bitboard bbH1 = new Bitboard("h1");
+	private Bitboard bbH8 = new Bitboard("h8");
+	private Bitboard bbD1 = new Bitboard("d1");
+	private Bitboard bbD8 = new Bitboard("d8");
+	private Bitboard bbF1 = new Bitboard("f1");
+	private Bitboard bbF8 = new Bitboard("f8");
 };

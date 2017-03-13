@@ -7,9 +7,6 @@ import java.util.Map;
 import chess_engine.Board;
 
 public class Brain {
-	static int TRANSPOSITION_TABLE_SIZE = 32 * 1024 * 1024;
-	static int PAWN_KING_TABLE_SIZE = 64 * 1024;
-	
 	public Brain() {
 		this.transpositionTable = new TranspositionTable(TRANSPOSITION_TABLE_SIZE);
 		this.pawnKingHashTable = new PawnKingHashTable(PAWN_KING_TABLE_SIZE);
@@ -56,7 +53,7 @@ public class Brain {
 			if(piece == Piece.KING) {
 				continue;
 			}
-			int pieceCount = board.bitboards.get(Color.flip(board.turn)).get(piece).numBitsSet();
+			int pieceCount = board.bitboards.get(Color.flip(board.turn)).get(piece).numOccupied();
 			material += pieceCount * this.FITNESS_PIECE.get(piece);
 		}
 		return 1 - material / this.FITNESS_START_NOKING;
@@ -69,7 +66,7 @@ public class Brain {
 		// because it's a fighting piece and the opponent can't really
 		// checkmate it anyway.
 		int distanceFromHomeRank = 0;
-		int kingIndex = board.bitboards.get(color).get(Piece.KING).numTrailingZeros();
+		int kingIndex = board.bitboards.get(color).get(Piece.KING).numEmptyStartingSquares();
 		if(color == Color.WHITE) {
 			distanceFromHomeRank = (int)(kingIndex / 8);
 		}
@@ -91,20 +88,20 @@ public class Brain {
 					protectorsHome = board.bitboards.get(color)
 						.get(Piece.PAWN)
 						.intersection(pawnShieldQueenside.get(color))
-						.numBitsSet();
+						.numOccupied();
 					protectorsOneStep = board.bitboards.get(color)
 						.get(Piece.PAWN)
 						.intersection(pawnShieldQueensideForward.get(color))
-						.numBitsSet();
+						.numOccupied();
 				} else if(kingIndex % 8 >= 5) {
 					protectorsHome = board.bitboards.get(color)
 						.get(Piece.PAWN)
 						.intersection(pawnShieldKingside.get(color))
-						.numBitsSet();
+						.numOccupied();
 					protectorsOneStep = board.bitboards.get(color)
 						.get(Piece.PAWN)
 						.intersection(pawnShieldKingsideForward.get(color))
-						.numBitsSet();
+						.numOccupied();
 				}
 			}
 			if(protectorsHome + protectorsOneStep == 2) {
@@ -168,9 +165,9 @@ public class Brain {
 		}
 
 		int numPawnsQueenside = board.bitboards.get(color).get(Piece.PAWN)
-			.intersection(this.pawnShieldQueenside.get(color)).numBitsSet();
+			.intersection(this.pawnShieldQueenside.get(color)).numOccupied();
 		int numPawnsKingside = board.bitboards.get(color).get(Piece.PAWN)
-			.intersection(this.pawnShieldKingside.get(color)).numBitsSet();
+			.intersection(this.pawnShieldKingside.get(color)).numOccupied();
 		
 		result -= 10 * (3 - numPawnsQueenside);
 		result -= 25 * (3 - numPawnsKingside);
@@ -188,8 +185,8 @@ public class Brain {
 			if(piece == Piece.PAWN) {
 				continue;
 			}
-			int myPieceCount = board.bitboards.get(board.turn).get(piece).numBitsSet();
-			int oppPieceCount = board.bitboards.get(turnFlipped).get(piece).numBitsSet();
+			int myPieceCount = board.bitboards.get(board.turn).get(piece).numOccupied();
+			int oppPieceCount = board.bitboards.get(turnFlipped).get(piece).numOccupied();
 			fitness += (myPieceCount - oppPieceCount) * this.FITNESS_PIECE.get(piece);
 			if(piece == Piece.BISHOP) {
 				if(myPieceCount >= 2) {
@@ -220,8 +217,8 @@ public class Brain {
 				board.positionHashPawnsKings,
 				board.bitboards.get(Color.WHITE).get(Piece.PAWN).getData(),
 				board.bitboards.get(Color.BLACK).get(Piece.PAWN).getData(),
-				board.bitboards.get(Color.WHITE).get(Piece.KING).numTrailingZeros(),
-				board.bitboards.get(Color.BLACK).get(Piece.KING).numTrailingZeros()
+				board.bitboards.get(Color.WHITE).get(Piece.KING).numEmptyStartingSquares(),
+				board.bitboards.get(Color.BLACK).get(Piece.KING).numEmptyStartingSquares()
 			);
 			entry = this.pawnKingHashTable.get(board.positionHashPawnsKings);
 		}
@@ -256,11 +253,11 @@ public class Brain {
 				int myPawnsOnRank = pawnBitboardRelativeToMe
 					.intersection(rankBitboard)
 					.intersection(centralityBitboard)
-					.numBitsSet();
+					.numOccupied();
 				int oppPawnsOnRank = pawnBitboardRelativeToOpp
 					.intersection(rankBitboard)
 					.intersection(centralityBitboard)
-					.numBitsSet();
+					.numOccupied();
 				
 				fitness += pawnFactor * (myPawnsOnRank - oppPawnsOnRank);
 			}
@@ -484,8 +481,11 @@ public class Brain {
 	private float FITNESS_KING_RANK_FACTOR = 75;
 	private float[] FITNESS_KING_FILE = {0, 0, -90, -180, -180, -90, 0, 0};
 	
-	Map<Color, Bitboard> pawnShieldQueenside;
-	Map<Color, Bitboard> pawnShieldQueensideForward;
-	Map<Color, Bitboard> pawnShieldKingside;
-	Map<Color, Bitboard> pawnShieldKingsideForward;
+	private static int TRANSPOSITION_TABLE_SIZE = 32 * 1024 * 1024;
+	private static int PAWN_KING_TABLE_SIZE = 64 * 1024;
+	
+	private Map<Color, Bitboard> pawnShieldQueenside;
+	private Map<Color, Bitboard> pawnShieldQueensideForward;
+	private Map<Color, Bitboard> pawnShieldKingside;
+	private Map<Color, Bitboard> pawnShieldKingsideForward;
 }

@@ -37,8 +37,8 @@ public class PawnKingHashTable {
 		
 		for(int fileIndex = 0; fileIndex < 8; fileIndex++) {
 			Bitboard fileBitboard = Bitboard.bitboardFromFile(fileIndex);
-			int filePawnsWhite = fileBitboard.intersection(pawnMaskWhite).numBitsSet();
-			int filePawnsBlack = fileBitboard.intersection(pawnMaskBlack).numBitsSet();
+			int filePawnsWhite = fileBitboard.intersection(pawnMaskWhite).numOccupied();
+			int filePawnsBlack = fileBitboard.intersection(pawnMaskBlack).numOccupied();
 			if(filePawnsWhite > 1) {
 				this.data[index].numDoubledPawnsWhite += filePawnsWhite;
 			}
@@ -56,18 +56,18 @@ public class PawnKingHashTable {
 			}
 			if(filePawnsWhite >= 1) {
 				int filePawnsWhiteLeft = fileBitboardLeft
-					.intersection(pawnMaskWhite).numBitsSet();
+					.intersection(pawnMaskWhite).numOccupied();
 				int filePawnsWhiteRight = fileBitboardRight
-					.intersection(pawnMaskWhite).numBitsSet();
+					.intersection(pawnMaskWhite).numOccupied();
 				if(filePawnsWhiteLeft == 0 && filePawnsWhiteRight == 0) {
 					this.data[index].numIsolatedPawnsWhite += filePawnsWhite;
 				}
 			}
 			if(filePawnsBlack >= 1) {
 				int filePawnsBlackLeft = fileBitboardLeft
-					.intersection(pawnMaskBlack).numBitsSet();
+					.intersection(pawnMaskBlack).numOccupied();
 				int filePawnsBlackRight = fileBitboardRight
-					.intersection(pawnMaskBlack).numBitsSet();
+					.intersection(pawnMaskBlack).numOccupied();
 				if(filePawnsBlackLeft == 0 && filePawnsBlackRight == 0) {
 					this.data[index].numIsolatedPawnsBlack += filePawnsBlack;
 				}
