@@ -6,7 +6,38 @@ import java.util.Map;
 
 import chess_engine.Board;
 
+/**
+ * <p>This class is the engine that calculates the best move for a given board position. The
+ * central method is {@link #getMove(Board)}. The two main concepts for making this calculation
+ * are depth-first search through a portion of the game tree, and static evaluation.
+ * 
+ * <p>Theoretically any two-player game with perfect information has a winning strategy that can
+ * be determined by scanning the game tree, including chess. In practice the game tree for chess
+ * is far too large to scan with our current computational resources. Instead we search to a given
+ * depth listed in {@link #totalDepth} and then perform a static evaluation on each board position.
+ * Note that {@link #totalDepth} is the number of plies, so if we calculate white's move and then
+ * black's move that counts as two plies. The search efficiency can be dramatically improved
+ * through alpha-beta pruning, which prunes branches of the search tree that are known ahead of
+ * time not to lead to the optimal move. See {@link #alphabeta(Board, int, float, float)} for more
+ * details.
+ * 
+ * <p>The goal of static evaluation is to estimate how good a board position is for the player to
+ * move. It is how we calculate the values of the leaf nodes in the alpha-beta search. For example
+ * there is the classic rule of thumb that a queen is worth 9 pawns, a rook is worth 5, and a
+ * bishop and knight are each worth 3. This way to count material provides a good estimate; we also
+ * use factors such as pawn structure, king safety, and piece activity. As a general rule the
+ * fitness evaluations are in centipawns, with a pawn being worth 100. See {@link #fitness(Board)}
+ * for more details.
+ * 
+ * @see <a href="https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning">Alpha-Beta Pruning</a>
+ * @author Phil Leszczynski
+ */
 public class Brain {
+	/**
+	 * Initializes a brain. Creates the transposition tables, sets the material weights for each
+	 * piece, sets the material weight for the starting position, and sets several helper variables
+	 * related to king safety.
+	 */
 	public Brain() {
 		this.transpositionTable = new TranspositionTable(TRANSPOSITION_TABLE_SIZE);
 		this.pawnKingHashTable = new PawnKingHashTable(PAWN_KING_TABLE_SIZE);
@@ -45,8 +76,14 @@ public class Brain {
 			this.pawnShieldKingsideForward.get(Color.WHITE).flip());
 	}
 	
+	/**
+	 * Returns the fraction of the opponent's material that has been removed. At the start of the
+	 * game this returns 1.0f; if the opponent has just a king left this returns 0.0f.
+	 * @param board the board to evaluate the endgame fraction
+	 * @return the fraction of the way we are into the endgame, judging by the fraction of the
+	 *         opponent's material that is still on the board
+	 */
 	public float endgameFraction(Board board) {
-		// Returns 0 if the opponent has all the pieces, 1 if just the king.
 		float material = 0;
 		for(Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
 			Piece piece = entry.getKey();
@@ -59,12 +96,20 @@ public class Brain {
 		return 1 - material / this.FITNESS_START_NOKING;
 	}
 	
-	public float fitnessKingSafety(Board board, Color color,
-			float endgameFraction) {
-		// The king should be in the corner at the beginning of the game
-		// because it's safer there, but in the center at the end of the game
-		// because it's a fighting piece and the opponent can't really
-		// checkmate it anyway.
+	/**
+	 * Returns an evaluation of the given player's king safety in centipawns. As a general rule the
+	 * king should be near one of the home corners early in the game because it is safer there. But
+	 * if the opponent has little material remaining the king should be active and close to the
+	 * center of the board. Additionally we have a bonus for an intact pawn shield in front of a
+	 * castled king early on in the game as this hinders the opponent's attack.
+	 * @param board the board to evaluate the king safety
+	 * @param color the player whose king safety to evaluate
+	 * @param endgameFraction the endgame fraction as calculated in
+	 *        {@link #endgameFraction(Board)}. Performance is important here and we want to save
+	 *        resources on the calculation when possible.
+	 * @return the given player's king safety score in centipawns
+	 */
+	public float fitnessKingSafety(Board board, Color color, float endgameFraction) {
 		int distanceFromHomeRank = 0;
 		int kingIndex = board.bitboards.get(color).get(Piece.KING).numEmptyStartingSquares();
 		if(color == Color.WHITE) {
@@ -126,6 +171,18 @@ public class Brain {
 		return rankFitness + fileFitness - pawnShieldPenalty - openFilePenalty;
 	}
 	
+	/**
+	 * Returns an evaluation of the given player's rook placement bonus on open files. As a rule of
+	 * thumb a rook is more powerful on an open file containing no pawns as it controls a lot of
+	 * squares. It is also powerful on a semi-open file containing only opposing pawns, as it
+	 * applies pressure preventing the pawn(s) from advancing.
+	 * @param board the board to evaluate rook placement on open files
+	 * @param color the player whose rook placement to evaluate
+	 * @param endgameFraction the endgame fraction as calculated in
+	 *        {@link #endgameFraction(Board)}. Performance is important here and we want to save
+	 *        resources on the calculation when possible.
+	 * @return the given player's rook open file bonus in centipawns
+	 */
 	public float fitnessRookFiles(Board board, Color color, float endgameFraction) {
 		// Assign a bonus for a rook being on an open file (one with no pawns)
 		// or a semi-open file (one with only enemy pawns).
@@ -149,6 +206,19 @@ public class Brain {
 		return result;
 	}
 	
+	/**
+	 * Returns an evaluation of the given player's bonus for retaining castling rights, as well as
+	 * pawn shield integrity on the respective flanks. The right to castle is important early in
+	 * the game as it puts the king in safety and helps activate the rook. We also take the pawn
+	 * shield on the wings into account, since castling would not be as useful if the king is
+	 * vulnerable to attack.
+	 * @param board the board to evaluate castling rights
+	 * @param color the player whose castling rights to evaluate
+	 * @param endgameFraction the endgame fraction as calculated in
+	 *        {@link #endgameFraction(Board)}. Performance is important here and we want to save
+	 *        resources on the calculation when possible.
+	 * @return the given player's castle rights bonus in centipawns
+	 */
 	public float fitnessCastleRights(Board board, Color color, float endgameFraction) {
 		if(endgameFraction > 0.5) {
 			return 0;
@@ -177,6 +247,20 @@ public class Brain {
 		return result;
 	}
 	
+	/**
+	 * <p>Returns the static evaluation fitness score for a given board. In general we evaluate
+	 * various bonuses and penalties both for the side to move and the opponent. The result is the
+	 * score from the player to move's perspective, i.e. the player's fitness minus the opponent's
+	 * fitness.
+	 * 
+	 * <p>To compute the fitness we take the following into account: material on board, a bonus for
+	 * the bishop pair, a penalty for doubled and isolated pawns, a bonus for passed pawns, a score
+	 * for king safety, and a bonus for rook placement on open files.
+	 * 
+	 * @see <a href="https://en.wikipedia.org/wiki/Glossary_of_chess#Bishop_pair">Bishop Pair</a>
+	 * @param board the board with which to perform a static evaluation
+	 * @return the static evaluation fitness score for the board
+	 */
 	public float fitness(Board board) {
 		float fitness = 0;
 		Color turnFlipped = Color.flip(board.turn);
@@ -273,8 +357,25 @@ public class Brain {
 		return fitness;
 	}
 	
+	/**
+	 * Evaluates the position at an alpha-beta leaf node. Instead of immediately doing a static
+	 * evaluation through the {@link #fitness(Board)} method, we first exhaust the possibility of
+	 * any immediate captures. This is due to the horizon effect where we can otherwise get
+	 * undesirable behavior. For example we want to avoid a queen capturing a guarded pawn at the
+	 * leaf node and thinking it's a good move since the recapture of the queen is just outside the
+	 * search depth. Note this implementation is different from the standard because it only
+	 * considers recaptures on the same destination square.
+	 * @see <a href="http://chessprogramming.wikispaces.com/Quiescence+Search">
+	 *      Quiescence Search</a>
+	 * @param board the board with which to perform the quiescent search
+	 * @param alpha the running alpha score tracked by {@link #alphabeta(Board, int, float, float)}
+	 * @param beta the running beta score tracked by {@link #alphabeta(Board, int, float, float)}
+	 * @param target the 64-bit long mask containing the capture target if any, see
+	 *        {@link Bitboard} for the 64-bit mask implementation
+	 * @return the quiescent search score subject to the standard alpha-beta pruning negamax
+	 *         implementation, see {@link #alphabeta(Board, int, float, float)} for more details
+	 */
 	private float quiescentSearch(Board board, float alpha, float beta, long target) {
-		// http://chessprogramming.wikispaces.com/Quiescence+Search
 		float fitness = this.fitness(board);
 		if(fitness >= beta) {
 			return beta;
@@ -307,8 +408,40 @@ public class Brain {
 		return alpha;
 	}
 	
+	/**
+	 * <p>Performs a recursive alpha-beta depth-first search to a given depth. Runs a quiescent
+	 * search through {@link #quiescentSearch(Board, float, float, long)} at the leaf nodes.
+	 * 
+	 * <p>Alpha-beta pruning is a modified depth-first search that prunes branches that are certain
+	 * to not lead to the optimal move. To paraphrase the Chess Programming article below, consider
+	 * a depth-first search of two where the first player has two legal moves M1 and M2. After
+	 * scanning the leaf nodes below M1, it is determined to lead to an even position. Now for M2
+	 * the opponent can respond with N1, N2, or N3. Suppose that N1 captures the first player's
+	 * rook. Then we know the first player will play M1 instead of M2 because M2 is known to lead
+	 * to a less desirable outcome. It doesn't matter whether say N2 captures the first player's
+	 * queen, as we already know that M2 will not be played. So we do not need to evaluate N2 nor
+	 * N3.
+	 * 
+	 * <p>In the example above the "approximately even" score is tracked by the variable alpha, and
+	 * it would be set to around 0. It is updated when a better move for the current player is
+	 * found. We also track beta which is the negative of the opponent's alpha. So in a sense if we
+	 * find a move with a score higher than beta it is "too good to be true" and the opponent would
+	 * not allow it, so we can safely prune the parent move. We use the negamax framework here,
+	 * where roughly speaking each player's beta is the negative of the opponent's alpha. The
+	 * Negamax article below outlines the process more fully.
+	 * 
+	 * @see <a href="https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning">
+	 *      Alpha-Beta Pruning</a>
+	 * @see <a href="http://chessprogramming.wikispaces.com/Alpha-Beta">Alpha-Beta</a>
+	 * @see <a href="https://en.wikipedia.org/wiki/Negamax">Negamax</a>
+	 * @param board the board for which to perform the search
+	 * @param depth the depth in plies for which to search
+	 * @param alpha the score of the best move found for the current player
+	 * @param beta the highest score the opponent would allow, or the negative of the opponent's
+	 *        alpha
+	 * @return the evaluation of the board position to the given depth in centipawns
+	 */
 	public float alphabeta(Board board, int depth, float alpha, float beta) {
-		// http://chessprogramming.wikispaces.com/Alpha-Beta
 		if(depth == 0) {
 			return this.quiescentSearch(board, alpha, beta, -1);
 		}
@@ -382,6 +515,14 @@ public class Brain {
 		return alpha;
 	}
 	
+	/**
+	 * Determines the best move to play on a board to a given depth using
+	 * {@link #alphabeta(Board, int, float, float)}. Note that this does not include iterative
+	 * deepening, so in a real game {@link #getMove(Board)} should be used instead.
+	 * @param board the board to analyze
+	 * @param depth the search depth in plies
+	 * @return the best move to play on the given board
+	 */
 	public Move getMoveToDepth(Board board, int depth) {
 		Move bestMove = null;
 		float alpha = -FITNESS_LARGE;
@@ -398,6 +539,19 @@ public class Brain {
 		return bestMove;
 	}
 	
+	/**
+	 * Returns the principal variation stemming from a given board and move, as determined by the
+	 * transposition table. In other words it is the engine's best guess for the next player's move
+	 * followed by the original player's move after that, and so on. This can be helpful for
+	 * debugging; if the engine makes an unusual move, then seeing the principal variation can help
+	 * us understand its reasoning. Note that we try to get the principal variation to
+	 * {@link #totalDepth} moves but this is not always possible. For example the transposition
+	 * table entry in the middle may have been overridden due to a hash collision and in that case
+	 * we cannot look at the fully calculated principal variation.
+	 * @param board the board for which to calculate the principal variation
+	 * @param move the starting move for which to calculate the principal variation
+	 * @return an ArrayList of moves listing the principal variation after the given move
+	 */
 	public ArrayList<Move> getPrincipalVariation(Board board, Move move) {
 		ArrayList<Move> principalVariation = new ArrayList<Move>();
 		principalVariation.add(move);
@@ -428,6 +582,17 @@ public class Brain {
 		return principalVariation;
 	}
 	
+	/**
+	 * Determines the best move for a given board. This is done through iterative deepening to a
+	 * depth of {@link #totalDepth} plies. It may seem counter-intuitive to perform the search for
+	 * all depths up to {@link #totalDepth} and throw out all results except the last. But research
+	 * has shown this process is actually faster because it sets entries in the transposition table
+	 * that help with move ordering.
+	 * @see <a href="https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search">
+	 *      Iterative Deepening</a>
+	 * @param board the board for which to get the best move
+	 * @return the best move to play according to the engine
+	 */
 	public Move getMove(Board board) {
 		Move move = null;
 		for(int d = 1; d <= this.totalDepth; d++) {
@@ -436,8 +601,8 @@ public class Brain {
 		return move;
 	}
 	
-	public int totalDepth = 5;
-		
+	private int totalDepth = 5;
+	
 	private TranspositionTable transpositionTable = null;
 	private PawnKingHashTable pawnKingHashTable = null;
 	
