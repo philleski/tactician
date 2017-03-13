@@ -257,7 +257,7 @@ public class Board {
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
 		
-		Piece movedPiece = Piece.NOPIECE;
+		Piece movedPiece = null;
 		for(Map.Entry<Piece, Bitboard> entry : this.bitboards.get(this.turn).entrySet()) {
 			Piece piece = entry.getKey();
 			Bitboard bitboard = entry.getValue();
@@ -525,7 +525,7 @@ public class Board {
 			} else if(move.source + 2 == move.destination) {
 				this.moveCastleKingside(move);
 			}
-		} else if(movedPiece == Piece.PAWN && move.promoteTo != Piece.NOPIECE) {
+		} else if(movedPiece == Piece.PAWN && move.promoteTo != null) {
 			this.movePromote(move);
 		} else if(movedPiece == Piece.ROOK) {
 			this.moveUpdateCastlingRightsForRookMove(move);
@@ -593,7 +593,7 @@ public class Board {
 					color = Color.BLACK;
 				}
 				Piece piece = Piece.initialToPiece(initial);
-				if(piece == Piece.NOPIECE) {
+				if(piece == null) {
 					// A numeric amount of blank squares.
 					mask <<= (initial - '1');
 				} else {
@@ -653,12 +653,10 @@ public class Board {
 	}
 	
 	/**
-	 * Returns the type of piece on a given square. Returns {@link Piece#NOPIECE} if no piece is
-	 * found there.
+	 * Returns the type of piece on a given square. Returns null if no piece is found there.
 	 * @param mask a 64-bit long representing a bitboard containing only the square. See
 	 *        {@link Bitboard} for a description of the 64-bit representation.
-	 * @return the type of piece residing on the given square, or {@link Piece#NOPIECE} if no piece
-	 *         is found.
+	 * @return the type of piece residing on the given square, or null if no piece is found.
 	 */
 	public Piece pieceOnSquare(long mask) {
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
@@ -670,7 +668,7 @@ public class Board {
 				}
 			}
 		}
-		return Piece.NOPIECE;
+		return null;
 	}
 	
 	/**

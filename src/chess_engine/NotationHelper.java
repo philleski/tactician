@@ -108,7 +108,7 @@ public class NotationHelper {
 				if(algebraic.charAt(0) >= 'a' && algebraic.charAt(0) <= 'h') {
 					if(board.pieceOnSquare(sourceMask) == Piece.PAWN) {
 						if(algebraic.charAt(0) == sourceSquare.charAt(0)) {
-							if(m.promoteTo == Piece.NOPIECE) {
+							if(m.promoteTo == null) {
 								return m;
 							}
 							char promoteChar = algebraic.charAt(algebraic.length() - 1);
@@ -314,7 +314,7 @@ public class NotationHelper {
 			else {
 				temp = destSquare;
 			}
-			if(move.promoteTo == Piece.NOPIECE) {
+			if(move.promoteTo == null) {
 				return temp;
 			}
 			else if(move.promoteTo == Piece.BISHOP) {

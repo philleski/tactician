@@ -4,13 +4,13 @@ public class Move {
 	public Move() {
 		this.source = 0;
 		this.destination = 0;
-		this.promoteTo = Piece.NOPIECE;
+		this.promoteTo = null;
 	}
 	
 	public Move(int sourceIndex, int attackSquareIndex) {
 		this.source = sourceIndex;
 		this.destination = attackSquareIndex;
-		this.promoteTo = Piece.NOPIECE;
+		this.promoteTo = null;
 	}
 	
 	public Move(int source, int destination, Piece promoteTo) {
@@ -22,7 +22,7 @@ public class Move {
 	public Move(String source, String destination) {
 		this.source = NotationHelper.coordToIndex(NotationHelper.squareToCoord(source));
 		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(destination));
-		this.promoteTo = Piece.NOPIECE;
+		this.promoteTo = null;
 	}
 	
 	public Move(String source, String destination, Piece promoteTo) {
@@ -48,7 +48,7 @@ public class Move {
 		String sourceStr = NotationHelper.indexToSquare(this.source);
 		String destinationStr = NotationHelper.indexToSquare(this.destination);
 		String promoteToStr = "";
-		if(promoteTo == Piece.NOPIECE) {
+		if(promoteTo == null) {
 			promoteToStr = "";
 		} else if(promoteTo == Piece.QUEEN) {
 			promoteToStr = "Q";

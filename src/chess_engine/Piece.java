@@ -4,7 +4,6 @@ public enum Piece {
 	BISHOP,
 	KING,
 	KNIGHT,
-	NOPIECE,
 	PAWN,
 	QUEEN,
 	ROOK;
@@ -12,8 +11,6 @@ public enum Piece {
 	public char initial() {
 		if(this == Piece.KNIGHT) {
 			return 'N';
-		} else if(this == Piece.NOPIECE) {
-			return '?';
 		}
 		return this.name().charAt(0);
 	}
@@ -33,6 +30,6 @@ public enum Piece {
 		} else if(initial == 'R') {
 			return Piece.ROOK;
 		}
-		return Piece.NOPIECE;
+		return null;
 	}
 }

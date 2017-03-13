@@ -170,8 +170,7 @@ public class LegalMoveGenerator {
 		}
 	}
 	
-	private void initAttackSquaresShortRange(long[] attackSquares,
-			int[] stepSizes) {
+	private void initAttackSquaresShortRange(long[] attackSquares, int[] stepSizes) {
 		for(int i = 0; i < 64; i++) {
 			for(int stepSize : stepSizes) {
 				if(LegalMoveGenerator.inBounds(i, stepSize)) {
@@ -181,8 +180,7 @@ public class LegalMoveGenerator {
 		}
 	}
 	
-	private void initAttackSquaresLongRange(long[] attackSquares,
-			int[] stepSizes) {
+	private void initAttackSquaresLongRange(long[] attackSquares, int[] stepSizes) {
 		for(int i = 0; i < 64; i++) {
 			for(int stepSize : stepSizes) {
 				int position = i;
@@ -194,8 +192,8 @@ public class LegalMoveGenerator {
 		}
 	}
 	
-	public void addCastleRayDiagonal(Color color, Castle castle,
-			String squareStart, String squareEnd, int stepSize) {
+	public void addCastleRayDiagonal(Color color, Castle castle, String squareStart,
+			String squareEnd, int stepSize) {
 		if(!this.castleRaysDiagonal.containsKey(color)) {
 			this.castleRaysDiagonal.put(color, new HashMap<Castle, ArrayList<CastleRay>>());
 		}
@@ -206,8 +204,8 @@ public class LegalMoveGenerator {
 			new CastleRay(squareStart, squareEnd, stepSize));
 	}
 	
-	public void addCastleRayStraight(Color color, Castle castle,
-			String squareStart, String squareEnd, int stepSize) {
+	public void addCastleRayStraight(Color color, Castle castle, String squareStart,
+			String squareEnd, int stepSize) {
 		if(!this.castleRaysStraight.containsKey(color)) {
 			this.castleRaysStraight.put(color, new HashMap<Castle, ArrayList<CastleRay>>());
 		}
@@ -436,16 +434,14 @@ public class LegalMoveGenerator {
 		}
 		for(CastleRay castleRay : this.castleRaysDiagonal.get(board.turn).get(castle)) {
 			long otherPieces = board.allPieces.getData() & ~oppPiecesDiagonal;
-			if(castleRay.opponentPiecePrecludesCastling(board.turn, castle, oppPiecesDiagonal,
-					otherPieces)) {
+			if(castleRay.opponentPiecePrecludesCastling(oppPiecesDiagonal, otherPieces)) {
 				return false;
 			}
 			
 		}
 		for(CastleRay castleRay : this.castleRaysStraight.get(board.turn).get(castle)) {
 			long otherPieces = board.allPieces.getData() & ~oppPiecesStraight;
-			if(castleRay.opponentPiecePrecludesCastling(board.turn, castle, oppPiecesStraight,
-					otherPieces)) {
+			if(castleRay.opponentPiecePrecludesCastling(oppPiecesStraight, otherPieces)) {
 				return false;
 			}
 			

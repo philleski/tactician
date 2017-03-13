@@ -16,7 +16,7 @@ public class PositionHasher {
 		for(Color color : Color.values()) {
 			Map<Piece, Long[]> colorMask = new HashMap<Piece, Long[]>();
 			for(Piece piece : Piece.values()) {
-				if(piece == Piece.NOPIECE) {
+				if(piece == null) {
 					continue;
 				}
 				Long[] pieceMasks = new Long[64];
