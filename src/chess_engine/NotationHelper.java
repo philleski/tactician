@@ -178,7 +178,7 @@ public class NotationHelper {
 				}
 			}
 		}
-		return new Move();
+		return null;
 	}
 	
 	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves, long pieceFamily,

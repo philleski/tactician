@@ -81,9 +81,7 @@ public class TranspositionTable {
 		float fitness = Float.intBitsToFloat((int)(contents >>> 32));
 		Move bestMove = null;
 		if((contents & 0x0000000011111000) != 0) {
-			bestMove = new Move();
-			bestMove.source = (int) (byte) (contents >>> 24);
-			bestMove.destination = (int) (byte) (contents >>> 16);
+			bestMove = new Move((int) (byte) (contents >>> 24), (int) (byte) (contents >>> 16));
 			if((contents & 0x0000000000001000L) != 0) {
 				bestMove.promoteTo = Piece.QUEEN;
 			} else if((contents & 0x0000000000002000L) != 0) {
