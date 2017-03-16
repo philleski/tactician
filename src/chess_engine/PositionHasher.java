@@ -47,8 +47,10 @@ public class PositionHasher {
 			color, piece, index2);
 	}
 	
-	public long getMaskEnPassantTarget(byte index) {
-		return this.getMask(Color.WHITE, Piece.PAWN, (byte)(index % 8));
+	public long getMaskEnPassantTarget(long enPassantTarget) {
+		Bitboard enPassantBitboard = new Bitboard(enPassantTarget);
+		int index = enPassantBitboard.numEmptyStartingSquares();
+		return this.getMask(Color.WHITE, Piece.PAWN, index % 8);
 	}
 	
 	public long getMaskCastleRights(

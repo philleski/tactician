@@ -2,76 +2,15 @@ package chess_engine;
 
 import java.util.ArrayList;
 
-public class NotationHelper {
-	// https://en.wikipedia.org/wiki/Find_first_set
-	public static byte coordToIndex(long coord) {
-		byte leadingZeros = 0;
-		if((coord & 0xffffffff00000000L) == 0) {
-			leadingZeros += 32;
-			coord <<= 32;
-		}
-		if((coord & 0xffff000000000000L) == 0) {
-			leadingZeros += 16;
-			coord <<= 16;
-		}
-		if((coord & 0xff00000000000000L) == 0) {
-			leadingZeros += 8;
-			coord <<= 8;
-		}
-		if((coord & 0xf000000000000000L) == 0) {
-			leadingZeros += 4;
-			coord <<= 4;
-		}
-		if((coord & 0xc000000000000000L) == 0) {
-			leadingZeros += 2;
-			coord <<= 2;
-		}
-		if((coord & 0x8000000000000000L) == 0) {
-			leadingZeros++;
-			coord <<= 1;
-		}
-		return (byte)(63 - leadingZeros);
-	}
-	
-	public static String indexToSquare(int index) {
-		String file;
-		String rank;
-		file = "" + ((char)(index % 8 + 97));
-		rank = Integer.toString((index / 8) + 1);
-		return file + rank;
-	}
-	
-	public static String coordToSquare(long coord) {
-		String file;
-		String rank;
-		int offset = 0;
-		if(coord == 0) {
-			return "a1";
-		}
-		while((coord & 1L) == 0) {
-			coord = coord >>> 1;
-			offset++;
-		}
-		file = "" + ((char)(offset % 8 + 97));
-		rank = Integer.toString((offset / 8) + 1);
-		return file + rank;
-	}
-		
-	public static long squareToCoord(String square) {
-		int file = Integer.parseInt("" + (square.charAt(0) - 96));
-		int rank = Integer.parseInt(square.substring(1, 2));
-		int offset = (file - 1) + 8 * (rank - 1);
-		return 1L << (long) offset;
-	}
-	
-	public Move algebraicToMove(Board board, String algebraic) {
+public class AlgebraicNotation {
+	public static Move algebraicToMove(Board board, String algebraic) {
 		if(algebraic.length() < 2) {
 			System.err.println("Illegal move: too short: " + algebraic);
 			return null;
 		}
 		for(Move m : board.legalMoves()) {
 			long sourceMask = 1L << m.source;
-			String sourceSquare = coordToSquare(sourceMask);
+			String sourceSquare = new Square(m.source).getName();
 			if(algebraic.equals("O-O") && board.pieceOnSquare(sourceMask) == Piece.KING) {
 				if(m.source + 2 == m.destination) {
 					return m;
@@ -102,7 +41,8 @@ public class NotationHelper {
 						"rank not from 1-8: " + algebraicDest);
 					return null;
 				}
-				if(squareToCoord(algebraicDest) != m.destination) {
+				long algebraicDestIndex = new Square(algebraicDest).getIndex();
+				if(algebraicDestIndex != m.destination) {
 					continue;
 				}
 				if(algebraic.charAt(0) >= 'a' && algebraic.charAt(0) <= 'h') {
@@ -181,17 +121,18 @@ public class NotationHelper {
 		return null;
 	}
 	
-	private String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves, long pieceFamily,
+	private static String algebraicAmbiguityForPiece(ArrayList<Move> legalMoves, long pieceFamily,
 			int source, int dest) {
 		ArrayList<String> piecesToDest = new ArrayList<String>();
-		String sourceSquare = indexToSquare(source);
+		String sourceSquare = new Square(source).getName();
 		for(Move m : legalMoves) {
 			if(dest != m.destination) {
 				continue;
 			}
 			long sourceMask = 1L << m.source;
 			if((sourceMask & pieceFamily) != 0) {
-				piecesToDest.add(coordToSquare(sourceMask));
+				String sourceName = new Square(source).getName();
+				piecesToDest.add(sourceName);
 			}
 		}
 		int sharedFiles = 0;
@@ -217,27 +158,10 @@ public class NotationHelper {
 		}
 		return "";
 	}
-	
-	public String moveToLongAlgebraic(Board board, Move move) {
-		String result = coordToSquare(1L << move.source) + coordToSquare(1L << move.destination);
-		if(move.promoteTo == Piece.BISHOP) {
-			result += "b";
-		}
-		else if(move.promoteTo == Piece.KNIGHT) {
-			result += "n";
-		}
-		else if(move.promoteTo == Piece.QUEEN) {
-			result += "q";
-		}
-		else if(move.promoteTo == Piece.ROOK) {
-			result += "r";
-		}
-		return result;
-	}
 		
-	public String moveToAlgebraic(Board board, Move move) {
-		String sourceSquare = indexToSquare(move.source);
-		String destSquare = indexToSquare(move.destination);
+	public static String moveToAlgebraic(Board board, Move move) {
+		String sourceSquare = new Square(move.source).getName();
+		String destSquare = new Square(move.destination).getName();
 		
 		long sourceMask = 1L << move.source;
 		long destinationMask = 1L << move.destination;
@@ -257,13 +181,13 @@ public class NotationHelper {
 			board.bitboards.get(Color.WHITE).get(Piece.ROOK).intersection(
 			board.bitboards.get(Color.BLACK).get(Piece.ROOK));
 				
-		String bishopAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
+		String bishopAmbiguity = algebraicAmbiguityForPiece(legalMoves,
 			bitboardBishop.getData(), move.source, move.destination);
-		String knightAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
+		String knightAmbiguity = algebraicAmbiguityForPiece(legalMoves,
 			bitboardKnight.getData(), move.source, move.destination);
-		String queenAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
+		String queenAmbiguity = algebraicAmbiguityForPiece(legalMoves,
 			bitboardQueen.getData(), move.source, move.destination);
-		String rookAmbiguity = this.algebraicAmbiguityForPiece(legalMoves,
+		String rookAmbiguity = algebraicAmbiguityForPiece(legalMoves,
 			bitboardRook.getData(), move.source, move.destination);
 				
 		boolean capturing = false;

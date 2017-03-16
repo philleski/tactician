@@ -35,7 +35,8 @@ public class Bitboard {
 	public Bitboard(String... squares) {
 		long result = 0;
 		for(String square : squares) {
-			result |= NotationHelper.squareToCoord(square);
+			long mask = new Square(square).getMask();
+			result |= mask;
 		}
 		this.data = result;
 	}

@@ -36,7 +36,7 @@ public class CastleRay {
 		long mask = this.maskStart;
 		this.masks.add(mask);
 		this.maskTotal |= mask;
-		while(true) {
+		while(true) {			
 			// We couldn't do a conventional while-loop because if we increment
 			// the mask above the bounds of a 64-bit long it could get us in
 			// trouble.

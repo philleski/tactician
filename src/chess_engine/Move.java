@@ -54,8 +54,8 @@ public class Move {
 	 * @param destination the destination square, e.g. "c5"
 	 */
 	public Move(String source, String destination) {
-		this.source = NotationHelper.coordToIndex(NotationHelper.squareToCoord(source));
-		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(destination));
+		this.source = new Square(source).getIndex();
+		this.destination = new Square(destination).getIndex();
 		this.promoteTo = null;
 	}
 	
@@ -67,8 +67,8 @@ public class Move {
 	 *        null
 	 */
 	public Move(String source, String destination, Piece promoteTo) {
-		this.source = NotationHelper.coordToIndex(NotationHelper.squareToCoord(source));
-		this.destination = NotationHelper.coordToIndex(NotationHelper.squareToCoord(destination));
+		this.source = new Square(source).getIndex();
+		this.destination = new Square(destination).getIndex();
 		this.promoteTo = promoteTo;
 	}
 	
@@ -102,19 +102,19 @@ public class Move {
 	 */
 	@Override
 	public String toString() {
-		String sourceStr = NotationHelper.indexToSquare(this.source);
-		String destinationStr = NotationHelper.indexToSquare(this.destination);
+		String sourceStr = new Square(this.source).getName();
+		String destinationStr = new Square(this.destination).getName();
 		String promoteToStr = "";
 		if(promoteTo == null) {
 			promoteToStr = "";
 		} else if(promoteTo == Piece.QUEEN) {
-			promoteToStr = "Q";
+			promoteToStr = "q";
 		} else if(promoteTo == Piece.ROOK) {
-			promoteToStr = "R";
+			promoteToStr = "r";
 		} else if(promoteTo == Piece.BISHOP) {
-			promoteToStr = "B";
+			promoteToStr = "b";
 		} else if(promoteTo == Piece.KNIGHT) {
-			promoteToStr = "N";
+			promoteToStr = "n";
 		} else {
 			promoteToStr = "?";
 		}

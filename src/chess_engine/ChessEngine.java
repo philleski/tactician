@@ -68,7 +68,7 @@ public class ChessEngine {
 		ArrayList<Move> principalVariation = brain.getPrincipalVariation(board, move);
 		ArrayList<String> movesAlgebraic = new ArrayList<String>();
 		for(Move pvMove : principalVariation) {
-			movesAlgebraic.add(notationHelper.moveToAlgebraic(board, pvMove));
+			movesAlgebraic.add(AlgebraicNotation.moveToAlgebraic(board, pvMove));
 			board.move(pvMove);
 		}
 		log("PV: " + movesAlgebraic);
@@ -94,7 +94,9 @@ public class ChessEngine {
 			String fenstring = line.substring(13);
 			log(fenstring);
 			if(board.enPassantTarget != 0) {
-				log("EP Target: " + NotationHelper.coordToSquare(board.enPassantTarget));
+				int enPassantTargetIndex =
+					new Bitboard(board.enPassantTarget).numEmptyStartingSquares();
+				log("EP Target: " + new Square(enPassantTargetIndex).getName());
 			}
 			else {
 				log("EP Target: None");
@@ -104,7 +106,7 @@ public class ChessEngine {
 		}
 		else if(line.startsWith("go ")) {
 			Move move = brain.getMove(board);
-			String moveLongAlgebraic = notationHelper.moveToLongAlgebraic(board, move);
+			String moveLongAlgebraic = move.toString();
 			logPrincipalVariation(move);
 			respond("bestmove " + moveLongAlgebraic);
 		}
@@ -130,5 +132,4 @@ public class ChessEngine {
 	private static String logFilename = "~/chess.log";
 	private static Board board = new Board();
 	private static Brain brain = new Brain();
-	private static NotationHelper notationHelper = new NotationHelper();
 }

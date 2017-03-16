@@ -129,7 +129,7 @@ public class Board {
 					Bitboard bitboard = entry2.getValue();
 					if(bitboard.intersects(mask)) {
 						initial = piece.initial();
-						if(color == Color.WHITE) {
+						if(color == Color.BLACK) {
 							initial = (char)(initial - 'A' + 'a');
 						}
 					}
@@ -145,7 +145,7 @@ public class Board {
 		result += "Legal Moves: ";
 		ArrayList<Move> lm = legalMoveGenerator.legalMoves(this);
 		for(Move m : lm) {
-			result += notationHelper.moveToAlgebraic(this, m) + ", ";
+			result += AlgebraicNotation.moveToAlgebraic(this, m) + ", ";
 		}
 		if(lm.size() > 0) {
 			// Remove the last comma.
@@ -317,7 +317,7 @@ public class Board {
 	 */
 	private void moveSetEnPassantTarget(Move move) {
 		long destinationMask = 1L << move.destination;
-		byte destinationRetreatedOneRow;
+		int destinationRetreatedOneRow;
 		long destinationMaskRetreatedOneRow;
 		
 		if(this.turn == Color.WHITE) {
@@ -329,12 +329,11 @@ public class Board {
 		}
 
 		if(this.enPassantTarget != 0) {
-			this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(
-				(byte)NotationHelper.coordToIndex(this.enPassantTarget));
+			this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(this.enPassantTarget);
 		}
 		this.enPassantTarget = destinationMaskRetreatedOneRow;
 		this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(
-			destinationRetreatedOneRow);
+			destinationMaskRetreatedOneRow);
 		this.positionHashPawnsKings ^= this.positionHasher.getMaskEnPassantTarget(
 			destinationRetreatedOneRow);
 	}
@@ -348,10 +347,9 @@ public class Board {
 	 */
 	private void moveUnsetEnPassantTarget(Move move) {
 		if(this.enPassantTarget != 0) {
-			this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(
-				(byte)NotationHelper.coordToIndex(this.enPassantTarget));
+			this.positionHash ^= this.positionHasher.getMaskEnPassantTarget(this.enPassantTarget);
 			this.positionHashPawnsKings ^= this.positionHasher.getMaskEnPassantTarget(
-				(byte)NotationHelper.coordToIndex(this.enPassantTarget));
+				this.enPassantTarget);
 		}
 		this.enPassantTarget = 0;
 	}
@@ -502,7 +500,7 @@ public class Board {
 		} else {
 			sourceMaskAdvancedTwoRows = sourceMask >>> 16;
 		}
-		
+				
 		if(this.bitboards.get(turnFlipped).get(Piece.ROOK).intersects(destinationMask)) {
 			this.moveHandleOpponentRookCapture(move);
 		}
@@ -641,7 +639,7 @@ public class Board {
 			this.enPassantTarget = 0;
 		}
 		else {
-			this.enPassantTarget = NotationHelper.squareToCoord(enPassantTarget);
+			this.enPassantTarget = new Square(enPassantTarget).getMask();
 		}
 		
 		// Note we don't yet implement the halfmove clock.
@@ -799,7 +797,6 @@ public class Board {
 	public long positionHashPawnsKings;
 	
 	private static LegalMoveGenerator legalMoveGenerator = new LegalMoveGenerator();
-	private static NotationHelper notationHelper = new NotationHelper();
 	private PositionHasher positionHasher = null;
 	
 	// Convenience bitboards for castling.
