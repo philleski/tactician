@@ -149,6 +149,10 @@ public class Bitboard {
 		return this.intersects(other.getData());
 	}
 	
+	public boolean intersects(Square square) {
+		return this.intersects(square.getMask());
+	}
+	
 	/**
 	 * Tests whether the bitboard has any occupied squares.
 	 * @return true if there are no occupied squares, false if there is at least one

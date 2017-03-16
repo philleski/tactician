@@ -48,8 +48,7 @@ public class PositionHasher {
 	}
 	
 	public long getMaskEnPassantTarget(long enPassantTarget) {
-		Bitboard enPassantBitboard = new Bitboard(enPassantTarget);
-		int index = enPassantBitboard.numEmptyStartingSquares();
+		int index = Long.numberOfTrailingZeros(enPassantTarget);
 		return this.getMask(Color.WHITE, Piece.PAWN, index % 8);
 	}
 	

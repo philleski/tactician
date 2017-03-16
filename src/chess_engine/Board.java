@@ -652,16 +652,15 @@ public class Board {
 	
 	/**
 	 * Returns the type of piece on a given square. Returns null if no piece is found there.
-	 * @param mask a 64-bit long representing a bitboard containing only the square. See
-	 *        {@link Bitboard} for a description of the 64-bit representation.
+	 * @param square the square where the piece is located
 	 * @return the type of piece residing on the given square, or null if no piece is found.
 	 */
-	public Piece pieceOnSquare(long mask) {
+	public Piece pieceOnSquare(Square square) {
 		for(Map.Entry<Color, Map<Piece, Bitboard>> entry1 : this.bitboards.entrySet()) {
 			for(Map.Entry<Piece, Bitboard> entry2 : entry1.getValue().entrySet()) {
 				Piece piece = entry2.getKey();
 				Bitboard bitboard = entry2.getValue();
-				if(bitboard.intersects(mask)) {
+				if(bitboard.intersects(square)) {
 					return piece;
 				}
 			}

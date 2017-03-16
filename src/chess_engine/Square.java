@@ -19,10 +19,16 @@ public class Square {
 		return 1L << this.getIndex();
 	}
 	
+	public char getFile() {
+		return (char) (this.index % 8 + 97);
+	}
+	
+	public char getRank() {
+		return Integer.toString((this.index / 8) + 1).charAt(0);
+	}
+	
 	public String getName() {
-		String file = "" + ((char)(this.index % 8 + 97));
-		String rank = Integer.toString((this.index / 8) + 1);
-		return file + rank;
+		return "" + this.getFile() + this.getRank();
 	}
 	
 	private int index;
