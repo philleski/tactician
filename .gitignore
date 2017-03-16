@@ -1,6 +1,6 @@
 .classpath
 .project
-chess_engine.jar
+tactician.jar
 bin/
 .settings/
 .metadata/

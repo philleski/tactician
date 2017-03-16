@@ -4,10 +4,10 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import chess_engine.Board;
-import chess_engine.Brain;
-import chess_engine.Color;
-import chess_engine.Move;
+import tactician.Board;
+import tactician.Brain;
+import tactician.Color;
+import tactician.Move;
 
 public class TestBrain {
 	@Test

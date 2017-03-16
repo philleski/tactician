@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import chess_engine.Board;
+import tactician.Board;
 
 public class TestBoard {
 	@Test

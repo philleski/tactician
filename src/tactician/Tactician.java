@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import chess_engine.Board;
-import chess_engine.Brain;
+import tactician.Board;
+import tactician.Brain;
 
 /**
  * <p>This class is the entry point to the chess engine. It implements part of the Universal Chess

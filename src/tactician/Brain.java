@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import chess_engine.Board;
+import tactician.Board;
 
 /**
  * <p>This class is the engine that calculates the best move for a given board position. The
