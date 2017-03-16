@@ -24,6 +24,10 @@ The two parameter options give the program extra memory for the transposition ta
 
 Once the engine is configured you can play a game in ScidvsMac by going to Play -> Computer - UCI Engine. If you'd like to play as black they have an icon for that right above the board.
 
+## Testing
+
+The JUnit tests are located in the Test subfolder. They should all pass before committing to the master branch. Ideally the time to run performance tests in TestPerformance.java should be comparable to the previous build, unless there is a good enough reason for the lower performance.
+
 ## Style
 
 We use the Google Java style guide for this project: https://google.github.io/styleguide/javaguide.html
