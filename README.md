@@ -18,7 +18,7 @@ Command: `/usr/bin/java`
 
 Directory: .
 
-Parameters: `-Xms512M -Xmx1524M -jar ~/chess_engine.jar`
+Parameters: `-Xms512M -Xmx1524M -jar ~/tactician.jar`
 
 The two parameter options give the program extra memory for the transposition tables.
 
