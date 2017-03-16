@@ -1,4 +1,4 @@
-package chess_engine.Test;
+package tactician.Test;
 
 import static org.junit.Assert.*;
 

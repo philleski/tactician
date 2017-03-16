@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 public enum Piece {
 	BISHOP,

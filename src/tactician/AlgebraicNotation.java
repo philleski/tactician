@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 public class AlgebraicNotation {
 	private static Move findCastleKingsideMove(Board board) {

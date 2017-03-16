@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 /**
  * This enum lists the two types of castling allowed in chess. Kingside is with the rook on the h1

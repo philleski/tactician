@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 public class PawnKingHashTable {
 	public class PawnHashTableEntry {

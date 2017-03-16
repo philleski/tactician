@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 /**
  * <p>This class represents a chess move. It contains the source square {@link #source}, the

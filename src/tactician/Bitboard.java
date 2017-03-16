@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 /**
  * <p>This class represents which squares on the chessboard are "occupied" for a given

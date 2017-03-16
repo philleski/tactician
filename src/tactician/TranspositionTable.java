@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 public class TranspositionTable {
 	public enum TranspositionType {

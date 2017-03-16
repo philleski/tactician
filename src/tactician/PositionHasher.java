@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 import java.util.HashMap;
 import java.util.Map;

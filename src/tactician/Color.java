@@ -1,4 +1,4 @@
-package chess_engine;
+package tactician;
 
 /**
  * This enum lists the two piece colors in chess.
