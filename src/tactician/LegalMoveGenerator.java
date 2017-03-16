@@ -16,7 +16,7 @@ import java.util.Map;
  * from a given origin. See {@link Bitboard} for the 64-bit mask implementation and {@link Move}
  * for how the 0-63 integer indexing works. For example suppose we have a knight on the c1 square
  * and we want to generate possible moves for it. We pre-generate, through
- * {@link #LegalMoveGenerator()}, the variable {@link #attackSquaresKnight[2]} which lists the
+ * {@link #LegalMoveGenerator()}, the variable {@link #attackSquaresKnight}[2] which lists the
  * possible squares where the knight can move: a2, b3, d3, and e2. The attack square mask would
  * then be 0x00000000000a11 (the union of the four 64-bit longs representing each of the four
  * squares). Then when generating pseudo-legal moves we loop through each set bit in the attack
