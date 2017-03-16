@@ -28,7 +28,7 @@ import tactician.Brain;
  *      Universal Chess Interface</a>
  * @author Phil Leszczynski
  */
-public class ChessEngine {
+public class Tactician {
 	/** Deletes the log file. */
 	public static void logClear() {
 		try {
@@ -83,7 +83,7 @@ public class ChessEngine {
 	public static void interpretUCICommand(String line) {
 		log("< " + line);
 		if(line.equals("uci")) {
-			respond("id name Phil");
+			respond("id name Tactician");
 			respond("id author Phil Leszczynski");
 			respond("uciok");
 		}
