@@ -9,7 +9,16 @@ import tactician.Brain;
 import tactician.Color;
 import tactician.Move;
 
+/**
+ * This class tests the functionality of the {@link Brain} class.
+ * 
+ * @author Phil Leszczynski
+ */
 public class TestBrain {
+	/**
+	 * Tests the endgame fraction at the start of the game. The endgame fraction should be 0 at the
+	 * start and 1 if only both kings are left on the board.
+	 */
 	@Test
 	public void testEndgameFractionStart() {
 		Board board = new Board();
@@ -18,6 +27,10 @@ public class TestBrain {
 		assertTrue(-0.01 < endgameFraction && endgameFraction < 0.01);
 	}
 	
+	/**
+	 * Tests the endgame fraction at the end of the game. The endgame fraction should be 0 at the
+	 * start and 1 if only both kings are left on the board.
+	 */
 	@Test
 	public void testEndgameFractionEnd() {
 		Board board = new Board("4k3/8/8/8/8/8/8/8/4K3 b KQkq - 1 0 1");
@@ -26,9 +39,14 @@ public class TestBrain {
 		assertTrue(0.99 < endgameFraction && endgameFraction < 1.01);
 	}
 	
+	/**
+	 * Tests the king safety near the beginning of the game. In the opening the king is safest near
+	 * one of its home corner and less safe near the center of the board. Ensures that a home
+	 * corner is safest, followed by the center of the home row, followed by the side of the board,
+	 * followed by the center of the board.
+	 */
 	@Test
 	public void testFitnessKingSafetyOpening() {
-		// In the opening the king is safest close to its home corner.
 		Brain brain = new Brain();
 		Board homeCorner = new Board("rnbqrbnk/pppppppp/8/8/8/8/PPPPPPPP/RNBQRBNK w KQkq - 0 1");
 		float homeCornerSafety = brain.fitnessKingSafety(homeCorner, Color.WHITE, 0);
@@ -43,9 +61,14 @@ public class TestBrain {
 		assertTrue(sideEdgeSafety > centerSafety);
 	}
 	
+	/**
+	 * Tests the king safety near the end of the game. In the endgame the king is most effective
+	 * close to the center of the board and less effective near its home corners. Ensures that the
+	 * center scores highest, followed by the side of the board, followed by the home row, followed
+	 * by a home corner.
+	 */
 	@Test
 	public void testFitnessKingSafetyEndgame() {
-		// In the endgame the king is a fighting piece most effective in the center.
 		Brain brain = new Brain();
 		Board homeCorner = new Board("k7/p7/8/8/8/8/P7/K7 w KQkq - 0 1");
 		float homeCornerSafety = brain.fitnessKingSafety(homeCorner, Color.WHITE, 1);
@@ -60,6 +83,12 @@ public class TestBrain {
 		assertTrue(sideEdgeSafety < centerSafety);
 	}
 	
+	/**
+	 * Tests the integrity of a pawn shield in front of a king. In general at the beginning and
+	 * middle of the game the king should be protected by a wall of pawns making it difficult for
+	 * the opponent to build up an attack. Ensures that a perfectly formed wall is best, followed
+	 * by a mostly intact wall, followed by a completely exposed king.
+	 */
 	@Test
 	public void testFitnessPawnShield() {
 		Brain brain = new Brain();
@@ -73,6 +102,12 @@ public class TestBrain {
 		assertTrue(forwardSafety > exposedSafety);
 	}
 	
+	/**
+	 * Tests the penalty for doubled pawns. Doubled pawns occur when there is more than one
+	 * friendly pawn on the same file. They are less effective because they are typically more
+	 * vulnerable and they cannot both threaten to promote. Ensures that a 3-pawn position with
+	 * doubled pawns scores lower than a 3-pawn position with pawns on separate files.
+	 */
 	@Test
 	public void testFitnessDoubledPawn() {
 		Brain brain = new Brain();
@@ -83,6 +118,12 @@ public class TestBrain {
 		assertTrue(doubledFitness < controlFitness);
 	}
 	
+	/**
+	 * Tests the penalty for isolated pawns. Isolated pawns occur when a pawn has no friendly
+	 * neighbors on adjacent files. They are typically more vulnerable since they lack the benefit
+	 * of a pawn chain for protection. Ensures that a 2-pawn position with isolated pawns scores
+	 * lower than a 2-pawn position with pawns on neighboring files.
+	 */
 	@Test
 	public void testFitnessIsolatedPawn() {
 		Brain brain = new Brain();
@@ -93,6 +134,15 @@ public class TestBrain {
 		assertTrue(isolatedFitness < controlFitness);
 	}
 	
+	/**
+	 * Tests the bonus for passed pawns. Passed pawns are those that cannot be stopped from
+	 * promoting by enemy pawns. In other words, none of the squares in a the column in front of
+	 * the pawn, nor the squares adjacent to that column, are occupid by enemy pawns. Passed pawns
+	 * are valuable because they divert the opponent's pieces to blocking them, putting the
+	 * opponent into a defensive state. They also simply have a higher chance of promoting. Ensures
+	 * that a 2vs1 pawn position with a passed pawn scores better than a 2vs1 position where
+	 * neither pawn is passed.
+	 */
 	@Test
 	public void testFitnessPassedPawn() {
 		Brain brain = new Brain();
@@ -103,6 +153,11 @@ public class TestBrain {
 		assertTrue(passedFitness > cleanFitness);
 	}
 	
+	/**
+	 * Tests the bonus for castling rights. Castling rights are beneficial since they give the
+	 * player the option of moving the king to safety and activating a rook. Ensures that having
+	 * both castling rights is best, followed by having one, followed by having none.
+	 */
 	@Test
 	public void testFitnessCastleRights() {
 		Brain brain = new Brain();
@@ -120,6 +175,12 @@ public class TestBrain {
 		assertTrue(queensideFitness > neitherFitness);
 	}
 	
+	/**
+	 * Tests the potential to castle based on the pawn shield. For example if the pawn shield is
+	 * weakened on the kingside, then the option to castle there is not as valuable. Ensures that
+	 * having an intact pawn shield at a particular castling location scores higher than a broken
+	 * pawn shield.
+	 */
 	@Test
 	public void testFitnessCastleRightsPotential() {
 		Brain brain = new Brain();
@@ -130,6 +191,10 @@ public class TestBrain {
 		assertTrue(brokenShieldFitness < controlFitness);
 	}
 	
+	/**
+	 * Tests basic move calculation and ensures that the engine can checkmate the opponent in one
+	 * move if the opportunity exists.
+	 */
 	@Test
 	public void testMateInOneWinning() {
 		Board board = new Board();
@@ -141,16 +206,27 @@ public class TestBrain {
 		assertEquals(move.toString(), "d8h4");
 	}
 	
+	/**
+	 * Tests to make sure the engine can still make a move even if it will be checkmated next move.
+	 * This is to prevent a common bug where no move is played because essentially the initial
+	 * score is negative infinity and each move's score is also negative infinity and no best move
+	 * is found.
+	 */
 	@Test
 	public void testMateInOneLosing() {
-		// This is to prevent a bug where all moves lead to checkmate and no move is "good enough",
-		// so a null move is played.
 		Board board = new Board("8/8/8/8/8/7k/q7/7K w KQkq - 0 1");
 		Brain brain = new Brain();
 		Move move = brain.getMove(board);
 		assertNotNull(move);
 	}
 	
+	/**
+	 * Tests slightly higher reasoning where the engine forgoes an immediate advantage for a better
+	 * advantage later. In this case a weak engine or player would capture the c6 pawn for
+	 * immediate material advantage, but actually lose material after the knight is recaptured.
+	 * Instead the engine should see three plies in advance that moving the knight to c7 forks the
+	 * king and rook, and that the high-valued rook is captured next move.
+	 */
 	@Test
 	public void testFork() {
 		Board board = new Board();
@@ -158,8 +234,6 @@ public class TestBrain {
 		board.move("d7", "d5");
 		board.move("c3", "b5");
 		board.move("d8", "h4");
-		// Move the c-pawn so the knight actually recognizes the fork instead of just trying to win
-		// a pawn.
 		board.move("h2", "h3");
 		board.move("c7", "c6");
 		Brain brain = new Brain();
@@ -167,6 +241,11 @@ public class TestBrain {
 		assertEquals(move.toString(), "b5c7");
 	}
 	
+	/**
+	 * Tests basic material advantage. Ensures that, absent compensating factors, the player with
+	 * a material advantage has a score above 0 and the player with a material disadvantage has a
+	 * score below 0.
+	 */
 	@Test
 	public void testFitness() {
 		Board board = new Board();

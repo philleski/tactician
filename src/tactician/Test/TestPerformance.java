@@ -9,12 +9,23 @@ import org.junit.Test;
 import tactician.Board;
 import tactician.Move;
 
-// Check that the move generations works correctly based on publicly generated
-// databases. Optionally print out the runtimes as well.
-//
-// Perft results were taken from here:
-// http://chessprogramming.wikispaces.com/Perft+Results
+/**
+ * This class tests move generation against a publicly available database of move counts. The idea
+ * is to make sure there are no bugs in the move generation functions, and to also test their
+ * performance. It counts the number of leaf nodes from a starting position to a given depth and
+ * ensures it matches the database. The starting positions are complex and intended to bring about
+ * edge cases. See the link below for the positions and node counts.
+ * 
+ * @see <a href="http://chessprogramming.wikispaces.com/Perft+Results">Perft Results</a>
+ * @author Phil Leszczynski
+ */
 public class TestPerformance {
+	/**
+	 * Returns the number of leaf nodes from a given board position and search depth.
+	 * @param board the board containing the position
+	 * @param depth the depth to search in plies
+	 * @return the number of leaf nodes
+	 */
 	private int perft(Board board, int depth) {
 		int nodes = 0;
 		if(depth == 0) {
@@ -32,6 +43,7 @@ public class TestPerformance {
 		return nodes;
 	}
 
+	/** Tests the initial position from the link in the class definition. */
 	@Test
 	public void testInitial() {
 		int[] nodeCounts = {1, 20, 400, 8902, 197281};
@@ -41,6 +53,7 @@ public class TestPerformance {
 		}
 	}
 	
+	/** Tests the "Kiwi Pete" position from the link in the class definition. */
 	@Test
 	public void testKiwipete() {
 		int[] nodeCounts = {1, 48, 2039, 97862};
@@ -51,6 +64,7 @@ public class TestPerformance {
 		}
 	}
 	
+	/** Tests Position 3 from the link in the class definition. */
 	@Test
 	public void testPosition3() {
 		int[] nodeCounts = {1, 14, 191, 2812, 43238, 674624};
@@ -60,6 +74,7 @@ public class TestPerformance {
 		}
 	}
 	
+	/** Tests Position 4 from the link in the class definition. */
 	@Test
 	public void testPosition4() {
 		int[] nodeCounts = {1, 6, 264, 9467, 422333};
@@ -70,6 +85,7 @@ public class TestPerformance {
 		}
 	}
 	
+	/** Tests the mirror image of Position 4 from the link in the class definition. */
 	@Test
 	public void testPosition4Mirrored() {
 		int[] nodeCounts = {1, 6, 264, 9467, 422333};
@@ -80,6 +96,7 @@ public class TestPerformance {
 		}
 	}
 	
+	/** Tests Position 5 from the link in the class definition. */
 	@Test
 	public void testPosition5() {
 		int[] nodeCounts = {1, 44, 1486, 62379, 2103487};
@@ -89,6 +106,7 @@ public class TestPerformance {
 		}
 	}
 	
+	/** Tests Position 6 from the link in the class definition. */
 	@Test
 	public void testPosition6() {
 		int[] nodeCounts = {1, 46, 2079, 89890};

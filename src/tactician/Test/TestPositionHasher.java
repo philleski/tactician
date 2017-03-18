@@ -5,8 +5,20 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import tactician.Board;
+import tactician.PositionHasher;
 
+/**
+ * This class tests the position hash functionality tracked by {@link Board} and implemented in
+ * {@link PositionHasher}. This is important to test well since errors lead to silent bugs that
+ * accumulate over time. The engine would be able to play as effectively but would not be as fast
+ * since the hit rate on the transposition table would be dramatically reduced. Basically the goal
+ * of these tests is to ensure that if a position was arrived at in two different ways then they
+ * both have the same position hash.
+ * 
+ * @author Phil Leszczynski
+ */
 public class TestPositionHasher {
+	/** Tests that when a board is cloned the position hash is copied. */
 	@Test
 	public void testPositionHashCopy() {
 		Board board1 = new Board();
@@ -16,6 +28,10 @@ public class TestPositionHasher {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
+	/**
+	 * Tests that the same position hash arises even when a capture is made on two different
+	 * squares.
+	 */
 	@Test
 	public void testPositionHashCapture() {
 		Board board1 = new Board();
@@ -33,6 +49,7 @@ public class TestPositionHasher {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
+	/** Tests that the same position hash arises with a different move order of the knight. */
 	@Test
 	public void testPositionHashKnight() {
 		Board board1 = new Board();
@@ -46,6 +63,7 @@ public class TestPositionHasher {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
+	/** Tests that the same position hash arises with a different move order of the bishop. */
 	@Test
 	public void testPositionHashBishop() {
 		Board board1 = new Board();
@@ -63,6 +81,7 @@ public class TestPositionHasher {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
+	/** Tests that the same position hash arises with a different move order of the rook. */
 	@Test
 	public void testPositionHashRook() {
 		Board board1 = new Board();
@@ -80,6 +99,7 @@ public class TestPositionHasher {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
+	/** Tests that the same position hash arises with a different move order of the queen. */
 	@Test
 	public void testPositionHashQueen() {
 		Board board1 = new Board();
@@ -97,6 +117,7 @@ public class TestPositionHasher {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
+	/** Tests that the same position hash arises with a different move order of the king. */
 	@Test
 	public void testPositionHashKing() {
 		Board board1 = new Board();
@@ -116,6 +137,11 @@ public class TestPositionHasher {
 		assertEquals(board1.positionHash, board2.positionHash);
 	}
 	
+	/**
+	 * Tests that the same position hash arises whether the player actually castles or artificially
+	 * castles. Artificial castling is when the king and rook maneuver to the castled position
+	 * without actually performing the castling move.
+	 */
 	@Test
 	public void testPositionHashCastle() {
 		Board board1 = new Board();
