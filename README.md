@@ -31,5 +31,3 @@ The JUnit tests are located in the Test subfolder. They should all pass before c
 ## Style
 
 We use the Google Java style guide for this project: https://google.github.io/styleguide/javaguide.html
-
-At the moment we're still transitioning over.
