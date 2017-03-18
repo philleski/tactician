@@ -129,7 +129,9 @@ public class Tactician {
 		}
 	}
 	
+	/** The filename where we log commands and other details about the position for debugging */
 	private static String logFilename = "~/chess.log";
+	
 	private static Board board = new Board();
 	private static Brain brain = new Brain();
 }
