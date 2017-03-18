@@ -1,14 +1,12 @@
 package tactician;
 
 /**
- * <p>
  * This class represents which squares on the chessboard are "occupied" for a given representation.
  * For example you could have a bitboard for white bishops; the bitboard would represent that white
  * has bishops on the e5 and g7 squares, and nowhere else. You could also have a bitboard for
  * squares attacked by a knight on f6; in that case the bitboard would contain 8 occupied squares.
  * 
- * <p>
- * The data is stored in {@link #data} as a 64-bit long. The low bit 0x000000000000001L says
+ * <p>The data is stored in {@link #data} as a 64-bit long. The low bit 0x000000000000001L says
  * whether the a1 square (bottom-left from white's perspective) is occupied. The next bit
  * represents b1, the square to the right from white's perspective. It continues for c1-h1, a2-h2,
  * and so on. Finally the highest bit 0x8000000000000000L represents the h8 square.

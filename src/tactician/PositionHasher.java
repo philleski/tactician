@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * <p>
  * This class implements a Zobrist hash that is used to map a chess position to a 64-bit long.
  * Zobrist hashing works by assigning a 64-bit long to each piece type and square. This hash is
  * typically used by first assigning 0L to a positionHash variable. When a piece moves onto or off
@@ -14,12 +13,11 @@ import java.util.Random;
  * generate the same position hash. This is very helpful for memoization: storing what was learned
  * about a position and retrieving it when the position is encountered again.
  * 
- * <p>
- * We also store other information besides the piece for each square, taking advantage of the fact
- * that pawns cannot be on the first nor eighth ranks. The en passant file is stored on the first
- * rank of the white pawn mask. The player to move, white or black, is stored on the a8 square of
- * the white pawn mask. The castle rights (white and black, kingside and queenside, a total of 16
- * possibilities) are stored on the first and eighth ranks of the black pawn mask.
+ * <p>We also store other information besides the piece for each square, taking advantage of the
+ * fact that pawns cannot be on the first nor eighth ranks. The en passant file is stored on the
+ * first rank of the white pawn mask. The player to move, white or black, is stored on the a8
+ * square of the white pawn mask. The castle rights (white and black, kingside and queenside, a
+ * total of 16 possibilities) are stored on the first and eighth ranks of the black pawn mask.
  * 
  * @see <a href="https://en.wikipedia.org/wiki/Zobrist_hashing">Zobrist Hashing</a>
  * @author Phil Leszczynski

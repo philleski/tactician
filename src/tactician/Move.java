@@ -1,7 +1,6 @@
 package tactician;
 
 /**
- * <p>
  * This class represents a chess move. It contains the source square {@link #source}, the
  * destination square {@link #destination}, and the optional piece to promote to {@link #promoteTo}.
  * Both squares are indexed in the standard way for this engine. An index of 0 corresponds to the
@@ -11,8 +10,7 @@ package tactician;
  * corresponds to the a2 square, and we keep incrementing to the right. Finally an index of 63
  * corresponds to the h8 square, the top right square from white's perspective.
  * 
- * <p>
- * There are three special moves in chess to keep in mind: castling, promotion, and en passant.
+ * <p>There are three special moves in chess to keep in mind: castling, promotion, and en passant.
  * With castling we simply have the source and destination squares reflect the motion of the king.
  * For example if white castles kingside then {@link #source} would be 4 and {@link #destination}
  * would be 6. Promotion is handled by setting {@link #promoteTo} to the promoted piece; for all

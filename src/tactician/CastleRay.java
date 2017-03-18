@@ -3,13 +3,11 @@ package tactician;
 import java.util.ArrayList;
 
 /**
- * <p>
  * This class checks whether castling is allowed for a given side and direction. This is determined
  * through the {@link #opponentPiecePrecludesCastling(long, long)} method.
  * 
- * <p>
- * For example suppose white wants to castle kingside. In chess one is forbidden to castle if the
- * king moves through a check. This class helps us determine whether there is a black bishop or
+ * <p>For example suppose white wants to castle kingside. In chess one is forbidden to castle if
+ * the king moves through a check. This class helps us determine whether there is a black bishop or
  * queen attacking the f1-square from the northwest, for example, which would prevent us from
  * castling. This is done by generating {@link #masks} which represent the f1 square, the e2
  * square, and so on, up to the a6 square. {@link #maskTotal} is generated as well as the union of

@@ -1,7 +1,6 @@
 package tactician;
 
 /**
- * <p>
  * This class represents one of the 64 squares on the chessboard. A chessboard has 8 ranks, or
  * horizontal rows from each player's perspective, going from 1 to 8. Rank 1 is closest to the
  * white player and rank 8 is closest to the black player. The board also has 8 files, or vertical
@@ -9,10 +8,9 @@ package tactician;
  * left and the black player's right. Squares are named with the file followed by rank, for example
  * e7.
  * 
- * <p>
- * A key concept here is the indexing scheme where we represent a square on the board as an integer
- * from 0-63. The a1, b1, ..., h1 squares have indices 0-7 respectively. The a2, b2, ..., h2
- * squares have indices 8-15 respectively. And so on until the h8 square has index 63.
+ * <p>A key concept here is the indexing scheme where we represent a square on the board as an
+ * integer from 0-63. The a1, b1, ..., h1 squares have indices 0-7 respectively. The a2, b2, ...,
+ * h2 squares have indices 8-15 respectively. And so on until the h8 square has index 63.
  * {@link #index} uses this scheme.
  * 
  * @see <a href="https://en.wikipedia.org/wiki/Chessboard">Chessboard</a>
@@ -88,6 +86,6 @@ public class Square {
     return "" + this.getFile() + this.getRank();
   }
 
-  /** The index of the square, 0-63 */
+  /** The index of the square, 0-63. */
   private int index;
 }

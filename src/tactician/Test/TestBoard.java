@@ -1,6 +1,6 @@
-package tactician.Test;
+package tactician.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -58,7 +58,7 @@ public class TestBoard {
    * correctly.
    */
   @Test
-  public void testFullMoveFEN() {
+  public void testFullMoveFen() {
     Board board = new Board("4k3/8/8/8/8/8/8/8/4K3 b KQkq - 16 16");
     assertEquals(board.fullMoveCounter, 16);
   }

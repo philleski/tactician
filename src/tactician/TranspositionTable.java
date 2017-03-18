@@ -1,15 +1,13 @@
 package tactician;
 
 /**
- * <p>
  * This class is a transposition table that memoizes positions already visited. This way if we
  * encounter the same position through a different series of moves through the depth-first search,
  * we can retrieve the results of the calculations from the previous encounter. A key concept is
  * the position hash, a Zobrist hash containing the information about pawns and kings for each
  * player. See {@link PositionHasher} for more details.
  * 
- * <p>
- * Memory efficiency is important for the main transposition table, so we pack transposition
+ * <p>Memory efficiency is important for the main transposition table, so we pack transposition
  * entries as a pair of 64-bit long values in {@link #data} rather than storing
  * {@link TranspositionEntry} objects directly. The first 64-bit long contains the position hash.
  * The second 64-bit long uses its high 32 bits to store the fitness or node score in centipawns as
@@ -66,7 +64,7 @@ public class TranspositionTable {
       this.type = type;
     }
 
-    /** Returns a string summarizing the transposition entry */
+    /** Returns a string summarizing the transposition entry. */
     @Override
     public String toString() {
       String result = "Depth=" + this.depth + ", ";
@@ -81,10 +79,10 @@ public class TranspositionTable {
      */
     public int depth;
 
-    /** The Zobrist hash of the board position */
+    /** The Zobrist hash of the board position. */
     public long positionHash;
 
-    /** The score of the node from the moving player's perspective in centipawns */
+    /** The score of the node from the moving player's perspective in centipawns. */
     public float fitness;
 
     /** The type of node: PV, Cut, or All. */
@@ -119,7 +117,6 @@ public class TranspositionTable {
    */
   public void put(int depth, long positionHash, float fitness, Move bestMove,
       TranspositionType type) {
-    int index = this.index(positionHash);
     long contents = 0;
     contents |= ((long) Float.floatToIntBits(fitness)) << 32;
     if (bestMove != null) {
@@ -143,6 +140,7 @@ public class TranspositionTable {
       contents |= 0x0000000000000400L;
     }
     contents |= (long) (byte) depth;
+    int index = this.index(positionHash);
     this.data[index] = positionHash;
     this.data[index + 1] = contents;
   }
@@ -201,7 +199,7 @@ public class TranspositionTable {
     return ((int) positionHash & 0x7fffffff) % (2 * this.size);
   }
 
-  /** The size of the transposition table in number of entries (NOT bytes) */
+  /** The size of the transposition table in number of entries (NOT bytes). */
   private int size;
 
   /**

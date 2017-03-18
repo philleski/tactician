@@ -5,19 +5,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>
  * This class represents the full state of a chessboard. For example it contains bitboards for all
  * the pieces, castling rights, and where en passant is possible. It also has the
  * {@link #move(Move)} method which makes a given move on the board. It also tracks the position
  * hashes which are useful for memoizing duplicates through transposition tables. See
  * {@link PositionHasher} and {@link PawnKingHashTable} for more details.
  * 
- * <p>
- * When the board changes state we have several summary fields that MUST be updated. This includes
- * the summary bitboards {@link #playerBitboards} and {@link #allPieces} which track the occupied
- * pieces for white/black and for both players, respectively. Also when a move is made the position
- * hashes {@link #positionHash} and {@link #positionHashPawnsKings} must be updated for the
- * transposition table memoization to work. We need to update {@link #castleRights},
+ * <p>When the board changes state we have several summary fields that MUST be updated. This
+ * includes the summary bitboards {@link #playerBitboards} and {@link #allPieces} which track the
+ * occupied pieces for white/black and for both players, respectively. Also when a move is made the
+ * position hashes {@link #positionHash} and {@link #positionHashPawnsKings} must be updated for
+ * the transposition table memoization to work. We need to update {@link #castleRights},
  * {@link #enPassantTarget}, and {@link #fullMoveCounter} as well as necessary.
  * 
  * @author Phil Leszczynski
@@ -154,7 +152,7 @@ public class Board {
       result = result.substring(0, result.length() - 2);
     }
     result += "\n";
-    if(this.isInCheck()) {
+    if (this.isInCheck()) {
       result += "Check!\n";
     }
     result += "Turn: " + this.turn.toString();
@@ -208,7 +206,7 @@ public class Board {
     byte rookKingsideSourceOpponent;
     byte rookQueensideSourceOpponent;
 
-    if(this.turn == Color.WHITE) {
+    if (this.turn == Color.WHITE) {
       rookKingsideSourceOpponent = 63;
       rookQueensideSourceOpponent = 56;
     } else {
@@ -818,4 +816,4 @@ public class Board {
   private Bitboard bbD8 = new Bitboard("d8");
   private Bitboard bbF1 = new Bitboard("f1");
   private Bitboard bbF8 = new Bitboard("f8");
-};
+}

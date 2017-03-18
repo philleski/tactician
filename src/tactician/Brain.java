@@ -7,13 +7,11 @@ import java.util.Map;
 import tactician.Board;
 
 /**
- * <p>
  * This class is the engine that calculates the best move for a given board position. The central
  * method is {@link #getMove(Board)}. The two main concepts for making this calculation are
  * depth-first search through a portion of the game tree, and static evaluation.
  * 
- * <p>
- * Theoretically any two-player game with perfect information has a winning strategy that can be
+ * <p>Theoretically any two-player game with perfect information has a winning strategy that can be
  * determined by scanning the game tree, including chess. In practice the game tree for chess is far
  * too large to scan with our current computational resources. Instead we search to a given depth
  * listed in {@link #totalDepth} and then perform a static evaluation on each board position. Note
@@ -22,14 +20,13 @@ import tactician.Board;
  * alpha-beta pruning, which prunes branches of the search tree that are known ahead of time not to
  * lead to the optimal move. See {@link #alphabeta(Board, int, float, float)} for more details.
  * 
- * <p>
- * The goal of static evaluation is to estimate how good a board position is for the player to move.
- * It is how we calculate the values of the leaf nodes in the alpha-beta search. For example there
- * is the classic rule of thumb that a queen is worth 9 pawns, a rook is worth 5, and a bishop and
- * knight are each worth 3. This way to count material provides a good estimate; we also use factors
- * such as pawn structure, king safety, and piece activity. As a general rule the fitness
- * evaluations are in centipawns, with a pawn being worth 100. See {@link #fitness(Board)} for more
- * details.
+ * <p>The goal of static evaluation is to estimate how good a board position is for the player to
+ * move. It is how we calculate the values of the leaf nodes in the alpha-beta search. For example
+ * there is the classic rule of thumb that a queen is worth 9 pawns, a rook is worth 5, and a
+ * bishop and knight are each worth 3. This way to count material provides a good estimate; we also
+ * use factors such as pawn structure, king safety, and piece activity. As a general rule the
+ * fitness evaluations are in centipawns, with a pawn being worth 100. See {@link #fitness(Board)}
+ * for more details.
  * 
  * @see <a href="https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning">Alpha-Beta Pruning</a>
  * @author Phil Leszczynski
@@ -41,19 +38,19 @@ public class Brain {
    * related to king safety.
    */
   public Brain() {
-    this.transpositionTable = new TranspositionTable(TRANSPOSITION_TABLE_SIZE);
-    this.pawnKingHashTable = new PawnKingHashTable(PAWN_KING_TABLE_SIZE);
+    this.transpositionTable = new TranspositionTable(transpositionTableSize);
+    this.pawnKingHashTable = new PawnKingHashTable(pawnKingTableSize);
 
-    this.FITNESS_PIECE.put(Piece.BISHOP, 333f);
-    this.FITNESS_PIECE.put(Piece.KING, 1000000f);
-    this.FITNESS_PIECE.put(Piece.KNIGHT, 320f);
-    this.FITNESS_PIECE.put(Piece.PAWN, 100f);
-    this.FITNESS_PIECE.put(Piece.QUEEN, 880f);
-    this.FITNESS_PIECE.put(Piece.ROOK, 510f);
+    this.fitnessPiece.put(Piece.BISHOP, 333f);
+    this.fitnessPiece.put(Piece.KING, 1000000f);
+    this.fitnessPiece.put(Piece.KNIGHT, 320f);
+    this.fitnessPiece.put(Piece.PAWN, 100f);
+    this.fitnessPiece.put(Piece.QUEEN, 880f);
+    this.fitnessPiece.put(Piece.ROOK, 510f);
 
-    this.FITNESS_START_NOKING = 2 * FITNESS_PIECE.get(Piece.ROOK)
-        + 2 * FITNESS_PIECE.get(Piece.KNIGHT) + 2 * FITNESS_PIECE.get(Piece.BISHOP)
-        + FITNESS_PIECE.get(Piece.QUEEN) + 8 * FITNESS_PIECE.get(Piece.PAWN);
+    this.fitnessStartNoKing = 2 * fitnessPiece.get(Piece.ROOK)
+        + 2 * fitnessPiece.get(Piece.KNIGHT) + 2 * fitnessPiece.get(Piece.BISHOP)
+        + fitnessPiece.get(Piece.QUEEN) + 8 * fitnessPiece.get(Piece.PAWN);
 
     this.pawnShieldQueenside = new HashMap<Color, Bitboard>();
     this.pawnShieldQueensideForward = new HashMap<Color, Bitboard>();
@@ -83,15 +80,15 @@ public class Brain {
    */
   public float endgameFraction(Board board) {
     float material = 0;
-    for (Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
+    for (Map.Entry<Piece, Float> entry : this.fitnessPiece.entrySet()) {
       Piece piece = entry.getKey();
       if (piece == Piece.KING) {
         continue;
       }
       int pieceCount = board.bitboards.get(Color.flip(board.turn)).get(piece).numOccupied();
-      material += pieceCount * this.FITNESS_PIECE.get(piece);
+      material += pieceCount * this.fitnessPiece.get(piece);
     }
-    return 1 - material / this.FITNESS_START_NOKING;
+    return 1 - material / this.fitnessStartNoKing;
   }
 
   /**
@@ -117,8 +114,8 @@ public class Brain {
       distanceFromHomeRank = 7 - (int) (kingIndex / 8);
     }
     float rankFitness =
-        -this.FITNESS_KING_RANK_FACTOR * distanceFromHomeRank * (0.6f - endgameFraction);
-    float fileFitness = this.FITNESS_KING_FILE[kingIndex % 8] * (0.6f - endgameFraction);
+        -this.fitnessKingRankFactor * distanceFromHomeRank * (0.6f - endgameFraction);
+    float fileFitness = this.fitnessKingFile[kingIndex % 8] * (0.6f - endgameFraction);
 
     float openFilePenalty = 0;
     float pawnShieldPenalty = 0;
@@ -187,9 +184,9 @@ public class Brain {
       Bitboard rookFile = Bitboard.bitboardFromFile(rookIndex % 8);
       if (!rookFile.intersects(myPawns)) {
         if (!rookFile.intersects(oppPawns)) {
-          result += this.FITNESS_ROOK_OPEN_FILE;
+          result += this.fitnessRookOpenFile;
         } else {
-          result += this.FITNESS_ROOK_SEMIOPEN_FILE;
+          result += this.fitnessRookSemiOpenFile;
         }
       }
     }
@@ -219,10 +216,10 @@ public class Brain {
     boolean castleRightQueenside = board.castleRights.get(color).get(Castle.QUEENSIDE);
     boolean castleRightKingside = board.castleRights.get(color).get(Castle.KINGSIDE);
     if (castleRightQueenside) {
-      result += this.FITNESS_CASTLE_RIGHT_QUEENSIDE;
+      result += this.fitnessCastleRightQueenside;
     }
     if (castleRightKingside) {
-      result += this.FITNESS_CASTLE_RIGHT_KINGSIDE;
+      result += this.fitnessCastleRightKingside;
     }
 
     int numPawnsQueenside = board.bitboards.get(color).get(Piece.PAWN)
@@ -239,15 +236,13 @@ public class Brain {
   }
 
   /**
-   * <p>
    * Returns the static evaluation fitness score for a given board. In general we evaluate various
    * bonuses and penalties both for the side to move and the opponent. The result is the score from
    * the player to move's perspective, i.e. the player's fitness minus the opponent's fitness.
    * 
-   * <p>
-   * To compute the fitness we take the following into account: material on board, a bonus for the
-   * bishop pair, a penalty for doubled and isolated pawns, a bonus for passed pawns, a score for
-   * king safety, and a bonus for rook placement on open files.
+   * <p>To compute the fitness we take the following into account: material on board, a bonus for
+   * the bishop pair, a penalty for doubled and isolated pawns, a bonus for passed pawns, a score
+   * for king safety, and a bonus for rook placement on open files.
    * 
    * @see <a href="https://en.wikipedia.org/wiki/Glossary_of_chess#Bishop_pair">Bishop Pair</a>
    * @param board the board with which to perform a static evaluation
@@ -256,20 +251,20 @@ public class Brain {
   public float fitness(Board board) {
     float fitness = 0;
     Color turnFlipped = Color.flip(board.turn);
-    for (Map.Entry<Piece, Float> entry : this.FITNESS_PIECE.entrySet()) {
+    for (Map.Entry<Piece, Float> entry : this.fitnessPiece.entrySet()) {
       Piece piece = entry.getKey();
       if (piece == Piece.PAWN) {
         continue;
       }
       int myPieceCount = board.bitboards.get(board.turn).get(piece).numOccupied();
       int oppPieceCount = board.bitboards.get(turnFlipped).get(piece).numOccupied();
-      fitness += (myPieceCount - oppPieceCount) * this.FITNESS_PIECE.get(piece);
+      fitness += (myPieceCount - oppPieceCount) * this.fitnessPiece.get(piece);
       if (piece == Piece.BISHOP) {
         if (myPieceCount >= 2) {
-          fitness += this.FITNESS_BISHOP_PAIR_BONUS;
+          fitness += this.fitnessBishopPairBonus;
         }
         if (oppPieceCount >= 2) {
-          fitness -= this.FITNESS_BISHOP_PAIR_BONUS;
+          fitness -= this.fitnessBishopPairBonus;
         }
       }
     }
@@ -314,8 +309,8 @@ public class Brain {
         Bitboard centralityBitboard =
             Bitboard.bitboardFromFile(centrality).union(Bitboard.bitboardFromFile(8 - centrality));
         float pawnFactor =
-            (1 - endgameFraction) * this.FITNESS_PAWN_TABLE_OPENING[rank][centrality];
-        pawnFactor += endgameFraction * this.FITNESS_PAWN_TABLE_ENDGAME[rank][centrality];
+            (1 - endgameFraction) * this.fitnessPawnTableOpening[rank][centrality];
+        pawnFactor += endgameFraction * this.fitnessPawnTableEndgame[rank][centrality];
 
         int myPawnsOnRank = pawnBitboardRelativeToMe.intersection(rankBitboard)
             .intersection(centralityBitboard).numOccupied();
@@ -365,7 +360,7 @@ public class Brain {
     // The player whose king gets captured first loses, even if the other king gets captured next
     // turn.
     if (board.bitboards.get(board.turn).get(Piece.KING).isEmpty()) {
-      return -FITNESS_LARGE;
+      return -fitnessLarge;
     }
     ArrayList<Move> lmf = board.legalMovesFast(true);
     for (Move move : lmf) {
@@ -388,28 +383,25 @@ public class Brain {
   }
 
   /**
-   * <p>
    * Performs a recursive alpha-beta depth-first search to a given depth. Runs a quiescent search
    * through {@link #quiescentSearch(Board, float, float, long)} at the leaf nodes.
    * 
-   * <p>
-   * Alpha-beta pruning is a modified depth-first search that prunes branches that are certain to
-   * not lead to the optimal move. To paraphrase the Chess Programming article below, consider a
+   * <p>Alpha-beta pruning is a modified depth-first search that prunes branches that are certain
+   * to not lead to the optimal move. To paraphrase the Chess Programming article below, consider a
    * depth-first search of two where the first player has two legal moves M1 and M2. After scanning
    * the leaf nodes below M1, it is determined to lead to an even position. Now for M2 the opponent
    * can respond with N1, N2, or N3. Suppose that N1 captures the first player's rook. Then we know
    * the first player will play M1 instead of M2 because M2 is known to lead to a less desirable
-   * outcome. It doesn't matter whether say N2 captures the first player's queen, as we already know
-   * that M2 will not be played. So we do not need to evaluate N2 nor N3.
+   * outcome. It doesn't matter whether say N2 captures the first player's queen, as we already
+   * know that M2 will not be played. So we do not need to evaluate N2 nor N3.
    * 
-   * <p>
-   * In the example above the "approximately even" score is tracked by the variable alpha, and it
-   * would be set to around 0. It is updated when a better move for the current player is found. We
-   * also track beta which is the negative of the opponent's alpha. So in a sense if we find a move
-   * with a score higher than beta it is "too good to be true" and the opponent would not allow it,
-   * so we can safely prune the parent move. We use the negamax framework here, where roughly
-   * speaking each player's beta is the negative of the opponent's alpha. The Negamax article below
-   * outlines the process more fully.
+   * <p>In the example above the "approximately even" score is tracked by the variable alpha, and
+   * it would be set to around 0. It is updated when a better move for the current player is found.
+   * We also track beta which is the negative of the opponent's alpha. So in a sense if we find a
+   * move with a score higher than beta it is "too good to be true" and the opponent would not
+   * allow it, so we can safely prune the parent move. We use the negamax framework here, where
+   * roughly speaking each player's beta is the negative of the opponent's alpha. The Negamax
+   * article below outlines the process more fully.
    * 
    * @see <a href="https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning"> Alpha-Beta Pruning</a>
    * @see <a href="http://chessprogramming.wikispaces.com/Alpha-Beta">Alpha-Beta</a>
@@ -448,7 +440,7 @@ public class Brain {
       if (legalMoves.size() == 0) {
         if (board.isInCheck()) {
           // Checkmate
-          return board.fullMoveCounter * this.FITNESS_MOVE - this.FITNESS_LARGE;
+          return board.fullMoveCounter * this.fitnessMove - this.fitnessLarge;
         } else {
           // Stalemate
           return 0;
@@ -502,8 +494,8 @@ public class Brain {
    */
   public Move getMoveToDepth(Board board, int depth) {
     Move bestMove = null;
-    float alpha = -FITNESS_LARGE;
-    float beta = FITNESS_LARGE;
+    float alpha = -this.fitnessLarge;
+    float beta = this.fitnessLarge;
     for (Move move : board.legalMoves()) {
       Board copy = new Board(board);
       copy.move(move);
@@ -584,34 +576,34 @@ public class Brain {
   private TranspositionTable transpositionTable = null;
   private PawnKingHashTable pawnKingHashTable = null;
 
-  private float FITNESS_LARGE = 1000000000;
+  private float fitnessLarge = 1000000000;
   // To checkmate as quickly as possible, put in a penalty for waiting.
-  private float FITNESS_MOVE = 10000;
-  private Map<Piece, Float> FITNESS_PIECE = new HashMap<Piece, Float>();
-  private float FITNESS_START_NOKING = 0;
+  private float fitnessMove = 10000;
+  private Map<Piece, Float> fitnessPiece = new HashMap<Piece, Float>();
+  private float fitnessStartNoKing = 0;
 
-  private float FITNESS_ROOK_OPEN_FILE = 50;
-  private float FITNESS_ROOK_SEMIOPEN_FILE = 25;
+  private float fitnessRookOpenFile = 50;
+  private float fitnessRookSemiOpenFile = 25;
 
-  private float FITNESS_CASTLE_RIGHT_QUEENSIDE = 15;
-  private float FITNESS_CASTLE_RIGHT_KINGSIDE = 30;
+  private float fitnessCastleRightQueenside = 15;
+  private float fitnessCastleRightKingside = 30;
 
-  private float FITNESS_BISHOP_PAIR_BONUS = 50;
+  private float fitnessBishopPairBonus = 50;
 
   // It goes as [rank][centrality]. rank goes from 0 to 7 and is from the
   // perspective of that player. centrality goes from 0 (files a, h) to 3
   // (files d, e).
-  private float[][] FITNESS_PAWN_TABLE_OPENING =
+  private float[][] fitnessPawnTableOpening =
       {{0, 0, 0, 0}, {90, 95, 105, 110}, {90, 95, 105, 115}, {90, 95, 110, 120},
           {97, 103, 117, 127}, {106, 112, 125, 140}, {117, 122, 134, 159}, {0, 0, 0, 0}};
-  private float[][] FITNESS_PAWN_TABLE_ENDGAME =
+  private float[][] fitnessPawnTableEndgame =
       {{0, 0, 0, 0}, {120, 105, 95, 90}, {120, 105, 95, 90}, {125, 110, 100, 95},
           {133, 117, 107, 100}, {145, 129, 116, 105}, {161, 146, 127, 110}, {0, 0, 0, 0}};
-  private float FITNESS_KING_RANK_FACTOR = 75;
-  private float[] FITNESS_KING_FILE = {0, 0, -90, -180, -180, -90, 0, 0};
+  private float fitnessKingRankFactor = 75;
+  private float[] fitnessKingFile = {0, 0, -90, -180, -180, -90, 0, 0};
 
-  private static int TRANSPOSITION_TABLE_SIZE = 32 * 1024 * 1024;
-  private static int PAWN_KING_TABLE_SIZE = 64 * 1024;
+  private static int transpositionTableSize = 32 * 1024 * 1024;
+  private static int pawnKingTableSize = 64 * 1024;
 
   private Map<Color, Bitboard> pawnShieldQueenside;
   private Map<Color, Bitboard> pawnShieldQueensideForward;

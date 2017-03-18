@@ -249,7 +249,6 @@ public class AlgebraicNotation {
    */
   public static String moveToAlgebraic(Board board, Move move) {
     Square sourceSquare = new Square(move.source);
-    Square destinationSquare = new Square(move.destination);
     Piece mover = board.pieceOnSquare(sourceSquare);
 
     if (mover == Piece.KING && move.source + 2 == move.destination) {
@@ -268,6 +267,7 @@ public class AlgebraicNotation {
 
     String ambiguity = getAmbiguity(board, move);
 
+    Square destinationSquare = new Square(move.destination);
     String captureStr = "";
     if (board.allPieces.intersects(destinationSquare)) {
       captureStr = "x";

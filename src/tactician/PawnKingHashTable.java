@@ -1,7 +1,6 @@
 package tactician;
 
 /**
- * <p>
  * This class is a transposition table similar to {@link TranspositionTable} that memoizes
  * positions already visited. This way if we encounter the same position through a different series
  * of moves through the depth-first search, we can retrieve the results of the calculations from
@@ -10,8 +9,7 @@ package tactician;
  * more detailed calculations related to pawn structure and king safety and retrieve them at a
  * relatively high hit rate.
  * 
- * <p>
- * A key concept is the position hash, a Zobrist hash containing the information about pawns and
+ * <p>A key concept is the position hash, a Zobrist hash containing the information about pawns and
  * kings for each player. We ignore the side to move, castling rights, and the en passant target.
  * See {@link PositionHasher} for more details. Within {@link PawnHashTableEntry} we also store the
  * pawn masks and the king indices to guard against the possibility of a hash collision. For both
@@ -51,19 +49,19 @@ public class PawnKingHashTable {
       this.kingIndexBlack = kingIndexBlack;
     }
 
-    /** The Zobrist hash describing the pawns and kings */
+    /** The Zobrist hash describing the pawns and kings. */
     public long positionHash = 0;
 
-    /** The 64-bit pawn bitboard mask for white */
+    /** The 64-bit pawn bitboard mask for white. */
     public long pawnMaskWhite = 0;
 
-    /** The 64-bit pawn bitboard mask for black */
+    /** The 64-bit pawn bitboard mask for black. */
     public long pawnMaskBlack = 0;
 
-    /** The index of the white king, 0-63 */
+    /** The index of the white king, 0-63. */
     public int kingIndexWhite = 0;
 
-    /** The index of the black king, 0-63 */
+    /** The index of the black king, 0-63. */
     public int kingIndexBlack = 0;
 
     /**

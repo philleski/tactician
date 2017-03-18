@@ -11,18 +11,15 @@ import tactician.Board;
 import tactician.Brain;
 
 /**
- * <p>
  * This class is the entry point to the chess engine. It implements part of the Universal Chess
  * Interface in order to accept commands from a chess GUI.
  * 
- * <p>
- * A chess program is typically composed of two parts, a GUI and an engine. This package only
+ * <p>A chess program is typically composed of two parts, a GUI and an engine. This package only
  * implements an engine, so in order to play chess comfortably we recommend that it be connected to
  * a chess GUI. See the README file for examples. It is still possible to play against the engine
  * on the command line, though not as easy.
  * 
- * <p>
- * The GUI is responsible for displaying a graphical representation of the board and pieces, for
+ * <p>The GUI is responsible for displaying a graphical representation of the board and pieces, for
  * managing time and enforcing time limits, and for enforcing move legality. The engine is
  * responsible for playing a move based on a board position within certain time limits. Typically
  * the GUI is also responsible for the opening book, selecting randomly from the most common
@@ -38,6 +35,7 @@ public class Tactician {
     try {
       new File(logFilename).delete();
     } catch (Exception e) {
+      System.err.println("Could not delete file: " + logFilename);
     }
   }
 
@@ -52,6 +50,7 @@ public class Tactician {
       writer.write(line + "\n");
       writer.close();
     } catch (IOException e) {
+      System.err.println("Could not write message to log file: " + line);
     }
   }
 
@@ -87,7 +86,7 @@ public class Tactician {
    * 
    * @param line the command sent in from the chess GUI
    */
-  public static void interpretUCICommand(String line) {
+  public static void interpretUciCommand(String line) {
     log("< " + line);
     if (line.equals("uci")) {
       respond("id name Tactician");
@@ -127,12 +126,13 @@ public class Tactician {
       try {
         line = reader.readLine();
       } catch (IOException e) {
+        System.err.println("Could not read line from standard input.");
       }
-      interpretUCICommand(line);
+      interpretUciCommand(line);
     }
   }
 
-  /** The filename where we log commands and other details about the position for debugging */
+  /** The filename where we log commands and other details about the position for debugging. */
   private static String logFilename = "~/chess.log";
 
   private static Board board = new Board();
