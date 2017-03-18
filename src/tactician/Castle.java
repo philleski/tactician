@@ -8,6 +8,5 @@ package tactician;
  * @author Phil Leszczynski
  */
 public enum Castle {
-	KINGSIDE,
-	QUEENSIDE;
+  KINGSIDE, QUEENSIDE;
 }
