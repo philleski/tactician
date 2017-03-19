@@ -2,6 +2,12 @@
 
 An AI program that plays chess by reading in moves from the command line.
 
+## Demo
+
+The image below links to a YouTube video of one of Tactician's games. In this video Tactician played white against chess.com's computer set to Level 4.
+
+[![Tactician vs. Chess.com Level 4 Replay](http://img.youtube.com/vi/IfMGne0wNZM/0.jpg)](http://www.youtube.com/watch?v=IfMGne0wNZM "Tactician vs. Chess.com Level 4 Replay")
+
 ## Compiling
 
 In Eclipse, go to File -> Export. Then in the Java directory, select Runnable Jar File. Note the location of the exported file.
@@ -31,9 +37,3 @@ The JUnit tests are located in the Test subfolder. They should all pass before c
 ## Style
 
 We use the Google Java style guide for this project: https://google.github.io/styleguide/javaguide.html
-
-## Demo
-
-The image below links to a YouTube video showing Tactician in action. In this video Tactician played white against chess.com's computer set to Level 4.
-
-[![Tactician vs. Chess.com Level 4 Replay](http://img.youtube.com/vi/IfMGne0wNZM/0.jpg)](http://www.youtube.com/watch?v=IfMGne0wNZM "Tactician vs. Chess.com Level 4 Replay")
