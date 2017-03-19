@@ -154,6 +154,12 @@ public class Bitboard {
     return this.intersects(other.getData());
   }
 
+  /**
+   * Tests whether the bitboard contains the given square.
+   * 
+   * @param square the square to check whether the bitboard occupies it
+   * @return true if the square is occupied by this bitboard, false otherwise
+   */
   public boolean intersects(Square square) {
     return this.intersects(square.getMask());
   }
