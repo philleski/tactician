@@ -1,4 +1,4 @@
-package tactician.test;
+package tactician.Test;
 
 import static org.junit.Assert.assertTrue;
 
