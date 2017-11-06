@@ -127,9 +127,10 @@ public class Brain {
       alpha = fitness;
     }
     // The player whose king gets captured first loses, even if the other king gets captured next
-    // turn.
+    // turn. Reduce the benefit by each move of the game to incentivize checkmate as quickly as
+    // possible.
     if (board.bitboards.get(board.turn).get(Piece.KING).isEmpty()) {
-      return -Evaluation.FITNESS_LARGE;
+      return -Evaluation.FITNESS_LARGE + board.fullMoveCounter * Evaluation.FITNESS_MOVE;
     }
     ArrayList<Move> lmf = this.sortLegalMovesFast(board.legalMovesFast(true), board, 0, null);
     for (Move move : lmf) {
@@ -204,6 +205,11 @@ public class Brain {
     }
     ArrayList<Move> lmf = this.sortLegalMovesFast(board.legalMovesFast(false), board, depth,
         lastBestMove);
+    // Special case where the king is captured and there are no pieces remaining for the side to
+    // move. We still want to discount the fitness by how many moves it took to get there.
+    if(lmf.size() == 0) {
+      return -Evaluation.FITNESS_LARGE + board.fullMoveCounter * Evaluation.FITNESS_MOVE;
+    }
     TranspositionTable.TranspositionType nodeType = TranspositionTable.TranspositionType.NODE_ALL;
     Move bestMove = null;
     for (Move move : lmf) {

@@ -313,6 +313,16 @@ public class Evaluation {
         - this.fitnessRookFiles(board, turnFlipped, endgameFraction);
     fitness += this.fitnessCastleRights(board, board.turn, endgameFraction)
         - this.fitnessCastleRights(board, turnFlipped, endgameFraction);
+    
+    // The engine should try to checkmate as quickly as possible or delay being checkmated as long
+    // as possible. Do this by penalizing the winning side for a checkmate by the number of moves
+    // in the game.
+    if(board.bitboards.get(board.turn).get(Piece.KING).isEmpty()) {
+      fitness += board.fullMoveCounter * FITNESS_MOVE;
+    }
+    if(board.bitboards.get(Color.flip(board.turn)).get(Piece.KING).isEmpty()) {
+      fitness -= board.fullMoveCounter * FITNESS_MOVE;
+    }
 
     return fitness;
   }

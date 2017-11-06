@@ -29,6 +29,18 @@ public class TestBrain {
     Move move = brain.getMove(board);
     assertEquals(move.toString(), "d8h4");
   }
+  
+  /**
+   * Makes sure that checkmate is pursued immediately rather than having a mate with the rook in a
+   * more favorable position, for example.
+   */
+  @Test
+  public void testMateQuickly() {
+    Board board = new Board("4K3/7r/5p2/5k2/8/8/1r6/8 b KQkq - 0 1");
+    Brain brain = new Brain();
+    Move move = brain.getMove(board);
+    assertEquals(move.toString(), "b2b8");
+  }
 
   /**
    * Tests to make sure the engine can still make a move even if it will be checkmated next move.
