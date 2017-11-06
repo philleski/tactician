@@ -194,9 +194,9 @@ public class TranspositionTable {
    * @return the array index where the position hash is found
    */
   private int index(long positionHash) {
-    // Unset the integer sign bit; the modulus is 2 * this.size because we're storing the
-    // transposition entry in two longs.
-    return ((int) positionHash & 0x7fffffff) % (2 * this.size);
+    // Unset the integer sign bit; the modulus is 2 * this.size - 1 because we're storing the
+    // transposition entry in two longs. The -1 is because it's the index of the first datapoint.
+    return ((int) positionHash & 0x7fffffff) % (2 * this.size - 1);
   }
 
   /** The size of the transposition table in number of entries (NOT bytes). */

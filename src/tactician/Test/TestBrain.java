@@ -41,6 +41,18 @@ public class TestBrain {
     Move move = brain.getMove(board);
     assertEquals(move.toString(), "b2b8");
   }
+  
+  /**
+   * Makes sure we don't overflow the bounds of the transposition table. This position resulted in
+   * a bug where the transposition table index overflowed its data structure.
+   */
+  @Test
+  public void testTranspositionTableBounds() {
+    Board board = new Board("Bn5r/p3k2p/b5p1/4p3/3q4/2nP3Q/PPP2PPP/R3KR2 w Q - 5 19");
+    Brain brain = new Brain();
+    Move move = brain.getMove(board);
+    assertNotNull(move);
+  }
 
   /**
    * Tests to make sure the engine can still make a move even if it will be checkmated next move.
