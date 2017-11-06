@@ -655,35 +655,18 @@ public class LegalMoveGenerator {
   public ArrayList<Move> legalMovesFast(Board board, boolean capturesOnly) {
     ArrayList<Move> legalMovesFast = new ArrayList<Move>();
 
-    this.appendMovesForQueen(board, legalMovesFast, capturesOnly);
-    this.appendMovesForRook(board, legalMovesFast, capturesOnly);
-    this.appendMovesForBishop(board, legalMovesFast, capturesOnly);
-    this.appendMovesForKnight(board, legalMovesFast, capturesOnly);
     this.appendMovesForPawn(board, legalMovesFast, capturesOnly);
+    this.appendMovesForKnight(board, legalMovesFast, capturesOnly);
+    this.appendMovesForBishop(board, legalMovesFast, capturesOnly);
+    this.appendMovesForRook(board, legalMovesFast, capturesOnly);
+    this.appendMovesForQueen(board, legalMovesFast, capturesOnly);
     this.appendMovesForKing(board, legalMovesFast, capturesOnly);
 
     if (!capturesOnly) {
-      ArrayList<Move> legalMovesFastResult = new ArrayList<Move>();
-      ArrayList<Move> legalMovesFastNoncapture = new ArrayList<Move>();
-      for (Move move : legalMovesFast) {
-        if (board.allPieces.intersects(1L << move.destination)) {
-          legalMovesFastResult.add(move);
-        } else {
-          legalMovesFastNoncapture.add(move);
-        }
-      }
-      legalMovesFastResult.addAll(legalMovesFastNoncapture);
-      legalMovesFastResult.addAll(this.getMovesForCastling(board));
-      return legalMovesFastResult;
-    } else {
-      ArrayList<Move> legalMovesFastCapture = new ArrayList<Move>();
-      for (Move move : legalMovesFast) {
-        if (board.allPieces.intersects(1L << move.destination)) {
-          legalMovesFastCapture.add(move);
-        }
-      }
-      return legalMovesFastCapture;
+      legalMovesFast.addAll(this.getMovesForCastling(board));
     }
+
+    return legalMovesFast;
   }
 
   /**
@@ -706,7 +689,7 @@ public class LegalMoveGenerator {
     }
     return result;
   }
-
+  
   private Map<Color, Map<Castle, Long>> maskCastleSpace;
   private Map<Color, Map<Castle, Long>> maskCastlePawns;
   private Map<Color, Map<Castle, Long>> maskCastleKnights;

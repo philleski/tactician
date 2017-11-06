@@ -673,6 +673,16 @@ public class Board {
     }
     return null;
   }
+  
+  /**
+   * Returns whether or not the given move is a capture.
+   * 
+   * @param move the move to test for capture
+   * @return true if the move is a capture on the given board, false otherwise
+   */
+  public boolean isCapture(Move move) {
+    return (this.allPieces.intersects(1L << move.destination));
+  }
 
   /**
    * Sets the {@link #positionHash} and {@link #positionHashPawnsKings} variables for the current
