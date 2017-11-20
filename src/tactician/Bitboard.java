@@ -247,12 +247,7 @@ public class Bitboard {
    * @return the number of occupied squares
    */
   public int numOccupied() {
-    long x = this.data;
-    int count;
-    for (count = 0; x != 0; count++) {
-      x &= x - 1;
-    }
-    return count;
+    return Long.bitCount(this.data);
   }
 
   /**

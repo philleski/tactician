@@ -66,22 +66,22 @@ public class Brain {
   }
   
   /**
-   * Given an ArrayList of fast legal moves, sorts them in the most beneficial way for the
-   * alpha-beta search. As a general rule moves that are more likely to be optimal should be
-   * searched first, as well as moves that are risky.
-   * @param legalMovesFast the list of legal moves to sort
+   * Given an ArrayList of legal moves, sorts them in the most beneficial way for the alpha-beta
+   * search. As a general rule moves that are more likely to be optimal should be searched first,
+   * as well as moves that are risky.
+   * @param legalMoves the list of legal moves to sort
    * @param board the current board position
    * @param depth the current search depth
    * @param lastBestMove the move found in the transposition table at the current position, or null
    * @return a sorted ArrayList of the same fast legal moves
    */
-  private ArrayList<Move> sortLegalMovesFast(ArrayList<Move> legalMovesFast, Board board,
-      int depth, Move lastBestMove) {
+  private ArrayList<Move> sortLegalMoves(ArrayList<Move> legalMoves, Board board, int depth,
+      Move lastBestMove) {
     ArrayList<Move> transpositionTableMoves = new ArrayList<Move>();
     ArrayList<Move> captureMoves = new ArrayList<Move>();
     ArrayList<Move> killerMoves = new ArrayList<Move>();
     ArrayList<Move> noncaptureMoves = new ArrayList<Move>();
-    for (Move move : legalMovesFast) {
+    for (Move move : legalMoves) {
       if (move.equals(lastBestMove)) {
         transpositionTableMoves.add(move);
       } else if (board.isCapture(move)) {
@@ -132,7 +132,7 @@ public class Brain {
     if (board.bitboards.get(board.turn).get(Piece.KING).isEmpty()) {
       return -Evaluation.FITNESS_LARGE + board.fullMoveCounter * Evaluation.FITNESS_MOVE;
     }
-    ArrayList<Move> lmf = this.sortLegalMovesFast(board.legalMovesFast(true), board, 0, null);
+    ArrayList<Move> lmf = this.sortLegalMoves(board.legalMovesFast(true), board, 0, null);
     for (Move move : lmf) {
       long moveTarget = 1L << move.destination;
       if (target != -1 && moveTarget != target) {
@@ -193,17 +193,17 @@ public class Brain {
         if (entry.type == TranspositionTable.TranspositionType.NODE_PV) {
           return entry.fitness;
         } else if (entry.type == TranspositionTable.TranspositionType.NODE_CUT) {
-          beta = entry.fitness;
-        } else if (entry.type == TranspositionTable.TranspositionType.NODE_ALL) {
+          // We know that since we had a cutoff we can at least achieve a score of entry.fitness,
+          // so set alpha to that.
           alpha = entry.fitness;
         }
         if (alpha >= beta) {
-          return entry.fitness;
+          return beta;
         }
       }
       lastBestMove = entry.bestMove;
     }
-    ArrayList<Move> lmf = this.sortLegalMovesFast(board.legalMovesFast(false), board, depth,
+    ArrayList<Move> lmf = this.sortLegalMoves(board.legalMovesFast(false), board, depth,
         lastBestMove);
     // Special case where the king is captured and there are no pieces remaining for the side to
     // move. We still want to discount the fitness by how many moves it took to get there.
@@ -246,7 +246,8 @@ public class Brain {
     float alpha = -Evaluation.FITNESS_LARGE;
     float beta = Evaluation.FITNESS_LARGE;
     this.unsetKillerMoves();
-    for (Move move : board.legalMoves()) {
+    ArrayList<Move> legalMovesSorted = this.sortLegalMoves(board.legalMoves(), board, depth, null);
+    for (Move move : legalMovesSorted) {
       Board copy = new Board(board);
       copy.move(move);
       float fitness = -this.alphabeta(copy, depth - 1, -beta, -alpha);
