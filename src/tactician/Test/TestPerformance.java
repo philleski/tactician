@@ -47,7 +47,7 @@ public class TestPerformance {
   /** Tests the initial position from the link in the class definition. */
   @Test
   public void testInitial() {
-    int[] nodeCounts = {1, 20, 400, 8902, 197281};
+    int[] nodeCounts = {1, 20, 400, 8902, 197281, 4865609};
     for (int depth = 0; depth < nodeCounts.length; depth++) {
       Board board = new Board();
       assertEquals(this.perft(board, depth), nodeCounts[depth]);
@@ -57,7 +57,7 @@ public class TestPerformance {
   /** Tests the "Kiwi Pete" position from the link in the class definition. */
   @Test
   public void testKiwipete() {
-    int[] nodeCounts = {1, 48, 2039, 97862};
+    int[] nodeCounts = {1, 48, 2039, 97862, 4085603};
     for (int depth = 0; depth < nodeCounts.length; depth++) {
       Board board =
           new Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
@@ -108,7 +108,7 @@ public class TestPerformance {
   /** Tests Position 6 from the link in the class definition. */
   @Test
   public void testPosition6() {
-    int[] nodeCounts = {1, 46, 2079, 89890};
+    int[] nodeCounts = {1, 46, 2079, 89890, 3894594};
     for (int depth = 0; depth < nodeCounts.length; depth++) {
       Board board =
           new Board("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
