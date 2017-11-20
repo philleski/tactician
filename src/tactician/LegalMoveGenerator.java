@@ -94,6 +94,9 @@ public class LegalMoveGenerator {
     this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "e2", "a6", 7);
     this.addCastleRayStraight(Color.WHITE, Castle.KINGSIDE, "f2", "f8", 8);
     this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "g2", "h3", 9);
+    this.addCastleRayStraight(Color.WHITE, Castle.KINGSIDE, "g2", "g8", 8);
+    this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "h2", "h2", 9);
+    this.addCastleRayDiagonal(Color.WHITE, Castle.KINGSIDE, "f2", "a7", 7);
 
     this.addCastleRayStraight(Color.WHITE, Castle.QUEENSIDE, "f1", "h1", 1);
     this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "d2", "a5", 7);
@@ -102,6 +105,9 @@ public class LegalMoveGenerator {
     this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "c2", "a4", 7);
     this.addCastleRayStraight(Color.WHITE, Castle.QUEENSIDE, "d2", "d8", 8);
     this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "e2", "h5", 9);
+    this.addCastleRayStraight(Color.WHITE, Castle.QUEENSIDE, "c2", "c8", 8);
+    this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "b2", "a3", 7);
+    this.addCastleRayDiagonal(Color.WHITE, Castle.QUEENSIDE, "d2", "h6", 9);
 
     this.castleRaysDiagonal.put(Color.BLACK, new HashMap<Castle, ArrayList<CastleRay>>());
     this.castleRaysStraight.put(Color.BLACK, new HashMap<Castle, ArrayList<CastleRay>>());
@@ -547,9 +553,8 @@ public class LegalMoveGenerator {
 
   /**
    * Appends the pseudo-legal moves for castling for a given board. We verify that the player has
-   * the rights to castle in the given direction, that the king does not castle out of a check, and
-   * that the king does not castle into a check. Note that we don't verify that the king does not
-   * castle into a check since we are only interested in pseudo-legal moves.
+   * the rights to castle in the given direction, that the king does not castle out of a check,
+   * that the king does not castle into a check, and that the king does not castle into a check.
    * 
    * @param board the board containing the position
    * @return an ArrayList of castling moves for the given board
@@ -571,13 +576,12 @@ public class LegalMoveGenerator {
   }
 
   /**
-   * Verifies that, given a board and a castle direction, the king does not castle out of a check
-   * nor through a check. We do not look at whether the king castles into a check since this is part
-   * of pseudo-legal move generation.
+   * Verifies that, given a board and a castle direction, the king does not castle out of a check,
+   * nor through a check, nor into a check.
    * 
    * @param board the board containing the position
    * @param castle the direction to verify the castle check rule
-   * @return true if the king does not castle out of a check nor through a check, false otherwise
+   * @return true if the king does not castle out/through/into a check, false otherwise
    */
   private boolean verifyCastleCheckRule(Board board, Castle castle) {
     Color turnFlipped = Color.flip(board.turn);
